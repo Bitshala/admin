@@ -1,0 +1,6 @@
+{
+    "rust-analyzer.cargo.target": "./",
+    "rust-analyzer.checkOnSave.commands": ["build", "fmt", "clippy"],
+    "rust-analyzer.procMacro.enable": true,
+    "rust-analyzer.cargo.features": []
+}
