@@ -46,6 +46,7 @@ async fn main() -> Result<(), ClassroomError>{
                     println!("Classroom ID: {}", classroom.id);
                     println!("Name:         {}", classroom.name);
                     println!("Archived:     {}", classroom.archived);
+                    println!("URL:          {}", classroom.url);
                 }
                 println!("------------------------------------");
             }
