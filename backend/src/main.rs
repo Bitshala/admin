@@ -288,7 +288,7 @@ async fn get_weekly_data_or_common(
             .filter(|&&ta| ta != TA::Setu)
             .cloned()
             .collect::<Vec<_>>();
-        tas.shuffle(&mut rng);
+        //tas.shuffle(&mut rng);
 
         let max_people_per_group = 6;
 
@@ -302,7 +302,7 @@ async fn get_weekly_data_or_common(
             {
                 if existing_row.ta.as_deref() == Some("NA") {
                     let (group_id, assigned_ta) = if row.attendance.as_deref() == Some("yes") {
-                        let group_id = idx / max_people_per_group % tas.len() + 1;
+                        let group_id = ((idx / max_people_per_group) % tas.len()) + 1;
                         (format!("Group {}", group_id), tas[group_id - 1])
                     } else {
                         ("Group 6".to_string(), TA::Setu)
@@ -325,7 +325,7 @@ async fn get_weekly_data_or_common(
                 }
             } else {
                 let (group_id, assigned_ta) = if row.attendance.as_deref() == Some("yes") {
-                    let group_id = idx / max_people_per_group % tas.len() + 1;
+                    let group_id = ((idx / max_people_per_group) % tas.len()) + 1;
                     (format!("Group {}", group_id), tas[group_id - 1])
                 } else {
                     ("Group 6".to_string(), TA::Setu)
