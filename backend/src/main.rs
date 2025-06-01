@@ -160,7 +160,7 @@ pub fn write_to_db(path: &PathBuf, table: &Table) -> Result<(), AppError> {
     Ok(())
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum TA {
     AnmolSharma,
     Bala,
@@ -276,8 +276,14 @@ async fn get_weekly_data_or_common(
 
         // Shuffle TAs for this week
         let mut rng = thread_rng();
-        let mut tas = TA::all_variants().to_vec();
+        let mut tas = TA::all_variants()
+            .iter()
+            .filter(|&&ta| ta != TA::Setu)
+            .cloned()
+            .collect::<Vec<_>>();
         tas.shuffle(&mut rng);
+
+        let max_people_per_group = 6;
 
         // Assign students to groups and TAs
         let mut result_rows: Vec<RowData> = Vec::new();
@@ -289,10 +295,8 @@ async fn get_weekly_data_or_common(
             {
                 if existing_row.ta.as_deref() == Some("NA") {
                     let (group_id, assigned_ta) = if row.attendance.as_deref() == Some("yes") {
-                        (
-                            format!("Group {}", (idx / 5 % 5) + 1),
-                            tas[(idx / 5 % 5) % tas.len()],
-                        )
+                        let group_id = idx / max_people_per_group % tas.len() + 1;
+                        (format!("Group {}", group_id), tas[group_id - 1])
                     } else {
                         ("Group 6".to_string(), TA::Setu)
                     };
@@ -305,10 +309,8 @@ async fn get_weekly_data_or_common(
                 }
             } else {
                 let (group_id, assigned_ta) = if row.attendance.as_deref() == Some("yes") {
-                    (
-                        format!("Group {}", (idx / 5 % 5) + 1),
-                        tas[(idx / 5 % 5) % tas.len()],
-                    )
+                    let group_id = idx / max_people_per_group % tas.len() + 1;
+                    (format!("Group {}", group_id), tas[group_id - 1])
                 } else {
                     ("Group 6".to_string(), TA::Setu)
                 };
