@@ -7,7 +7,7 @@ use rand::{seq::SliceRandom, Rng};
 use rand::thread_rng;
 use rusqlite::{Connection, params};
 use serde::{Deserialize, Serialize};
-use std::{os::linux::raw::stat, path::PathBuf, sync::Mutex};
+use std::{path::PathBuf, sync::Mutex};
 use thiserror::Error;
 // // mod classroom;
 // use classroom::get_env;
@@ -20,7 +20,7 @@ struct TaLogin {
 
 // TODO: Remove optional values.
 // Change fa, fb, fc to its actual names.
-#[derive(Serialize, Deserialize, Default, Debug)]
+#[derive(Serialize, Deserialize, Default, Debug, Clone)]
 pub struct RowData {
     pub name: String,
     pub group_id: String,
@@ -191,8 +191,8 @@ async fn get_weekly_attendance_count_for_week(
 
 #[get("/weekly_data/{week}")]
 async fn get_weekly_data_or_common(week: web::Path<i32>, state: web::Data<Mutex<Table>>) -> impl Responder {
-    let week = week.into_inner();
-    let table = state.lock().unwrap();
+    let week: i32 = week.into_inner();
+    let mut table = state.lock().unwrap();
 
     if week == 0 && !table.rows.is_empty() {
         return HttpResponse::Ok().json(&table.rows);
@@ -240,9 +240,11 @@ async fn get_weekly_data_or_common(week: web::Path<i32>, state: web::Data<Mutex<
             });
         }
 
-        // Add the extra data into the state here.
-        // Ensure there is no duplicate data.
-        // Write everything into the DB.
+       
+        table.rows.retain(|row| row.week != week);
+        table.rows.extend(result_rows.clone());
+
+        write_to_db(&PathBuf::from("classroom.db"), &table).unwrap();
 
         HttpResponse::Ok().json(result_rows)
     } else {
@@ -257,39 +259,37 @@ async fn get_weekly_data_or_common(week: web::Path<i32>, state: web::Data<Mutex<
 async fn add_weekly_data(
     week: web::Path<i32>,
     student_data: web::Json<Vec<RowData>>,
-    state: web::Data<Mutex<Table>>,
 ) -> Result<HttpResponse, actix_web::Error> {
     let week_number = week.into_inner();
-    let db_path = PathBuf::from("classroom.db");
-
-    // // Read the current table from the DB
-    // let mut table = read_from_db(&db_path)
-    //     .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
-
-    // mutate the state to have the latest scoring data + attendance.
-    // match in the state table with name + week.
-    // replace all scoring + attnd data with the new data.
-
+    let db_path = PathBuf::from("classroom.db");    
+    let mut table = read_from_db(&db_path)
+        .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
 
     // For each incoming entry, update or insert
-    for entry in student_data.into_inner() {
-        // Try to find an existing row for the same week and mail
-        if let Some(existing) = table
-            .rows
-            .iter_mut()
-            .find(|row| row.week == week_number && row.mail == entry.mail)
-        {
-            // Update the existing row
-            *existing = entry;
+    for incoming_row in student_data.iter() {
+        if let Some(existing_row) = table.rows.iter_mut().find(|row| row.name == incoming_row.name && row.week == week_number) {
+            // Update all fields except name, mail, and week
+            existing_row.group_id = incoming_row.group_id.clone();
+            existing_row.ta = incoming_row.ta.clone();
+            existing_row.attendance = incoming_row.attendance.clone();
+            existing_row.fa = incoming_row.fa;
+            existing_row.fb = incoming_row.fb;
+            existing_row.fc = incoming_row.fc;
+            existing_row.fd = incoming_row.fd;
+            existing_row.bonus_attempt = incoming_row.bonus_attempt;
+            existing_row.bonus_answer_quality = incoming_row.bonus_answer_quality;
+            existing_row.bonus_follow_up = incoming_row.bonus_follow_up;
+            existing_row.exercise_submitted = incoming_row.exercise_submitted.clone();
+            existing_row.exercise_test_passing = incoming_row.exercise_test_passing.clone();
+            existing_row.exercise_good_documentation = incoming_row.exercise_good_documentation.clone();
+            existing_row.exercise_good_structure = incoming_row.exercise_good_structure.clone();
+            existing_row.total = incoming_row.total;
         } else {
-            // Insert new row
-            let mut new_entry = entry;
-            new_entry.week = week_number;
-            table.rows.push(new_entry);
+            table.rows.push(incoming_row.clone());
         }
     }
 
-    // Write the updated table back to the DB
+    // Write to DB
     write_to_db(&db_path, &table)
         .map_err(|e| actix_web::error::ErrorInternalServerError(format!("Write failed: {}", e)))?;
 
