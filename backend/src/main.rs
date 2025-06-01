@@ -1,9 +1,13 @@
-use std::path::PathBuf;
-
-use actix_web::{get, http::header, middleware::Logger, post, web, App, HttpResponse, HttpServer, Responder, Result};
-use serde::{Deserialize, Serialize};
 use actix_cors::Cors;
+use actix_web::{
+    App, HttpResponse, HttpServer, Responder, Result, get, http::header, middleware::Logger, post,
+    web,
+};
+use rand::seq::SliceRandom;
+use rand::thread_rng;
 use rusqlite::{Connection, params};
+use serde::{Deserialize, Serialize};
+use std::{os::linux::raw::stat, path::PathBuf, sync::Mutex};
 use thiserror::Error;
 // // mod classroom;
 // use classroom::get_env;
@@ -40,7 +44,6 @@ pub struct Table {
     rows: Vec<RowData>,
 }
 
-
 // #[derive(Debug, Clone, Copy)]
 // enum TA {
 //     AnmolSharma = 0,
@@ -51,7 +54,7 @@ pub struct Table {
 //     Saurabh,
 // }
 
-//data functions 
+//data functions
 pub fn read_from_db(path: &PathBuf) -> Result<Table, AppError> {
     let conn = Connection::open(path)?;
     let mut stmt = conn.prepare("SELECT * FROM students")?;
@@ -86,6 +89,8 @@ pub fn write_to_db(path: &PathBuf, table: &Table) -> Result<(), AppError> {
     let mut conn = Connection::open(path)?;
     let tx = conn.transaction()?;
 
+    tx.execute("DELETE FROM students", [])?;
+
     for row in &table.rows {
         tx.execute(
             "INSERT INTO students (name, group_id, ta, attendance, fa, fb, fc, fd, bonus_attempt, bonus_answer_quality, bonus_follow_up, exercise_submitted, exercise_test_passing, exercise_good_documentation, exercise_good_structure, total, mail, week) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17)",
@@ -116,55 +121,88 @@ pub fn write_to_db(path: &PathBuf, table: &Table) -> Result<(), AppError> {
     Ok(())
 }
 
+#[derive(Debug, Clone, Copy)]
+enum TA {
+    AnmolSharma,
+    Bala,
+    Tushar,
+    Raj,
+    Setu,
+    Delcin,
+    Beulah,
+}
+
+impl TA {
+    // Returns all variants of the enum
+    fn all_variants() -> &'static [TA] {
+        &[
+            TA::AnmolSharma,
+            TA::Bala,
+            TA::Tushar,
+            TA::Raj,
+            TA::Setu,
+            TA::Delcin,
+            TA::Beulah,
+        ]
+    }
+
+    pub fn from_email(email: &str) -> Option<Self> {
+        match email {
+            "anmolsharma0234@gmail.com" => Some(TA::AnmolSharma),
+            "balajic86@gmail.com" => Some(TA::Bala),
+            "tusharvyas316@gmail.com" => Some(TA::Tushar),
+            "raj@bitshala.org" => Some(TA::Raj),
+            "setu@bitshala.org" => Some(TA::Setu),
+            "delcinraj@gmail.com" => Some(TA::Delcin),
+            "beulahebenezer777@gmail.com" => Some(TA::Beulah),
+            _ => None,
+        }
+    }
+}
 
 // --- Handlers ---
 #[post("/login")]
+/// Only allow TAs to login with specific emails.
 async fn login(item: web::Json<TaLogin>) -> impl Responder {
-    let ta_list: Vec<&str> = vec!["tusharvyas316@gmail.com", "raj@bitshala.org" , "setu@bitshala.org"
-,"anmolsharma0234@gmail.com"
-,"balajic86@gmail.com"
-,"delcinraj@gmail.com"
-,"beulahebenezer777@gmail.com" ];
-    if ta_list.iter().any(|ta_gmail| ta_gmail == &item.gmail) {
-        HttpResponse::Ok().json(TaLogin { gmail: format!("Access granted for: {}", item.gmail) })
+    if let Some(ta) = TA::from_email(&item.gmail) {
+        HttpResponse::Ok().json(serde_json::json!({
+            "status": "success",
+            "message": format!("Access granted for TA: {:?}", ta)
+        }))
     } else {
         HttpResponse::Unauthorized().json(serde_json::json!({
             "status": "error",
-            "message": format!("Access denied for: {}", item.gmail)
+            "message": format!("Access denied for email: {}", item.gmail)
         }))
     }
 }
 
 #[get("/students/count")]
-async fn get_total_student_count() -> impl Responder {
-    HttpResponse::Ok().json(serde_json::json!({ "count": read_from_db(&PathBuf::from("classroom.db")).map(|t| t.rows.len()).unwrap_or(0) }))
+async fn get_total_student_count(state: web::Data<Mutex<Table>>) -> impl Responder {
+    HttpResponse::Ok().json(serde_json::json!({ "count": state.lock().unwrap().rows.len() }))
 }
 
 #[get("/attendance/weekly_counts/{week}")]
-async fn get_weekly_attendance_count_for_week(week: web::Path<i32>) -> impl Responder {
-    let week_number = week.into_inner();
-    let table = read_from_db(&PathBuf::from("classroom.db")).unwrap();
-    let mut attended_count = 0;
-
-    for row in &table.rows {
-        if let Some(att) = &row.attendance {
-            if att == "yes" && row.week == week_number {
-                attended_count += 1;
-            }
-        }
-    }
+async fn get_weekly_attendance_count_for_week(
+    week: web::Path<i32>,
+    state: web::Data<Mutex<Table>>,
+) -> impl Responder {
+    let count = state.lock().unwrap()
+        .rows
+        .iter()
+        .filter(|row| row.week == week.clone() && row.attendance == Some("yes".to_string()))
+        .count();
 
     HttpResponse::Ok().json(serde_json::json!({
-        "week": week_number,
-        "attended": attended_count
+        "week": week.into_inner(),
+        "attended": count
     }))
 }
 
-
 #[get("/weekly_data/{week}")]
-async fn get_weekly_data_or_common(week: web::Path<i32>) -> impl Responder {
+async fn get_weekly_data_or_common(week: web::Path<i32>, state: web::Data<Mutex<Table>>) -> impl Responder {
     let week = week.into_inner();
-    let table = read_from_db(&PathBuf::from("classroom.db")).unwrap();
+    let table = state.lock().unwrap();
 
     if week == 0 && !table.rows.is_empty() {
         return HttpResponse::Ok().json(&table.rows);
@@ -193,7 +231,12 @@ async fn get_weekly_data_or_common(week: web::Path<i32>) -> impl Responder {
         let mut group_counter = 0;
         let mut result_rows: Vec<RowData> = Vec::new();
 
-        for row in prev_week_rows {
+        let mut rng = thread_rng();
+        let mut tas = TA::all_variants().to_vec();
+        let 
+        tas.shuffle(&mut rng);
+
+        for (idx, row) in prev_week_rows.iter().enumerate() {
             let (reassigned_group, assigned_ta) = match row.attendance.as_deref() {
                 Some("yes") => {
                     let idx = group_counter % group_ta_map.len();
@@ -203,6 +246,9 @@ async fn get_weekly_data_or_common(week: web::Path<i32>) -> impl Responder {
                 }
                 _ => ("Group 6 (Absent)".to_string(), "Saurabh".to_string()),
             };
+
+           
+
 
             result_rows.push(RowData {
                 name: row.name.clone(),
@@ -235,7 +281,6 @@ async fn get_weekly_data_or_common(week: web::Path<i32>) -> impl Responder {
     }
 }
 
-
 #[post("/weekly_data/{week}")]
 async fn add_weekly_data(
     week: web::Path<i32>,
@@ -251,7 +296,11 @@ async fn add_weekly_data(
     // For each incoming entry, update or insert
     for entry in student_data.into_inner() {
         // Try to find an existing row for the same week and mail
-        if let Some(existing) = table.rows.iter_mut().find(|row| row.week == week_number && row.mail == entry.mail) {
+        if let Some(existing) = table
+            .rows
+            .iter_mut()
+            .find(|row| row.week == week_number && row.mail == entry.mail)
+        {
             // Update the existing row
             *existing = entry;
         } else {
@@ -278,7 +327,9 @@ pub enum AppError {
 impl From<AppError> for std::io::Error {
     fn from(err: AppError) -> std::io::Error {
         match err {
-            AppError::SQLITE(e) => std::io::Error::new(std::io::ErrorKind::Other, format!("SQLite error: {}", e)),
+            AppError::SQLITE(e) => {
+                std::io::Error::new(std::io::ErrorKind::Other, format!("SQLite error: {}", e))
+            }
         }
     }
 }
@@ -287,18 +338,25 @@ impl From<AppError> for std::io::Error {
 async fn main() -> Result<(), std::io::Error> {
     env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
 
-    // let table = read_from_db(&PathBuf::from("classroom.db"))?;
+    let table = read_from_db(&PathBuf::from("classroom.db"))?;
+
+    let state = web::Data::new(Mutex::new(table));
 
     // Process shit depending upon query.
-    HttpServer::new(|| {
+    HttpServer::new(move || {
         let cors = Cors::default()
             .allowed_origin("http://localhost:5173")
             .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
-            .allowed_headers(vec![header::AUTHORIZATION, header::ACCEPT, header::CONTENT_TYPE])
+            .allowed_headers(vec![
+                header::AUTHORIZATION,
+                header::ACCEPT,
+                header::CONTENT_TYPE,
+            ])
             .supports_credentials()
             .max_age(3600);
 
         App::new()
+            .app_data(state.clone())
             .wrap(cors)
             .wrap(Logger::default())
             .service(login)
@@ -306,7 +364,6 @@ async fn main() -> Result<(), std::io::Error> {
             .service(add_weekly_data)
             .service(get_total_student_count)
             .service(get_weekly_attendance_count_for_week)
-        
     })
     .bind(("127.0.0.1", 8080))?
     .run()
