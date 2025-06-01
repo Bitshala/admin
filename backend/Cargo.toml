@@ -2,8 +2,11 @@
 name = "backend"
 version = "0.1.0"
 edition = "2024"
+default-run = "backend"
 
-
+[[bin]]
+name = "migrate"
+path = "src/alpha/migrate.rs"
 
 [dependencies]
 actix-web = "4"

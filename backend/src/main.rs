@@ -3,6 +3,7 @@ use actix_web::{
     App, HttpResponse, HttpServer, Responder, Result, get, http::header, middleware::Logger, post,
     web,
 };
+use octocrab::params::repos::release_assets::State;
 use rand::{seq::SliceRandom, Rng};
 use rand::thread_rng;
 use rusqlite::{Connection, params};
@@ -86,7 +87,7 @@ pub fn write_to_db(path: &PathBuf, table: &Table) -> Result<(), AppError> {
 
     for row in &table.rows {
         tx.execute(
-            "INSERT INTO students (name, group_id, ta, attendance, fa, fb, fc, fd, bonus_attempt, bonus_answer_quality, bonus_follow_up, exercise_submitted, exercise_test_passing, exercise_good_documentation, exercise_good_structure, total, mail, week) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17)",
+            "INSERT INTO students (name, group_id, ta, attendance, fa, fb, fc, fd, bonus_attempt, bonus_answer_quality, bonus_follow_up, exercise_submitted, exercise_test_passing, exercise_good_documentation, exercise_good_structure, total, mail, week) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18)",
             params![
                 row.name,
                 row.group_id,
@@ -192,13 +193,16 @@ async fn get_weekly_attendance_count_for_week(
 #[get("/weekly_data/{week}")]
 async fn get_weekly_data_or_common(week: web::Path<i32>, state: web::Data<Mutex<Table>>) -> impl Responder {
     let week: i32 = week.into_inner();
-    let mut table = state.lock().unwrap();
+    let db_path = PathBuf::from("classroom.db"); 
 
-    if week == 0 && !table.rows.is_empty() {
-        return HttpResponse::Ok().json(&table.rows);
+    let mut taTable = read_from_db(&db_path)
+        .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string())).unwrap();
+
+    if week == 0 && !taTable.rows.is_empty() {
+        return HttpResponse::Ok().json(&taTable.rows);
     } else if week >= 1 {
         // Sort students by total score in descending order
-        let mut sorted_rows: Vec<&RowData> = table.rows.iter().filter(|row| row.week == week - 1).collect();
+        let mut sorted_rows: Vec<&RowData> = taTable.rows.iter().filter(|row| row.week == week - 1).collect();
         sorted_rows.sort_by(|a, b| b.total.partial_cmp(&a.total).unwrap_or(std::cmp::Ordering::Equal));
 
         // Shuffle TAs for this week
@@ -240,11 +244,11 @@ async fn get_weekly_data_or_common(week: web::Path<i32>, state: web::Data<Mutex<
             });
         }
 
-       
-        table.rows.retain(|row| row.week != week);
-        table.rows.extend(result_rows.clone());
+        // Update the state table with the new data
+        // taTable.rows = result_rows.clone();
 
-        write_to_db(&PathBuf::from("classroom.db"), &table).unwrap();
+        // Write to DB
+        write_to_db(&PathBuf::from("classroom.db"), &taTable).unwrap();
 
         HttpResponse::Ok().json(result_rows)
     } else {
@@ -259,9 +263,11 @@ async fn get_weekly_data_or_common(week: web::Path<i32>, state: web::Data<Mutex<
 async fn add_weekly_data(
     week: web::Path<i32>,
     student_data: web::Json<Vec<RowData>>,
+    state: web::Data<Mutex<Table>>
 ) -> Result<HttpResponse, actix_web::Error> {
     let week_number = week.into_inner();
     let db_path = PathBuf::from("classroom.db");    
+
     let mut table = read_from_db(&db_path)
         .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
 
@@ -289,6 +295,7 @@ async fn add_weekly_data(
         }
     }
 
+    
     // Write to DB
     write_to_db(&db_path, &table)
         .map_err(|e| actix_web::error::ErrorInternalServerError(format!("Write failed: {}", e)))?;

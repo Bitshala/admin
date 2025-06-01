@@ -73,7 +73,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         );
         CREATE TABLE students (
             name                        TEXT NOT NULL,
-            group_id                    TEXT NOT NULL,
+            group_id                    TEXT,
             ta                          TEXT,
             attendance                  TEXT CHECK(attendance IN('yes','no')),
             fa                          REAL,
