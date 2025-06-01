@@ -237,6 +237,7 @@ const [totalCount, setTotalCount] = useState<number | null>(null);
       .catch(err => console.error("Error fetching weekly attendance:", err));
   }, []);
   
+  const [isSaved ,SetSaved] = useState(false);
   const handleSave = () => { // Saves based on the 'data' state, which is unfiltered and unsorted
 
     const payload = data.map(p => ({
@@ -257,10 +258,61 @@ const [totalCount, setTotalCount] = useState<number | null>(null);
       console.log('Save response:', r);
       if (!r.ok) throw new Error(r.statusText);
       setIsEditing(false);
+      SetSaved(true);
       return r.json();
     })
     .catch(e => console.error('Save failed', e));
 };
+
+
+    const downloadCSV = () => {
+      const headers = [
+        "Name",
+        "Email",
+        "Group",
+        "TA",
+        "Attendance",
+        "fa", "fb", "fc", "fd",
+        "Bonus_Attempt", "Bonus_Good", "Bonus_FollowUp",
+        "Submitted", "PrivateTest", "GoodStructure", "GoodDoc",
+        "Total"
+      ];
+
+      const rows = data.map(p => [
+        p.name,
+        p.email || '',
+        p.group,
+        p.ta || '',
+        p.attendance ? 'yes' : 'no',
+        p.gdScore.fa,
+        p.gdScore.fb,
+        p.gdScore.fc,
+        p.gdScore.fd,
+        p.bonusScore.attempt,
+        p.bonusScore.good,
+        p.bonusScore.followUp,
+        p.exerciseScore.Submitted ? 'yes' : 'no',
+        p.exerciseScore.privateTest ? 'yes' : 'no',
+        p.exerciseScore.goodStructure ? 'yes' : 'no',
+        p.exerciseScore.goodDoc ? 'yes' : 'no',
+        computeTotal(p)
+      ]);
+
+      const csvContent = [headers, ...rows]
+        .map(row => row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(","))
+        .join("\r\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `cohort-week-${week}.csv`);
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    };
 
 
   const getSortIndicator = (key: keyof TableRowData) => {
@@ -357,6 +409,13 @@ const [totalCount, setTotalCount] = useState<number | null>(null);
             <button onClick={handleSave} disabled={!isEditing}
               className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50">
               Save
+            </button>
+            <button
+              disabled={!isSaved}
+              onClick={downloadCSV}
+              className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 disabled:opacity-50"
+            >
+              Download CSV
             </button>
             </div>
         </div>
