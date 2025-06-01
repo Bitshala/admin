@@ -259,7 +259,13 @@ async fn get_weekly_data_or_common(
     let mut state_table = state.lock().unwrap();
 
     if week == 0 && !state_table.rows.is_empty() {
-        return HttpResponse::Ok().json(&state_table.rows);
+        let week_0_rows: Vec<RowData> = state_table
+            .rows
+            .iter()
+            .filter(|row| row.week == 0)
+            .cloned()
+            .collect();
+        return HttpResponse::Ok().json(week_0_rows);
     } else if week >= 1 {
         // Sort students by total score in descending order
         let mut prev_week_rows: Vec<RowData> = state_table
@@ -416,9 +422,9 @@ async fn main() -> Result<(), std::io::Error> {
             .allow_any_origin()
             .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
             .allowed_headers(vec![
-            header::AUTHORIZATION,
-            header::ACCEPT,
-            header::CONTENT_TYPE,
+                header::AUTHORIZATION,
+                header::ACCEPT,
+                header::CONTENT_TYPE,
             ])
             .supports_credentials()
             .max_age(3600);
