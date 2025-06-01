@@ -276,8 +276,9 @@ async fn get_weekly_data_or_common(
             .collect();
         prev_week_rows.sort_by(|a, b| {
             b.total
-                .partial_cmp(&a.total)
-                .unwrap_or(std::cmp::Ordering::Equal)
+            .partial_cmp(&a.total)
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| a.name.cmp(&b.name))
         });
 
         // Shuffle TAs for this week
@@ -310,8 +311,17 @@ async fn get_weekly_data_or_common(
                     row.group_id = group_id.clone();
                     row.ta = Some(format!("{:?}", assigned_ta));
                 } else {
-                    row.group_id = existing_row.group_id.clone();
-                    row.ta = existing_row.ta.clone();
+                    // row.group_id = existing_row.group_id.clone();
+                    // row.ta = existing_row.ta.clone();
+                    let (group_id, assigned_ta) = if row.attendance.as_deref() == Some("yes") {
+                        let group_id = idx / max_people_per_group % tas.len() + 1;
+                        (format!("Group {}", group_id), tas[group_id - 1])
+                    } else {
+                        ("Group 6".to_string(), TA::Setu)
+                    };
+
+                    row.group_id = group_id.clone();
+                    row.ta = Some(format!("{:?}", assigned_ta));
                 }
             } else {
                 let (group_id, assigned_ta) = if row.attendance.as_deref() == Some("yes") {
