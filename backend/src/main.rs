@@ -3,15 +3,14 @@ use actix_web::{
     App, HttpResponse, HttpServer, Responder, Result, get, http::header, middleware::Logger, post,
     web,
 };
-use rand::thread_rng;
 use rand::seq::SliceRandom;
+use rand::thread_rng;
 use rusqlite::{Connection, params};
 use serde::{Deserialize, Serialize};
 use std::{path::PathBuf, sync::Mutex};
 use thiserror::Error;
 // // mod classroom;
 // use classroom::get_env;
-
 
 #[derive(Debug, Error)]
 pub enum AppError {
@@ -263,12 +262,13 @@ async fn get_weekly_data_or_common(
         return HttpResponse::Ok().json(&state_table.rows);
     } else if week >= 1 {
         // Sort students by total score in descending order
-        let mut sorted_rows: Vec<RowData> = state_table
+        let mut prev_week_rows: Vec<RowData> = state_table
             .rows
             .iter()
-            .filter(|row| row.week == week - 1).cloned()
+            .filter(|row| row.week == week - 1)
+            .cloned()
             .collect();
-        sorted_rows.sort_by(|a, b| {
+        prev_week_rows.sort_by(|a, b| {
             b.total
                 .partial_cmp(&a.total)
                 .unwrap_or(std::cmp::Ordering::Equal)
@@ -281,22 +281,38 @@ async fn get_weekly_data_or_common(
 
         // Assign students to groups and TAs
         let mut result_rows: Vec<RowData> = Vec::new();
-        for (idx, row) in sorted_rows.iter_mut().enumerate() {
-            let (group_id, assigned_ta) = if row.attendance.as_deref() == Some("yes") {
-                (
-                    format!("Group {}", (idx / 5) + 1),
-                    tas[(idx / 5) % tas.len()],
-                )
-            } else {
-                ("Group 6".to_string(), TA::Setu)
-            };
+        for (idx, row) in prev_week_rows.iter_mut().enumerate() {
+            if let Some(existing_data) = state_table
+                .rows
+                .iter()
+                .find(|r| r.name == row.name && r.week == week)
+                && existing_data.ta.as_deref() == Some("NA")
+            {
+                let (group_id, assigned_ta) = if row.attendance.as_deref() == Some("yes") {
+                    (
+                        format!("Group {}", (idx / 5) + 1),
+                        tas[(idx / 5) % tas.len()],
+                    )
+                } else {
+                    ("Group 6".to_string(), TA::Setu)
+                };
 
-            row.group_id = group_id.clone();
-            row.ta = Some(format!("{:?}", assigned_ta));
+                row.group_id = group_id.clone();
+                row.ta = Some(format!("{:?}", assigned_ta));
+            } else {
+                // If the row already exists for this week, we don't need to assign a new group_id or TA
+                row.group_id = group_id.clone();
+                row.ta = row.ta.clone();
+            }
+
             row.week = week;
 
             // Get the existing data from the state for the same student and week
-            if let Some(existing_row) = state_table.rows.iter().find(|r| r.name == row.name && r.week == week) {
+            if let Some(existing_row) = state_table
+                .rows
+                .iter()
+                .find(|r| r.name == row.name && r.week == week)
+            {
                 row.attendance = existing_row.attendance.clone();
                 row.fa = existing_row.fa;
                 row.fb = existing_row.fb;
@@ -310,6 +326,20 @@ async fn get_weekly_data_or_common(
                 row.exercise_good_documentation = existing_row.exercise_good_documentation.clone();
                 row.exercise_good_structure = existing_row.exercise_good_structure.clone();
                 row.total = existing_row.total;
+            } else {
+                row.attendance = Some("no".to_string());
+                row.fa = Some(0);
+                row.fb = Some(0);
+                row.fc = Some(0);
+                row.fd = Some(0);
+                row.bonus_attempt = Some(0);
+                row.bonus_answer_quality = Some(0);
+                row.bonus_follow_up = Some(0);
+                row.exercise_submitted = Some("no".to_string());
+                row.exercise_test_passing = Some("no".to_string());
+                row.exercise_good_documentation = Some("no".to_string());
+                row.exercise_good_structure = Some("no".to_string());
+                row.total = Some(0);
             }
 
             // Update the state table with the new group_id and TA
@@ -402,7 +432,7 @@ async fn main() -> Result<(), std::io::Error> {
 #[test]
 fn test() {
     use rand::seq::SliceRandom;
-    use rand::{thread_rng, Rng};
+    use rand::{Rng, thread_rng};
 
     let mut rng = thread_rng();
     let names = vec![
