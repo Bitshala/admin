@@ -3,7 +3,7 @@ use actix_web::{
     App, HttpResponse, HttpServer, Responder, Result, get, http::header, middleware::Logger, post,
     web,
 };
-use rand::seq::SliceRandom;
+use rand::{seq::SliceRandom, Rng};
 use rand::thread_rng;
 use rusqlite::{Connection, params};
 use serde::{Deserialize, Serialize};
@@ -18,7 +18,9 @@ struct TaLogin {
     gmail: String,
 }
 
-#[derive(Serialize, Deserialize, Default)]
+// TODO: Remove optional values.
+// Change fa, fb, fc to its actual names.
+#[derive(Serialize, Deserialize, Default, Debug)]
 pub struct RowData {
     pub name: String,
     pub group_id: String,
@@ -40,19 +42,10 @@ pub struct RowData {
     pub week: i32,
 }
 
+// 
 pub struct Table {
     rows: Vec<RowData>,
 }
-
-// #[derive(Debug, Clone, Copy)]
-// enum TA {
-//     AnmolSharma = 0,
-//     Bala,
-//     Delcin,
-//     BeulahEvanjalin,
-//     Raj,
-//     Saurabh,
-// }
 
 //data functions
 pub fn read_from_db(path: &PathBuf) -> Result<Table, AppError> {
@@ -125,7 +118,6 @@ pub fn write_to_db(path: &PathBuf, table: &Table) -> Result<(), AppError> {
 enum TA {
     AnmolSharma,
     Bala,
-    Tushar,
     Raj,
     Setu,
     Delcin,
@@ -138,7 +130,6 @@ impl TA {
         &[
             TA::AnmolSharma,
             TA::Bala,
-            TA::Tushar,
             TA::Raj,
             TA::Setu,
             TA::Delcin,
@@ -150,7 +141,6 @@ impl TA {
         match email {
             "anmolsharma0234@gmail.com" => Some(TA::AnmolSharma),
             "balajic86@gmail.com" => Some(TA::Bala),
-            "tusharvyas316@gmail.com" => Some(TA::Tushar),
             "raj@bitshala.org" => Some(TA::Raj),
             "setu@bitshala.org" => Some(TA::Setu),
             "delcinraj@gmail.com" => Some(TA::Delcin),
@@ -206,54 +196,32 @@ async fn get_weekly_data_or_common(week: web::Path<i32>, state: web::Data<Mutex<
 
     if week == 0 && !table.rows.is_empty() {
         return HttpResponse::Ok().json(&table.rows);
-    } else if week >= 2 {
-        // Get previous week's rows, sorted by attendance
-        let mut prev_week_rows: Vec<&RowData> = table
-            .rows
-            .iter()
-            .filter(|row| row.week == week - 1)
-            .collect();
+    } else if week >= 1 {
+        // Sort students by total score in descending order
+        let mut sorted_rows: Vec<&RowData> = table.rows.iter().filter(|row| row.week == week - 1).collect();
+        sorted_rows.sort_by(|a, b| b.total.partial_cmp(&a.total).unwrap_or(std::cmp::Ordering::Equal));
 
-        prev_week_rows.sort_by_key(|row| match row.attendance.as_deref() {
-            Some("yes") => 0,
-            Some("no") => 1,
-            _ => 2,
-        });
-        // Assign groups and TAs in round-robin
-        let group_ta_map = [
-            ("Group 1", "Anmol Sharma"),
-            ("Group 2", "Bala"),
-            ("Group 3", "delcin"),
-            ("Group 4", "Beulah Evanjalin"),
-            ("Group 5", "Raj"),
-        ];
-
-        let mut group_counter = 0;
-        let mut result_rows: Vec<RowData> = Vec::new();
-
+        // Shuffle TAs for this week
         let mut rng = thread_rng();
         let mut tas = TA::all_variants().to_vec();
-        let 
         tas.shuffle(&mut rng);
 
-        for (idx, row) in prev_week_rows.iter().enumerate() {
-            let (reassigned_group, assigned_ta) = match row.attendance.as_deref() {
-                Some("yes") => {
-                    let idx = group_counter % group_ta_map.len();
-                    group_counter += 1;
-                    let (group, ta) = group_ta_map[idx];
-                    (group.to_string(), ta.to_string())
-                }
-                _ => ("Group 6 (Absent)".to_string(), "Saurabh".to_string()),
+        // Assign students to groups and TAs
+        let mut result_rows: Vec<RowData> = Vec::new();
+        for (idx, row) in sorted_rows.iter().enumerate() {
+            let (group_id, assigned_ta) = if row.attendance.as_deref() == Some("yes") {
+                (
+                    format!("Group {}", (idx / 5) + 1),
+                    tas[(idx / 5) % tas.len()],
+                )
+            } else {
+                ("Group 6".to_string(), TA::Setu)
             };
-
-           
-
 
             result_rows.push(RowData {
                 name: row.name.clone(),
-                group_id: reassigned_group,
-                ta: Some(assigned_ta),
+                group_id,
+                ta: Some(format!("{:?}", assigned_ta)),
                 attendance: row.attendance.clone(),
                 fa: row.fa,
                 fb: row.fb,
@@ -268,9 +236,13 @@ async fn get_weekly_data_or_common(week: web::Path<i32>, state: web::Data<Mutex<
                 exercise_good_structure: row.exercise_good_structure.clone(),
                 total: row.total,
                 mail: row.mail.clone(),
-                week: row.week,
+                week,
             });
         }
+
+        // Add the extra data into the state here.
+        // Ensure there is no duplicate data.
+        // Write everything into the DB.
 
         HttpResponse::Ok().json(result_rows)
     } else {
@@ -285,13 +257,19 @@ async fn get_weekly_data_or_common(week: web::Path<i32>, state: web::Data<Mutex<
 async fn add_weekly_data(
     week: web::Path<i32>,
     student_data: web::Json<Vec<RowData>>,
+    state: web::Data<Mutex<Table>>,
 ) -> Result<HttpResponse, actix_web::Error> {
     let week_number = week.into_inner();
     let db_path = PathBuf::from("classroom.db");
 
-    // Read the current table from the DB
-    let mut table = read_from_db(&db_path)
-        .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
+    // // Read the current table from the DB
+    // let mut table = read_from_db(&db_path)
+    //     .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
+
+    // mutate the state to have the latest scoring data + attendance.
+    // match in the state table with name + week.
+    // replace all scoring + attnd data with the new data.
+
 
     // For each incoming entry, update or insert
     for entry in student_data.into_inner() {
@@ -373,4 +351,68 @@ async fn main() -> Result<(), std::io::Error> {
     // write_to_db(&PathBuf::from("classroom.db"), &table)?;
 
     Ok(())
+}
+
+#[test]
+fn test() {
+    let mut rng = thread_rng();
+    let names = vec![
+        "Alice", "Bob", "Charlie", "David", "Eve", "Frank", "Grace", "Hank", "Ivy", "Jack",
+        "Karen", "Leo", "Mona", "Nina", "Oscar", "Paul", "Quinn", "Rita", "Steve", "Tina",
+    ];
+    let emails = vec![
+        "alice@example.com", "bob@example.com", "charlie@example.com", "david@example.com",
+        "eve@example.com", "frank@example.com", "grace@example.com", "hank@example.com",
+        "ivy@example.com", "jack@example.com", "karen@example.com", "leo@example.com",
+        "mona@example.com", "nina@example.com", "oscar@example.com", "paul@example.com",
+        "quinn@example.com", "rita@example.com", "steve@example.com", "tina@example.com",
+    ];
+
+    let mut rows = Vec::new();
+    for i in 0..20 {
+        rows.push(RowData {
+            name: names[i].to_string(),
+            group_id: format!("Group {}", (i / 5) + 1),
+            ta: None,
+            attendance: Some(if i % 2 == 0 { "no".to_string() } else { "no".to_string() }),
+            fa: Some(rng.gen_range(0.0..10.0)),
+            fb: Some(rng.gen_range(0.0..10.0)),
+            fc: Some(rng.gen_range(0.0..10.0)),
+            fd: Some(rng.gen_range(0.0..10.0)),
+            bonus_attempt: Some(rng.gen_range(0.0..5.0)),
+            bonus_answer_quality: Some(rng.gen_range(0.0..5.0)),
+            bonus_follow_up: Some(rng.gen_range(0.0..5.0)),
+            exercise_submitted: Some(if i % 3 == 0 { "yes".to_string() } else { "no".to_string() }),
+            exercise_test_passing: Some(if i % 4 == 0 { "yes".to_string() } else { "no".to_string() }),
+            exercise_good_documentation: Some(if i % 5 == 0 { "yes".to_string() } else { "no".to_string() }),
+            exercise_good_structure: Some(if i % 6 == 0 { "yes".to_string() } else { "no".to_string() }),
+            total: Some(rng.gen_range(0.0..100.0)),
+            mail: emails[i].to_string(),
+            week: rng.gen_range(1..5),
+        });
+    }
+
+    let mut sorted_rows = rows;
+    sorted_rows.sort_by(|a, b| b.total.partial_cmp(&a.total).unwrap_or(std::cmp::Ordering::Equal));
+    for row in &sorted_rows {
+        println!("Name: {}, Attn: {:?}, Total Score: {:?}", row.name, row.attendance, row.total);
+    }
+
+    // Shuffle TAs for this week
+    let mut rng = thread_rng();
+    let mut tas = TA::all_variants().to_vec();
+    tas.shuffle(&mut rng);
+    
+    for (idx, row) in sorted_rows.iter().enumerate() {
+        let (group_id, assigned_ta) = if row.attendance.as_deref() == Some("yes") {
+            (
+                format!("Group {}", (idx / 5) + 1),
+                tas[(idx / 5) % tas.len()],
+            )
+        } else {
+            ("Group 6".to_string(), TA::Setu)
+        };
+
+        println!("{} - {} - {:?}", row.name, group_id, assigned_ta);
+    }
 }
