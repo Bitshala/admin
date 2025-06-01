@@ -282,12 +282,28 @@ async fn get_weekly_data_or_common(
         // Assign students to groups and TAs
         let mut result_rows: Vec<RowData> = Vec::new();
         for (idx, row) in prev_week_rows.iter_mut().enumerate() {
-            if let Some(existing_data) = state_table
+            if let Some(existing_row) = state_table
                 .rows
                 .iter()
                 .find(|r| r.name == row.name && r.week == week)
-                && existing_data.ta.as_deref() == Some("NA")
             {
+                if existing_row.ta.as_deref() == Some("NA") {
+                    let (group_id, assigned_ta) = if row.attendance.as_deref() == Some("yes") {
+                        (
+                            format!("Group {}", (idx / 5) + 1),
+                            tas[(idx / 5) % tas.len()],
+                        )
+                    } else {
+                        ("Group 6".to_string(), TA::Setu)
+                    };
+
+                    row.group_id = group_id.clone();
+                    row.ta = Some(format!("{:?}", assigned_ta));
+                } else {
+                    row.group_id = existing_row.group_id.clone();
+                    row.ta = existing_row.ta.clone();
+                }
+            } else {
                 let (group_id, assigned_ta) = if row.attendance.as_deref() == Some("yes") {
                     (
                         format!("Group {}", (idx / 5) + 1),
@@ -299,10 +315,6 @@ async fn get_weekly_data_or_common(
 
                 row.group_id = group_id.clone();
                 row.ta = Some(format!("{:?}", assigned_ta));
-            } else {
-                // If the row already exists for this week, we don't need to assign a new group_id or TA
-                row.group_id = group_id.clone();
-                row.ta = row.ta.clone();
             }
 
             row.week = week;
