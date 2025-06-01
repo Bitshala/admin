@@ -1,11 +1,9 @@
 use std::path::PathBuf;
 
-use actix_web::{get, http::header, middleware::Logger, post, web, put, App, HttpResponse, HttpServer, Responder, Result};
+use actix_web::{get, http::header, middleware::Logger, post, web, App, HttpResponse, HttpServer, Responder, Result};
 use serde::{Deserialize, Serialize};
 use actix_cors::Cors;
-use rusqlite::{Connection, params, Result as RusqliteResult, Transaction};
-use rand::seq::SliceRandom;
-use rand::thread_rng;
+use rusqlite::{Connection, params};
 use thiserror::Error;
 // // mod classroom;
 // use classroom::get_env;
@@ -16,7 +14,7 @@ struct TaLogin {
     gmail: String,
 }
 
-#[derive(Serialize, Default)]
+#[derive(Serialize, Deserialize, Default)]
 pub struct RowData {
     pub name: String,
     pub group_id: String,
@@ -55,406 +53,7 @@ enum TA {
 
 
 
-// --- Handlers ---
-#[post("/login")]
-async fn login(item: web::Json<TaLogin>) -> impl Responder {
-    let ta_list: Vec<&str> = vec!["tusharvyas316@gmail.com", "raj@bitshala.org" , "setu@bitshala.org"
-,"anmolsharma0234@gmail.com"
-,"balajic86@gmail.com"
-,"delcinraj@gmail.com"
-,"beulahebenezer777@gmail.com" ];
-    if ta_list.iter().any(|ta_gmail| ta_gmail == &item.gmail) {
-        HttpResponse::Ok().json(TaLogin { gmail: format!("Access granted for: {}", item.gmail) })
-    } else {
-        HttpResponse::Unauthorized().json(serde_json::json!({
-            "status": "error",
-            "message": format!("Access denied for: {}", item.gmail)
-        }))
-    }
-}
-
-#[get("/students/count")]
-async fn get_total_student_count() -> impl Responder {
-    match Connection::open("classroom.db") {
-        Ok(conn) => {
-            let count: i64 = conn.query_row(
-                "SELECT COUNT(*) FROM students",
-                [],
-                |row| row.get(0),
-            ).unwrap_or(0);
-            HttpResponse::Ok().json(serde_json::json!({ "total_students": count }))
-        }
-        Err(e) => HttpResponse::InternalServerError().body(format!("DB open error: {}", e)),
-    }
-}
-
-#[get("/attendance/weekly_counts")]
-async fn get_weekly_attendance_counts() -> impl Responder {
-    match Connection::open("classroom.db") {
-        Ok(conn) => {
-            let mut stmt = match conn.prepare(
-                "SELECT week, COUNT(*) as attended_count FROM students
-                 WHERE attendance = 'yes'
-                 GROUP BY week ORDER BY week"
-            ) {
-                Ok(s) => s,
-                Err(e) => return HttpResponse::InternalServerError().body(format!("Prepare error: {}", e)),
-            };
-
-            let rows_result = stmt.query_map([], |row| {
-                Ok(serde_json::json!({
-                    "week": row.get::<_, i32>(0)?,
-                    "attended": row.get::<_, i64>(1)?,
-                }))
-            });
-
-            match rows_result {
-                Ok(rows) => {
-                    let list: Vec<_> = rows.filter_map(Result::ok).collect();
-                    HttpResponse::Ok().json(list)
-                }
-                Err(e) => HttpResponse::InternalServerError().body(format!("Query error: {}", e)),
-            }
-        }
-        Err(e) => HttpResponse::InternalServerError().body(format!("DB open error: {}", e)),
-    }
-}
-
-
-#[get("/weekly_data/{week}")]
-async fn get_weekly_data_or_common(week: web::Path<i32>) -> impl Responder {
-    let week = week.into_inner();
-    let conn = match Connection::open("classroom.db") {
-        Ok(c) => c,
-        Err(e) => return HttpResponse::InternalServerError().body(format!("DB open error: {}", e)),
-    };
-
-    // Step 1: Check if week data exists
-    let count: i64 = match conn.query_row(
-        "SELECT COUNT(*) FROM students WHERE week = ?1",
-        [week],
-        |row| row.get(0),
-    ) {
-        Ok(c) => c,
-        Err(e) => return HttpResponse::InternalServerError().body(format!("Count query error: {}", e)),
-    };
-
-    if count > 0 {
-        // Case 1: Full weekly data exists for this week → return it
-        let mut stmt = conn.prepare("SELECT * FROM students WHERE week = ?1")
-            .map_err(|e| HttpResponse::InternalServerError().body(format!("Prepare weekly data error: {}", e))).unwrap();
-
-        let rows_result = stmt.query_map([week], |row| {
-            Ok(RowData {
-                name: row.get(0)?,
-                group_id: row.get(1)?,
-                ta: row.get(2).ok(),
-                attendance: row.get(3).ok(),
-                fa: row.get(4).ok(),
-                fb: row.get(5).ok(),
-                fc: row.get(6).ok(),
-                fd: row.get(7).ok(),
-                bonus_attempt: row.get(8).ok(),
-                bonus_answer_quality: row.get(9).ok(),
-                bonus_follow_up: row.get(10).ok(),
-                exercise_submitted: row.get(11).ok(),
-                exercise_test_passing: row.get(12).ok(),
-                exercise_good_documentation: row.get(13).ok(),
-                exercise_good_structure: row.get(14).ok(),
-                total: row.get(15).ok(),
-                mail: row.get(16)?,
-                week: row.get(17)?,
-            })
-        });
-
-        match rows_result {
-            Ok(rows) => {
-                let list: Vec<RowData> = rows.filter_map(Result::ok).collect();
-                HttpResponse::Ok().json(list)
-            }
-            Err(e) => HttpResponse::InternalServerError().body(format!("Query map weekly data error: {}", e)),
-        }
-    } else if week >= 2 {
-    let prev_week = week - 1;
-    let mut stmt = match conn.prepare(
-        &format!(
-            "SELECT * FROM students
-                WHERE week = {}
-                ORDER BY CASE attendance
-                    WHEN 'yes' THEN 0
-                    WHEN 'no' THEN 1
-                    ELSE 2
-                END;",
-            prev_week
-        )
-    ) {
-        Ok(s) => s,
-        Err(e) => return HttpResponse::InternalServerError().body(format!("Prepare previous week data error: {}", e)),
-    };
-
-    let rows_result = stmt.query_map([], |row| {
-
-        let attendance: Option<String> = row.get(3)?;
-             let mut rng = thread_rng();
-             let present_tas = vec!["Anmol Sharma", "Bala", "delcin", "Beulah Evanjalin", "Raj"];
-
-            // Assign groups 1-4 in round-robin for present students, group 5 for absent.
-            // Use a static counter outside the closure to persist group assignment across rows.
-            thread_local! {
-                static GROUP_COUNTER: std::cell::RefCell<usize> = std::cell::RefCell::new(1);
-            }
-
-            // Assign groups 1-4 in round-robin for present students, and assign each group to a specific TA.
-            // Group 1: Anmol Sharma, Group 2: Bala, Group 3: delcin, Group 4: Beulah Evanjalin, Group 5: Saurabh (absent)
-            let group_ta_map = [
-                ("Group 1", "Anmol Sharma"),
-                ("Group 2", "Bala"),
-                ("Group 3", "delcin"),
-                ("Group 4", "Beulah Evanjalin"),
-                ("Group 5", "Raj"),
-            ];
-
-            let (reassigned_group, assigned_ta) = match attendance.as_deref() {
-                Some("yes") => {
-                    // Use thread_local counter for round-robin group assignment
-                    let group_idx = GROUP_COUNTER.with(|counter| {
-                        let mut val = counter.borrow_mut();
-                        let idx = *val - 1;
-                        *val = if *val == 5 { 1 } else { *val + 1 };
-                        idx
-                    });
-                    let (group, ta) = group_ta_map[group_idx];
-                    (group.to_string(), ta.to_string())
-                },
-                _ => ("Group 6 (Absent)".to_string(), "Saurabh".to_string()),
-            };
-
-        Ok(RowData {
-            name: row.get(0)?,
-            mail: row.get(16)?,
-            group_id: reassigned_group,
-            ta: Some(assigned_ta),
-            total: Some(row.get::<_, f64>(4).unwrap_or(0.0)),
-            week: week,
-            ..Default::default()
-        })
-    });
-
-    match rows_result {
-        Ok(rows) => {
-            let list: Vec<RowData> = rows.filter_map(Result::ok).collect();
-            HttpResponse::Ok().json(list)
-        }
-        Err(e) => HttpResponse::InternalServerError().body(format!("Query map from week 1 fallback error: {}", e)),
-    }
-} else {
-        // Case 3: Fallback to all students when no prior or current week data (e.g. week 1)
-        let mut stmt = conn.prepare("SELECT * FROM students
-                    WHERE week = 0
-                    ORDER BY CASE attendance
-                        WHEN 'yes' THEN 0
-                        WHEN 'no' THEN 1
-                        ELSE 2
-                    END;
-                ")
-                .map_err(|e| HttpResponse::InternalServerError().body(format!("Prepare common info error: {}", e))).unwrap();
-
-        let rows_result = stmt.query_map([], |row| {
-             let attendance: Option<String> = row.get(3)?;
-             let mut rng = thread_rng();
-             let present_tas = vec!["Anmol Sharma", "Bala", "delcin", "Beulah Evanjalin", "Raj"];
-
-
-            thread_local! {
-                static SHUFFLED_TAS: std::cell::RefCell<Option<Vec<String>>> = std::cell::RefCell::new(None);
-                static GROUP_COUNTER: std::cell::RefCell<usize> = std::cell::RefCell::new(1);
-            }
-
-            let (reassigned_group, assigned_ta) = match attendance.as_deref() {
-                Some("yes") => {
-                    // Shuffle TAs if not already shuffled for this request
-                    let shuffled_tas = SHUFFLED_TAS.with(|cell| {
-                        let mut opt = cell.borrow_mut();
-                        if opt.is_none() {
-                            let mut tas = present_tas.iter().map(|s| s.to_string()).collect::<Vec<_>>();
-                            tas.shuffle(&mut rng);
-                            *opt = Some(tas);
-                        }
-                        opt.as_ref().unwrap().clone()
-                    });
-
-                    // Assign group in round-robin and TA by group index
-                    let group_idx = GROUP_COUNTER.with(|counter| {
-                        let mut val = counter.borrow_mut();
-                        let idx = *val - 1;
-                        *val = if *val == 5 { 1 } else { *val + 1 };
-                        idx
-                    });
-                    let group = format!("Group {}", group_idx + 1);
-                    let ta = shuffled_tas.get(group_idx).cloned().unwrap_or_else(|| "Raj".to_string());
-                    (group, ta)
-                },
-                _ => ("Group 6 (Absent)".to_string(), "Saurabh".to_string()),
-            };
-
-            Ok(RowData {
-                name: row.get(0)?,
-                group_id: reassigned_group,
-                ta: Some(assigned_ta),
-                attendance: row.get(13).ok(),
-                fa: row.get(4).ok(),
-                fb: row.get(5).ok(),
-                fc: row.get(6).ok(),
-                fd: row.get(7).ok(),
-                bonus_attempt: row.get(8).ok(),
-                bonus_answer_quality: row.get(9).ok(),
-                bonus_follow_up: row.get(10).ok(),
-                exercise_submitted: row.get(11).ok(),
-                exercise_test_passing: row.get(12).ok(),
-                exercise_good_documentation: row.get(13).ok(),
-                exercise_good_structure: row.get(14).ok(),
-                total: row.get(15).ok(),
-                mail: row.get(16)?,
-                week: row.get(17)?,
-            })
-        });
-
-        match rows_result {
-            Ok(rows) => {
-                let list: Vec<RowData> = rows.filter_map(Result::ok).collect();
-                HttpResponse::Ok().json(list)
-            }
-            Err(e) => HttpResponse::InternalServerError().body(format!("Query map common info error: {}", e)),
-        }
-    }
-}
-
-
-#[post("/weekly_data/{week}")]
-async fn add_weekly_data(
-    week: web::Path<i32>,
-    student_data: web::Json<Vec<RowData>>,
-) -> Result<HttpResponse, actix_web::Error> {
-    let week_number = week.into_inner();
-
-    let mut conn = Connection::open("classroom.db")
-        .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
-
-    let tx = conn
-        .transaction()
-        .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
-
-    for entry in student_data.into_inner() {
-        // Check if the row exists
-        let exists: i64 = tx
-            .query_row(
-                "SELECT COUNT(*) FROM students WHERE week = ?1 AND mail = ?2",
-                params![week_number, entry.mail],
-                |row| row.get(0),
-            )
-            .unwrap_or(0);
-
-        if exists > 0 {
-            // UPDATE if exists
-            tx.execute(
-                r#"
-                UPDATE students SET
-                    name = ?2,
-                    attendance = ?3,
-                    group_id = ?4,
-                    ta = ?5,
-                    fa = ?6,
-                    fb = ?7,
-                    fc = ?8,
-                    fd = ?9,
-                    bonus_attempt = ?10,
-                    bonus_answer_quality = ?11,
-                    bonus_follow_up = ?12,
-                    exercise_submitted = ?13,
-                    exercise_test_passing = ?14,
-                    exercise_good_documentation = ?15,
-                    exercise_good_structure = ?16,
-                    total = ?17
-                WHERE week = ?1 AND mail = ?18
-                "#,
-                params![
-                    week_number,
-                    entry.name,
-                    entry.attendance,
-                    entry.group_id,
-                    entry.ta,
-                    entry.fa,
-                    entry.fb,
-                    entry.fc,
-                    entry.fd,
-                    entry.bonus_attempt,
-                    entry.bonus_answer_quality,
-                    entry.bonus_follow_up,
-                    entry.exercise_submitted,
-                    entry.exercise_test_passing,
-                    entry.exercise_good_documentation,
-                    entry.exercise_good_structure,
-                    entry.total,
-                    entry.mail,
-                ],
-            ).map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
-        } else {
-            // INSERT if not exists
-            tx.execute(
-                r#"
-                INSERT INTO students (
-                    week, name, mail, attendance, group_id, ta,
-                    fa, fb, fc, fd,
-                    bonus_attempt, bonus_answer_quality, bonus_follow_up,
-                    exercise_submitted, exercise_test_passing,
-                    exercise_good_documentation, exercise_good_structure, total
-                ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18)
-                "#,
-                params![
-                    week_number,
-                    entry.name,
-                    entry.mail,
-                    entry.attendance,
-                    entry.group_id,
-                    entry.ta,
-                    entry.fa,
-                    entry.fb,
-                    entry.fc,
-                    entry.fd,
-                    entry.bonus_attempt,
-                    entry.bonus_answer_quality,
-                    entry.bonus_follow_up,
-                    entry.exercise_submitted,
-                    entry.exercise_test_passing,
-                    entry.exercise_good_documentation,
-                    entry.exercise_good_structure,
-                    entry.total,
-                ],
-            ).map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
-        }
-    }
-
-    tx.commit()
-        .map_err(|e| actix_web::error::ErrorInternalServerError(format!("Commit failed: {}", e)))?;
-
-    Ok(HttpResponse::Ok().body("Weekly data inserted/updated successfully"))
-}
-
-#[derive(Debug, Error)]
-pub enum AppError {
-    #[error("Sqlite DB error: {0}")]
-    SQLITE(#[from] rusqlite::Error),
-}
-
-impl From<AppError> for std::io::Error {
-    fn from(err: AppError) -> std::io::Error {
-        match err {
-            AppError::SQLITE(e) => std::io::Error::new(std::io::ErrorKind::Other, format!("SQLite error: {}", e)),
-        }
-    }
-}
-
-
+//data functions 
 pub fn read_from_db(path: &PathBuf) -> Result<Table, AppError> {
     let conn = Connection::open(path)?;
     let mut stmt = conn.prepare("SELECT * FROM students")?;
@@ -519,12 +118,178 @@ pub fn write_to_db(path: &PathBuf, table: &Table) -> Result<(), AppError> {
     Ok(())
 }
 
+
+// --- Handlers ---
+#[post("/login")]
+async fn login(item: web::Json<TaLogin>) -> impl Responder {
+    let ta_list: Vec<&str> = vec!["tusharvyas316@gmail.com", "raj@bitshala.org" , "setu@bitshala.org"
+,"anmolsharma0234@gmail.com"
+,"balajic86@gmail.com"
+,"delcinraj@gmail.com"
+,"beulahebenezer777@gmail.com" ];
+    if ta_list.iter().any(|ta_gmail| ta_gmail == &item.gmail) {
+        HttpResponse::Ok().json(TaLogin { gmail: format!("Access granted for: {}", item.gmail) })
+    } else {
+        HttpResponse::Unauthorized().json(serde_json::json!({
+            "status": "error",
+            "message": format!("Access denied for: {}", item.gmail)
+        }))
+    }
+}
+
+#[get("/students/count")]
+async fn get_total_student_count() -> impl Responder {
+    HttpResponse::Ok().json(serde_json::json!({ "count": read_from_db(&PathBuf::from("classroom.db")).map(|t| t.rows.len()).unwrap_or(0) }))
+}
+
+#[get("/attendance/weekly_counts/{week}")]
+async fn get_weekly_attendance_count_for_week(week: web::Path<i32>) -> impl Responder {
+    let week_number = week.into_inner();
+    let table = read_from_db(&PathBuf::from("classroom.db")).unwrap();
+    let mut attended_count = 0;
+
+    for row in &table.rows {
+        if let Some(att) = &row.attendance {
+            if att == "yes" && row.week == week_number {
+                attended_count += 1;
+            }
+        }
+    }
+
+    HttpResponse::Ok().json(serde_json::json!({
+        "week": week_number,
+        "attended": attended_count
+    }))
+}
+
+
+#[get("/weekly_data/{week}")]
+async fn get_weekly_data_or_common(week: web::Path<i32>) -> impl Responder {
+    let week = week.into_inner();
+    let table = read_from_db(&PathBuf::from("classroom.db")).unwrap();
+
+    if week == 0 && !table.rows.is_empty() {
+        return HttpResponse::Ok().json(&table.rows);
+    } else if week >= 2 {
+        // Get previous week's rows, sorted by attendance
+        let mut prev_week_rows: Vec<&RowData> = table
+            .rows
+            .iter()
+            .filter(|row| row.week == week - 1)
+            .collect();
+
+        prev_week_rows.sort_by_key(|row| match row.attendance.as_deref() {
+            Some("yes") => 0,
+            Some("no") => 1,
+            _ => 2,
+        });
+        // Assign groups and TAs in round-robin
+        let group_ta_map = [
+            ("Group 1", "Anmol Sharma"),
+            ("Group 2", "Bala"),
+            ("Group 3", "delcin"),
+            ("Group 4", "Beulah Evanjalin"),
+            ("Group 5", "Raj"),
+        ];
+
+        let mut group_counter = 0;
+        let mut result_rows: Vec<RowData> = Vec::new();
+
+        for row in prev_week_rows {
+            let (reassigned_group, assigned_ta) = match row.attendance.as_deref() {
+                Some("yes") => {
+                    let idx = group_counter % group_ta_map.len();
+                    group_counter += 1;
+                    let (group, ta) = group_ta_map[idx];
+                    (group.to_string(), ta.to_string())
+                }
+                _ => ("Group 6 (Absent)".to_string(), "Saurabh".to_string()),
+            };
+
+            result_rows.push(RowData {
+                name: row.name.clone(),
+                group_id: reassigned_group,
+                ta: Some(assigned_ta),
+                attendance: row.attendance.clone(),
+                fa: row.fa,
+                fb: row.fb,
+                fc: row.fc,
+                fd: row.fd,
+                bonus_attempt: row.bonus_attempt,
+                bonus_answer_quality: row.bonus_answer_quality,
+                bonus_follow_up: row.bonus_follow_up,
+                exercise_submitted: row.exercise_submitted.clone(),
+                exercise_test_passing: row.exercise_test_passing.clone(),
+                exercise_good_documentation: row.exercise_good_documentation.clone(),
+                exercise_good_structure: row.exercise_good_structure.clone(),
+                total: row.total,
+                mail: row.mail.clone(),
+                week: row.week,
+            });
+        }
+
+        HttpResponse::Ok().json(result_rows)
+    } else {
+        HttpResponse::BadRequest().json(serde_json::json!({
+            "status": "error",
+            "message": "Invalid week number"
+        }))
+    }
+}
+
+
+#[post("/weekly_data/{week}")]
+async fn add_weekly_data(
+    week: web::Path<i32>,
+    student_data: web::Json<Vec<RowData>>,
+) -> Result<HttpResponse, actix_web::Error> {
+    let week_number = week.into_inner();
+    let db_path = PathBuf::from("classroom.db");
+
+    // Read the current table from the DB
+    let mut table = read_from_db(&db_path)
+        .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
+
+    // For each incoming entry, update or insert
+    for entry in student_data.into_inner() {
+        // Try to find an existing row for the same week and mail
+        if let Some(existing) = table.rows.iter_mut().find(|row| row.week == week_number && row.mail == entry.mail) {
+            // Update the existing row
+            *existing = entry;
+        } else {
+            // Insert new row
+            let mut new_entry = entry;
+            new_entry.week = week_number;
+            table.rows.push(new_entry);
+        }
+    }
+
+    // Write the updated table back to the DB
+    write_to_db(&db_path, &table)
+        .map_err(|e| actix_web::error::ErrorInternalServerError(format!("Write failed: {}", e)))?;
+
+    Ok(HttpResponse::Ok().body("Weekly data inserted/updated successfully"))
+}
+
+#[derive(Debug, Error)]
+pub enum AppError {
+    #[error("Sqlite DB error: {0}")]
+    SQLITE(#[from] rusqlite::Error),
+}
+
+impl From<AppError> for std::io::Error {
+    fn from(err: AppError) -> std::io::Error {
+        match err {
+            AppError::SQLITE(e) => std::io::Error::new(std::io::ErrorKind::Other, format!("SQLite error: {}", e)),
+        }
+    }
+}
+
 #[actix_web::main]
 async fn main() -> Result<(), std::io::Error> {
     env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
 
-    // Load everything from the database at the start
-    let table = read_from_db(&PathBuf::from("classroom.db"))?;
+    // let table = read_from_db(&PathBuf::from("classroom.db"))?;
 
     // Process shit depending upon query.
     HttpServer::new(|| {
@@ -542,15 +307,15 @@ async fn main() -> Result<(), std::io::Error> {
             .service(get_weekly_data_or_common)
             .service(add_weekly_data)
             .service(get_total_student_count)
-            .service(get_weekly_attendance_counts)
+            .service(get_weekly_attendance_count_for_week)
         
     })
     .bind(("127.0.0.1", 8080))?
     .run()
-    .await;
+    .await?;
 
     // Save Everything to the database at the end
-    write_to_db(&PathBuf::from("classroom.db"), &table)?;
+    // write_to_db(&PathBuf::from("classroom.db"), &table)?;
 
     Ok(())
 }
