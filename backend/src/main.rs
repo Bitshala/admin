@@ -290,8 +290,8 @@ async fn get_weekly_data_or_common(
                 if existing_row.ta.as_deref() == Some("NA") {
                     let (group_id, assigned_ta) = if row.attendance.as_deref() == Some("yes") {
                         (
-                            format!("Group {}", (idx / 5) + 1),
-                            tas[(idx / 5) % tas.len()],
+                            format!("Group {}", (idx / 5 % 5) + 1),
+                            tas[(idx / 5 % 5) % tas.len()],
                         )
                     } else {
                         ("Group 6".to_string(), TA::Setu)
@@ -306,8 +306,8 @@ async fn get_weekly_data_or_common(
             } else {
                 let (group_id, assigned_ta) = if row.attendance.as_deref() == Some("yes") {
                     (
-                        format!("Group {}", (idx / 5) + 1),
-                        tas[(idx / 5) % tas.len()],
+                        format!("Group {}", (idx / 5 % 5) + 1),
+                        tas[(idx / 5 % 5) % tas.len()],
                     )
                 } else {
                     ("Group 6".to_string(), TA::Setu)
