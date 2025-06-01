@@ -163,6 +163,9 @@ const [totalCount, setTotalCount] = useState<number | null>(null);
   }, [data]);
   // ---
 
+  // --- Attendance filter state ---
+  const [attendanceFilter, setAttendanceFilter] = useState<'All' | 'Present' | 'Absent'>('All');
+
   const processedData = useMemo(() => {
     let D_filteredData = [...data];
 
@@ -174,6 +177,13 @@ const [totalCount, setTotalCount] = useState<number | null>(null);
     // Apply TA filter
     if (selectedTA !== 'All TAs') {
       D_filteredData = D_filteredData.filter(person => person.ta === selectedTA);
+    }
+
+    // Apply Attendance filter
+    if (attendanceFilter === 'Present') {
+      D_filteredData = D_filteredData.filter(person => person.attendance === true);
+    } else if (attendanceFilter === 'Absent') {
+      D_filteredData = D_filteredData.filter(person => person.attendance === false);
     }
 
     // Apply search filter (on name)
@@ -200,7 +210,7 @@ const [totalCount, setTotalCount] = useState<number | null>(null);
       });
     }
     return D_filteredData;
-  }, [data, searchTerm, sortConfig, selectedGroup, selectedTA]);
+  }, [data, searchTerm, sortConfig, selectedGroup, selectedTA, attendanceFilter]);
 
   const requestSort = (key: keyof TableRowData) => {
     let direction: 'ascending' | 'descending' = 'ascending';
@@ -380,6 +390,19 @@ const [totalCount, setTotalCount] = useState<number | null>(null);
               {taOptions.map(taName => (
                 <option key={taName} value={taName}>{taName}</option>
               ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="attendanceFilter" className="sr-only">Filter by Attendance</label>
+            <select
+              id="attendanceFilter"
+              value={attendanceFilter}
+              onChange={e => setAttendanceFilter(e.target.value as 'All' | 'Present' | 'Absent')}
+              className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+            >
+              <option value="All">All Attendance</option>
+              <option value="Present">Present</option>
+              <option value="Absent">Absent</option>
             </select>
           </div>
           <div>
