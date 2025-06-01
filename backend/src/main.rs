@@ -413,12 +413,12 @@ async fn main() -> Result<(), std::io::Error> {
     // Process shit depending upon query.
     HttpServer::new(move || {
         let cors = Cors::default()
-            .allowed_origin("http://localhost:5173")
+            .allow_any_origin()
             .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
             .allowed_headers(vec![
-                header::AUTHORIZATION,
-                header::ACCEPT,
-                header::CONTENT_TYPE,
+            header::AUTHORIZATION,
+            header::ACCEPT,
+            header::CONTENT_TYPE,
             ])
             .supports_credentials()
             .max_age(3600);
@@ -433,7 +433,7 @@ async fn main() -> Result<(), std::io::Error> {
             .service(get_total_student_count)
             .service(get_weekly_attendance_count_for_week)
     })
-    .bind(("127.0.0.1", 8081))?
+    .bind(("0.0.0.0", 8081))?
     .run()
     .await?;
 
