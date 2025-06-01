@@ -195,20 +195,22 @@ const [totalCount, setTotalCount] = useState<number | null>(null);
 
     // Apply sorting (primarily for 'name' or other header-sortable columns)
     if (sortConfig.key) {
-      D_filteredData.sort((a, b) => {
-        const aValue = a[sortConfig.key!];
-        const bValue = b[sortConfig.key!];
-        if (typeof aValue === 'string' && typeof bValue === 'string') {
-          if (aValue.toLowerCase() < bValue.toLowerCase()) {
-            return sortConfig.direction === 'ascending' ? -1 : 1;
-          }
-          if (aValue.toLowerCase() > bValue.toLowerCase()) {
-            return sortConfig.direction === 'ascending' ? 1 : -1;
-          }
-        }
-        return 0;
-      });
+  D_filteredData.sort((a, b) => {
+    const aValue = a[sortConfig.key!];
+    const bValue = b[sortConfig.key!];
+
+    if (typeof aValue === 'string' && typeof bValue === 'string') {
+      if (aValue.toLowerCase() < bValue.toLowerCase()) {
+        return sortConfig.direction === 'ascending' ? -1 : 1;
+      }
+      if (aValue.toLowerCase() > bValue.toLowerCase()) {
+        return sortConfig.direction === 'ascending' ? 1 : -1;
+      }
     }
+    return 0;
+  });
+}
+
     return D_filteredData;
   }, [data, searchTerm, sortConfig, selectedGroup, selectedTA, attendanceFilter]);
 
@@ -456,11 +458,17 @@ const [totalCount, setTotalCount] = useState<number | null>(null);
                   <th scope="col" rowSpan={2} className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider align-middle">Email</th>
                 
                   {/* Group column is now filtered by dropdown, not sorted by header click */}
-                   {week > 0 ? 
-                  <th scope="col" rowSpan={2} className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider hidden sm:table-cell align-middle">
-                    Group
-                  </th>
-                    : null}
+                  {week > 0 ? 
+                    <th
+                      scope="col"
+                      rowSpan={2}
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider hidden sm:table-cell align-middle cursor-pointer hover:bg-gray-200"
+                      onClick={() => requestSort('group')}
+                    >
+                      Group{getSortIndicator('group')}
+                    </th>
+                  : null}
+
                   {/* TA column is now filtered by dropdown, not sorted by header click */}
                   <th scope="col" rowSpan={2} className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider hidden md:table-cell align-middle">
                     TA
