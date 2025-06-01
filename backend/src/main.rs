@@ -4,14 +4,41 @@ use actix_web::{
     web,
 };
 use octocrab::params::repos::release_assets::State;
-use rand::{seq::SliceRandom, Rng};
 use rand::thread_rng;
+use rand::{Rng, seq::SliceRandom};
 use rusqlite::{Connection, params};
 use serde::{Deserialize, Serialize};
 use std::{path::PathBuf, sync::Mutex};
 use thiserror::Error;
 // // mod classroom;
 // use classroom::get_env;
+
+
+#[derive(Debug, Error)]
+pub enum AppError {
+    #[error("Sqlite DB error: {0}")]
+    SQLITE(#[from] rusqlite::Error),
+}
+
+impl From<AppError> for std::io::Error {
+    fn from(err: AppError) -> std::io::Error {
+        match err {
+            AppError::SQLITE(e) => {
+                std::io::Error::new(std::io::ErrorKind::Other, format!("SQLite error: {}", e))
+            }
+        }
+    }
+}
+
+impl From<AppError> for actix_web::Error {
+    fn from(err: AppError) -> actix_web::Error {
+        match err {
+            AppError::SQLITE(e) => {
+                actix_web::error::ErrorInternalServerError(format!("Actix Web Error: {}", e))
+            }
+        }
+    }
+}
 
 // --- Struct Definitions ---
 #[derive(Deserialize, Serialize)]
@@ -43,9 +70,24 @@ pub struct RowData {
     pub week: i32,
 }
 
-// 
+// The whole state table
 pub struct Table {
     rows: Vec<RowData>,
+}
+
+impl Table {
+    pub fn insert_or_update(&mut self, row: &RowData) -> Result<(), AppError> {
+        let existing_row = self
+            .rows
+            .iter_mut()
+            .find(|r| r.name == row.name && r.week == row.week);
+        if let Some(existing_row) = existing_row {
+            *existing_row = row.clone();
+        } else {
+            self.rows.push(row.clone());
+        }
+        Ok(())
+    }
 }
 
 //data functions
@@ -178,7 +220,9 @@ async fn get_weekly_attendance_count_for_week(
     week: web::Path<i32>,
     state: web::Data<Mutex<Table>>,
 ) -> impl Responder {
-    let count = state.lock().unwrap()
+    let count = state
+        .lock()
+        .unwrap()
         .rows
         .iter()
         .filter(|row| row.week == week.clone() && row.attendance == Some("yes".to_string()))
@@ -191,19 +235,28 @@ async fn get_weekly_attendance_count_for_week(
 }
 
 #[get("/weekly_data/{week}")]
-async fn get_weekly_data_or_common(week: web::Path<i32>, state: web::Data<Mutex<Table>>) -> impl Responder {
+async fn get_weekly_data_or_common(
+    week: web::Path<i32>,
+    state: web::Data<Mutex<Table>>,
+) -> impl Responder {
     let week: i32 = week.into_inner();
-    let db_path = PathBuf::from("classroom.db"); 
 
-    let mut taTable = read_from_db(&db_path)
-        .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string())).unwrap();
+    let mut state_table = state.lock().unwrap();
 
-    if week == 0 && !taTable.rows.is_empty() {
-        return HttpResponse::Ok().json(&taTable.rows);
+    if week == 0 && !state_table.rows.is_empty() {
+        return HttpResponse::Ok().json(&state_table.rows);
     } else if week >= 1 {
         // Sort students by total score in descending order
-        let mut sorted_rows: Vec<&RowData> = taTable.rows.iter().filter(|row| row.week == week - 1).collect();
-        sorted_rows.sort_by(|a, b| b.total.partial_cmp(&a.total).unwrap_or(std::cmp::Ordering::Equal));
+        let mut sorted_rows: Vec<RowData> = state_table
+            .rows
+            .iter()
+            .filter(|row| row.week == week - 1).cloned()
+            .collect();
+        sorted_rows.sort_by(|a, b| {
+            b.total
+                .partial_cmp(&a.total)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
 
         // Shuffle TAs for this week
         let mut rng = thread_rng();
@@ -212,7 +265,7 @@ async fn get_weekly_data_or_common(week: web::Path<i32>, state: web::Data<Mutex<
 
         // Assign students to groups and TAs
         let mut result_rows: Vec<RowData> = Vec::new();
-        for (idx, row) in sorted_rows.iter().enumerate() {
+        for (idx, row) in sorted_rows.iter_mut().enumerate() {
             let (group_id, assigned_ta) = if row.attendance.as_deref() == Some("yes") {
                 (
                     format!("Group {}", (idx / 5) + 1),
@@ -222,33 +275,21 @@ async fn get_weekly_data_or_common(week: web::Path<i32>, state: web::Data<Mutex<
                 ("Group 6".to_string(), TA::Setu)
             };
 
-            result_rows.push(RowData {
-                name: row.name.clone(),
-                group_id,
-                ta: Some(format!("{:?}", assigned_ta)),
-                attendance: row.attendance.clone(),
-                fa: row.fa,
-                fb: row.fb,
-                fc: row.fc,
-                fd: row.fd,
-                bonus_attempt: row.bonus_attempt,
-                bonus_answer_quality: row.bonus_answer_quality,
-                bonus_follow_up: row.bonus_follow_up,
-                exercise_submitted: row.exercise_submitted.clone(),
-                exercise_test_passing: row.exercise_test_passing.clone(),
-                exercise_good_documentation: row.exercise_good_documentation.clone(),
-                exercise_good_structure: row.exercise_good_structure.clone(),
-                total: row.total,
-                mail: row.mail.clone(),
-                week,
-            });
+            row.group_id = group_id.clone();
+            row.ta = Some(format!("{:?}", assigned_ta));
+
+            // Update the state table with the new group_id and TA
+            state_table.insert_or_update(&row).unwrap();
+
+            result_rows.push(row.clone());
         }
 
         // Update the state table with the new data
         // taTable.rows = result_rows.clone();
 
         // Write to DB
-        write_to_db(&PathBuf::from("classroom.db"), &taTable).unwrap();
+        // TODO: This could be slow. Find better ways.
+        write_to_db(&PathBuf::from("classroom.db"), &state_table).unwrap();
 
         HttpResponse::Ok().json(result_rows)
     } else {
@@ -261,62 +302,26 @@ async fn get_weekly_data_or_common(week: web::Path<i32>, state: web::Data<Mutex<
 
 #[post("/weekly_data/{week}")]
 async fn add_weekly_data(
-    week: web::Path<i32>,
+    _week: web::Path<i32>,
     student_data: web::Json<Vec<RowData>>,
-    state: web::Data<Mutex<Table>>
+    state: web::Data<Mutex<Table>>,
 ) -> Result<HttpResponse, actix_web::Error> {
-    let week_number = week.into_inner();
-    let db_path = PathBuf::from("classroom.db");    
+    let db_path = PathBuf::from("classroom.db");
 
-    let mut table = read_from_db(&db_path)
-        .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
+    // let mut table = read_from_db(&db_path)
+    //     .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
+
+    let mut state_table = state.lock().unwrap();
 
     // For each incoming entry, update or insert
     for incoming_row in student_data.iter() {
-        if let Some(existing_row) = table.rows.iter_mut().find(|row| row.name == incoming_row.name && row.week == week_number) {
-            // Update all fields except name, mail, and week
-            existing_row.group_id = incoming_row.group_id.clone();
-            existing_row.ta = incoming_row.ta.clone();
-            existing_row.attendance = incoming_row.attendance.clone();
-            existing_row.fa = incoming_row.fa;
-            existing_row.fb = incoming_row.fb;
-            existing_row.fc = incoming_row.fc;
-            existing_row.fd = incoming_row.fd;
-            existing_row.bonus_attempt = incoming_row.bonus_attempt;
-            existing_row.bonus_answer_quality = incoming_row.bonus_answer_quality;
-            existing_row.bonus_follow_up = incoming_row.bonus_follow_up;
-            existing_row.exercise_submitted = incoming_row.exercise_submitted.clone();
-            existing_row.exercise_test_passing = incoming_row.exercise_test_passing.clone();
-            existing_row.exercise_good_documentation = incoming_row.exercise_good_documentation.clone();
-            existing_row.exercise_good_structure = incoming_row.exercise_good_structure.clone();
-            existing_row.total = incoming_row.total;
-        } else {
-            table.rows.push(incoming_row.clone());
-        }
+        state_table.insert_or_update(incoming_row)?;
     }
 
-    
     // Write to DB
-    write_to_db(&db_path, &table)
-        .map_err(|e| actix_web::error::ErrorInternalServerError(format!("Write failed: {}", e)))?;
+    write_to_db(&db_path, &state_table)?;
 
     Ok(HttpResponse::Ok().body("Weekly data inserted/updated successfully"))
-}
-
-#[derive(Debug, Error)]
-pub enum AppError {
-    #[error("Sqlite DB error: {0}")]
-    SQLITE(#[from] rusqlite::Error),
-}
-
-impl From<AppError> for std::io::Error {
-    fn from(err: AppError) -> std::io::Error {
-        match err {
-            AppError::SQLITE(e) => {
-                std::io::Error::new(std::io::ErrorKind::Other, format!("SQLite error: {}", e))
-            }
-        }
-    }
 }
 
 #[actix_web::main]
@@ -355,7 +360,7 @@ async fn main() -> Result<(), std::io::Error> {
     .await?;
 
     // Save Everything to the database at the end
-    // write_to_db(&PathBuf::from("classroom.db"), &table)?;
+    //write_to_db(&PathBuf::from("classroom.db"), &table)?;
 
     Ok(())
 }
@@ -368,11 +373,26 @@ fn test() {
         "Karen", "Leo", "Mona", "Nina", "Oscar", "Paul", "Quinn", "Rita", "Steve", "Tina",
     ];
     let emails = vec![
-        "alice@example.com", "bob@example.com", "charlie@example.com", "david@example.com",
-        "eve@example.com", "frank@example.com", "grace@example.com", "hank@example.com",
-        "ivy@example.com", "jack@example.com", "karen@example.com", "leo@example.com",
-        "mona@example.com", "nina@example.com", "oscar@example.com", "paul@example.com",
-        "quinn@example.com", "rita@example.com", "steve@example.com", "tina@example.com",
+        "alice@example.com",
+        "bob@example.com",
+        "charlie@example.com",
+        "david@example.com",
+        "eve@example.com",
+        "frank@example.com",
+        "grace@example.com",
+        "hank@example.com",
+        "ivy@example.com",
+        "jack@example.com",
+        "karen@example.com",
+        "leo@example.com",
+        "mona@example.com",
+        "nina@example.com",
+        "oscar@example.com",
+        "paul@example.com",
+        "quinn@example.com",
+        "rita@example.com",
+        "steve@example.com",
+        "tina@example.com",
     ];
 
     let mut rows = Vec::new();
@@ -381,7 +401,11 @@ fn test() {
             name: names[i].to_string(),
             group_id: format!("Group {}", (i / 5) + 1),
             ta: None,
-            attendance: Some(if i % 2 == 0 { "no".to_string() } else { "no".to_string() }),
+            attendance: Some(if i % 2 == 0 {
+                "no".to_string()
+            } else {
+                "no".to_string()
+            }),
             fa: Some(rng.gen_range(0.0..10.0)),
             fb: Some(rng.gen_range(0.0..10.0)),
             fc: Some(rng.gen_range(0.0..10.0)),
@@ -389,10 +413,26 @@ fn test() {
             bonus_attempt: Some(rng.gen_range(0.0..5.0)),
             bonus_answer_quality: Some(rng.gen_range(0.0..5.0)),
             bonus_follow_up: Some(rng.gen_range(0.0..5.0)),
-            exercise_submitted: Some(if i % 3 == 0 { "yes".to_string() } else { "no".to_string() }),
-            exercise_test_passing: Some(if i % 4 == 0 { "yes".to_string() } else { "no".to_string() }),
-            exercise_good_documentation: Some(if i % 5 == 0 { "yes".to_string() } else { "no".to_string() }),
-            exercise_good_structure: Some(if i % 6 == 0 { "yes".to_string() } else { "no".to_string() }),
+            exercise_submitted: Some(if i % 3 == 0 {
+                "yes".to_string()
+            } else {
+                "no".to_string()
+            }),
+            exercise_test_passing: Some(if i % 4 == 0 {
+                "yes".to_string()
+            } else {
+                "no".to_string()
+            }),
+            exercise_good_documentation: Some(if i % 5 == 0 {
+                "yes".to_string()
+            } else {
+                "no".to_string()
+            }),
+            exercise_good_structure: Some(if i % 6 == 0 {
+                "yes".to_string()
+            } else {
+                "no".to_string()
+            }),
             total: Some(rng.gen_range(0.0..100.0)),
             mail: emails[i].to_string(),
             week: rng.gen_range(1..5),
@@ -400,16 +440,23 @@ fn test() {
     }
 
     let mut sorted_rows = rows;
-    sorted_rows.sort_by(|a, b| b.total.partial_cmp(&a.total).unwrap_or(std::cmp::Ordering::Equal));
+    sorted_rows.sort_by(|a, b| {
+        b.total
+            .partial_cmp(&a.total)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
     for row in &sorted_rows {
-        println!("Name: {}, Attn: {:?}, Total Score: {:?}", row.name, row.attendance, row.total);
+        println!(
+            "Name: {}, Attn: {:?}, Total Score: {:?}",
+            row.name, row.attendance, row.total
+        );
     }
 
     // Shuffle TAs for this week
     let mut rng = thread_rng();
     let mut tas = TA::all_variants().to_vec();
     tas.shuffle(&mut rng);
-    
+
     for (idx, row) in sorted_rows.iter().enumerate() {
         let (group_id, assigned_ta) = if row.attendance.as_deref() == Some("yes") {
             (

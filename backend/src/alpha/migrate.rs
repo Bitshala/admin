@@ -23,8 +23,8 @@
 //! - Migrate all rows from `participants.csv` into `participants`.
 //! - Populate the `students` table using data from `participants` and `ta` tables,
 //!   assigning random groups and TAs, and setting default scores and statuses.
-use rusqlite::{params, Connection};
 use csv::Reader;
+use rusqlite::{Connection, params};
 use std::error::Error;
 // A structure used to get participant information from the table
 struct ParticipantInfo {
@@ -140,13 +140,25 @@ fn main() -> Result<(), Box<dyn Error>> {
             continue;
         }
         insert_participant_stmt.execute(params![
-            fields[0], fields[1], fields[2], // ID, Name, Token
+            fields[0],
+            fields[1],
+            fields[2],                             // ID, Name, Token
             fields[3].parse::<i64>().unwrap_or(0), // Enrolled
-            fields[4], fields[5], fields[6], fields[7], // Role, Email, Describe Yourself, Background
-            fields[8], fields[9], fields[10], fields[11], // GitHub, Skills, Year, Books
-            fields[12], fields[13], fields[14], // Why, Time, Location
+            fields[4],
+            fields[5],
+            fields[6],
+            fields[7], // Role, Email, Describe Yourself, Background
+            fields[8],
+            fields[9],
+            fields[10],
+            fields[11], // GitHub, Skills, Year, Books
+            fields[12],
+            fields[13],
+            fields[14],                             // Why, Time, Location
             fields[15].parse::<i64>().unwrap_or(0), // Version
-            fields[16], fields[17], fields[18], // Cohort Name, Created At, Updated At
+            fields[16],
+            fields[17],
+            fields[18], // Cohort Name, Created At, Updated At
         ])?;
     }
     println!("Imported data from participants.csv into participants table.");
@@ -155,7 +167,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("Populating students table...");
 
     // Define base groups (as in your JS `baseGroups` variable)
-    // Q: Why different from base group? 
+    // Q: Why different from base group?
     // TODO: Put them into enums.
     let base_groups = vec!["Group 1", "Group 2", "Group 3", "Group 4", "Group 5"];
     if base_groups.is_empty() {
@@ -171,15 +183,16 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     // REVERTED: Fetch participant names and Email addresses from the participants table
-    let mut stmt_fetch_participants = conn.prepare(
-        "SELECT \"Name\", \"Email\" FROM participants"
-    )?;
-    let participants_iter = stmt_fetch_participants.query_map([], |row| {
-        Ok(ParticipantInfo {
-            name: row.get(0)?,
-            email: row.get(1)?,
-        })
-    })?.collect::<Result<Vec<_>, _>>()?;
+    let mut stmt_fetch_participants =
+        conn.prepare("SELECT \"Name\", \"Email\" FROM participants")?;
+    let participants_iter = stmt_fetch_participants
+        .query_map([], |row| {
+            Ok(ParticipantInfo {
+                name: row.get(0)?,
+                email: row.get(1)?,
+            })
+        })?
+        .collect::<Result<Vec<_>, _>>()?;
 
     let mut insert_student_stmt = conn.prepare(
         r#"
@@ -198,24 +211,24 @@ fn main() -> Result<(), Box<dyn Error>> {
     for participant in participants_iter {
         // Insert into students table
         match insert_student_stmt.execute(params![
-            participant.name,                                   // name
-            "NA",                                               // group_id
-            "NA",                                               // ta
-            "no",                                               // attendance (default false -> "no")
-            0.0,                                                // fa
-            0.0,                                                // fb
-            0.0,                                                // fc
-            0.0,                                                // fd
-            "no",                                               // bonus_attendance (default false -> "no")
-            "no",                                               // bonus_answer_quality (default false -> "no")
-            "no",                                               // bonus_follow_up (default false -> "no")
-            "no",                                               // exercise_submitted (default false -> "no")
-            "no",                                               // exercise_test_passing (default false -> "no")
-            "no",                                               // exercise_good_documentation (default false -> "no")
-            "no",                                               // exercise_good_structure (default false -> "no")
-            0.0,                                                // total
-            participant.email,                                  // REVERTED: mail (now sourced from participant.email)
-            0                                                   // week (default 0)
+            participant.name,  // name
+            "NA",              // group_id
+            "NA",              // ta
+            "no",              // attendance (default false -> "no")
+            0.0,               // fa
+            0.0,               // fb
+            0.0,               // fc
+            0.0,               // fd
+            "no",              // bonus_attendance (default false -> "no")
+            "no",              // bonus_answer_quality (default false -> "no")
+            "no",              // bonus_follow_up (default false -> "no")
+            "no",              // exercise_submitted (default false -> "no")
+            "no",              // exercise_test_passing (default false -> "no")
+            "no",              // exercise_good_documentation (default false -> "no")
+            "no",              // exercise_good_structure (default false -> "no")
+            0.0,               // total
+            participant.email, // REVERTED: mail (now sourced from participant.email)
+            0                  // week (default 0)
         ]) {
             Ok(count) if count > 0 => student_records_created += 1,
             Ok(_) => { /* Potentially a conflict, and ON CONFLICT DO NOTHING was triggered */ }
@@ -223,7 +236,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
 
-    println!("Populated students table with {} records.", student_records_created);
+    println!(
+        "Populated students table with {} records.",
+        student_records_created
+    );
     println!("Migration, TA seeding, and initial student data population complete.");
     Ok(())
 }
