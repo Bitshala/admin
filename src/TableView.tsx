@@ -147,7 +147,7 @@ const [totalCount, setTotalCount] = useState<number | null>(null);
     fetch("http://localhost:8080/students/count")
       .then(res => res.json())
       .then(data => {
-        setTotalCount(data.total_students);
+        setTotalCount(data.count);
       })
       .catch(err => console.error("Error fetching total count:", err));
   }, []);
@@ -231,7 +231,7 @@ const [totalCount, setTotalCount] = useState<number | null>(null);
 
    const [weeklyData, setWeeklyData] = useState<WeeklyAttendance[]>([]);
      useEffect(() => {
-    fetch("http://localhost:8080/attendance/weekly_counts")
+    fetch(`http://localhost:8080/attendance/weekly_counts/${week}`)
       .then(res => res.json())
       .then(data => setWeeklyData(data))
       .catch(err => console.error("Error fetching weekly attendance:", err));
@@ -342,11 +342,11 @@ const [totalCount, setTotalCount] = useState<number | null>(null);
             </div>
             <div>
               Attendes: {
-                weeklyData.find(w => w.week === week)?.attended ?? 0
+                weeklyData.attended ?? 0
               }
             </div>
               <div>
-              Absentes: {(totalCount ?? 0) - (weeklyData.find(w => w.week === week)?.attended ?? 0)}
+              Absentes: {(totalCount ?? 0) -  (weeklyData.attended)}
             </div>
           </div>
           <div className='flex gap-2'>
@@ -371,7 +371,7 @@ const [totalCount, setTotalCount] = useState<number | null>(null);
                     Name{getSortIndicator('name')}
                   </th>
                  
-                  <th scope="col" rowSpan={2} className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider align-middle">Github</th>
+                  <th scope="col" rowSpan={2} className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider align-middle">Email</th>
                 
                   {/* Group column is now filtered by dropdown, not sorted by header click */}
                    {week > 0 ? 

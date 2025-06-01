@@ -3,9 +3,8 @@ use actix_web::{
     App, HttpResponse, HttpServer, Responder, Result, get, http::header, middleware::Logger, post,
     web,
 };
-use octocrab::params::repos::release_assets::State;
 use rand::thread_rng;
-use rand::{Rng, seq::SliceRandom};
+use rand::seq::SliceRandom;
 use rusqlite::{Connection, params};
 use serde::{Deserialize, Serialize};
 use std::{path::PathBuf, sync::Mutex};
@@ -48,24 +47,24 @@ struct TaLogin {
 
 // TODO: Remove optional values.
 // Change fa, fb, fc to its actual names.
-#[derive(Serialize, Deserialize, Default, Debug, Clone)]
+#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct RowData {
     pub name: String,
     pub group_id: String,
     pub ta: Option<String>,
     pub attendance: Option<String>,
-    pub fa: Option<f64>,
-    pub fb: Option<f64>,
-    pub fc: Option<f64>,
-    pub fd: Option<f64>,
-    pub bonus_attempt: Option<f64>,
-    pub bonus_answer_quality: Option<f64>,
-    pub bonus_follow_up: Option<f64>,
+    pub fa: Option<u64>,
+    pub fb: Option<u64>,
+    pub fc: Option<u64>,
+    pub fd: Option<u64>,
+    pub bonus_attempt: Option<u64>,
+    pub bonus_answer_quality: Option<u64>,
+    pub bonus_follow_up: Option<u64>,
     pub exercise_submitted: Option<String>,
     pub exercise_test_passing: Option<String>,
     pub exercise_good_documentation: Option<String>,
     pub exercise_good_structure: Option<String>,
-    pub total: Option<f64>,
+    pub total: Option<u64>,
     pub mail: String,
     pub week: i32,
 }
@@ -82,8 +81,12 @@ impl Table {
             .iter_mut()
             .find(|r| r.name == row.name && r.week == row.week);
         if let Some(existing_row) = existing_row {
+            if *existing_row != *row {
+                println!("Data has changed for {} in week {}", row.name, row.week);
+            }
             *existing_row = row.clone();
         } else {
+            println!("Inserting new row for {} in week {}", row.name, row.week);
             self.rows.push(row.clone());
         }
         Ok(())
@@ -122,6 +125,7 @@ pub fn read_from_db(path: &PathBuf) -> Result<Table, AppError> {
 }
 
 pub fn write_to_db(path: &PathBuf, table: &Table) -> Result<(), AppError> {
+    println!("Writing to DB at path: {:?}", path);
     let mut conn = Connection::open(path)?;
     let tx = conn.transaction()?;
 
@@ -197,7 +201,9 @@ impl TA {
 #[post("/login")]
 /// Only allow TAs to login with specific emails.
 async fn login(item: web::Json<TaLogin>) -> impl Responder {
+    println!("TA login attempt: {:?}", item.gmail);
     if let Some(ta) = TA::from_email(&item.gmail) {
+        println!("TA login success.");
         HttpResponse::Ok().json(serde_json::json!({
             "status": "success",
             "message": format!("Access granted for TA: {:?}", ta)
@@ -212,7 +218,15 @@ async fn login(item: web::Json<TaLogin>) -> impl Responder {
 
 #[get("/students/count")]
 async fn get_total_student_count(state: web::Data<Mutex<Table>>) -> impl Responder {
-    HttpResponse::Ok().json(serde_json::json!({ "count": state.lock().unwrap().rows.len() }))
+    println!("Fetching total student count");
+    let count = state
+        .lock()
+        .unwrap()
+        .rows
+        .iter()
+        .filter(|row| row.week == 0)
+        .count();
+    HttpResponse::Ok().json(serde_json::json!({ "count": count }))
 }
 
 #[get("/attendance/weekly_counts/{week}")]
@@ -220,6 +234,7 @@ async fn get_weekly_attendance_count_for_week(
     week: web::Path<i32>,
     state: web::Data<Mutex<Table>>,
 ) -> impl Responder {
+    println!("Fetching attendance count for week: {}", week);
     let count = state
         .lock()
         .unwrap()
@@ -239,6 +254,7 @@ async fn get_weekly_data_or_common(
     week: web::Path<i32>,
     state: web::Data<Mutex<Table>>,
 ) -> impl Responder {
+    println!("getting and updating weekly data for week: {}", week);
     let week: i32 = week.into_inner();
 
     let mut state_table = state.lock().unwrap();
@@ -277,6 +293,24 @@ async fn get_weekly_data_or_common(
 
             row.group_id = group_id.clone();
             row.ta = Some(format!("{:?}", assigned_ta));
+            row.week = week;
+
+            // Get the existing data from the state for the same student and week
+            if let Some(existing_row) = state_table.rows.iter().find(|r| r.name == row.name && r.week == week) {
+                row.attendance = existing_row.attendance.clone();
+                row.fa = existing_row.fa;
+                row.fb = existing_row.fb;
+                row.fc = existing_row.fc;
+                row.fd = existing_row.fd;
+                row.bonus_attempt = existing_row.bonus_attempt;
+                row.bonus_answer_quality = existing_row.bonus_answer_quality;
+                row.bonus_follow_up = existing_row.bonus_follow_up;
+                row.exercise_submitted = existing_row.exercise_submitted.clone();
+                row.exercise_test_passing = existing_row.exercise_test_passing.clone();
+                row.exercise_good_documentation = existing_row.exercise_good_documentation.clone();
+                row.exercise_good_structure = existing_row.exercise_good_structure.clone();
+                row.total = existing_row.total;
+            }
 
             // Update the state table with the new group_id and TA
             state_table.insert_or_update(&row).unwrap();
@@ -326,7 +360,7 @@ async fn add_weekly_data(
 
 #[actix_web::main]
 async fn main() -> Result<(), std::io::Error> {
-    env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
+    //env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
 
     let table = read_from_db(&PathBuf::from("classroom.db"))?;
 
@@ -367,6 +401,9 @@ async fn main() -> Result<(), std::io::Error> {
 
 #[test]
 fn test() {
+    use rand::seq::SliceRandom;
+    use rand::{thread_rng, Rng};
+
     let mut rng = thread_rng();
     let names = vec![
         "Alice", "Bob", "Charlie", "David", "Eve", "Frank", "Grace", "Hank", "Ivy", "Jack",
@@ -406,13 +443,13 @@ fn test() {
             } else {
                 "no".to_string()
             }),
-            fa: Some(rng.gen_range(0.0..10.0)),
-            fb: Some(rng.gen_range(0.0..10.0)),
-            fc: Some(rng.gen_range(0.0..10.0)),
-            fd: Some(rng.gen_range(0.0..10.0)),
-            bonus_attempt: Some(rng.gen_range(0.0..5.0)),
-            bonus_answer_quality: Some(rng.gen_range(0.0..5.0)),
-            bonus_follow_up: Some(rng.gen_range(0.0..5.0)),
+            fa: Some(rng.gen_range(0..10)),
+            fb: Some(rng.gen_range(0..10)),
+            fc: Some(rng.gen_range(0..10)),
+            fd: Some(rng.gen_range(0..10)),
+            bonus_attempt: Some(rng.gen_range(0..5)),
+            bonus_answer_quality: Some(rng.gen_range(0..5)),
+            bonus_follow_up: Some(rng.gen_range(0..5)),
             exercise_submitted: Some(if i % 3 == 0 {
                 "yes".to_string()
             } else {
@@ -433,7 +470,7 @@ fn test() {
             } else {
                 "no".to_string()
             }),
-            total: Some(rng.gen_range(0.0..100.0)),
+            total: Some(rng.gen_range(0..100)),
             mail: emails[i].to_string(),
             week: rng.gen_range(1..5),
         });
