@@ -41,17 +41,15 @@ pub struct Table {
 }
 
 
-#[derive(Debug, Clone)]
-enum TA {
-    AnmolSharma,
-    Bala,
-    Delcin,
-    BeulahEvanjalin,
-    Raj,
-    Saurabh,
-}
-
-
+// #[derive(Debug, Clone, Copy)]
+// enum TA {
+//     AnmolSharma = 0,
+//     Bala,
+//     Delcin,
+//     BeulahEvanjalin,
+//     Raj,
+//     Saurabh,
+// }
 
 //data functions 
 pub fn read_from_db(path: &PathBuf) -> Result<Table, AppError> {
