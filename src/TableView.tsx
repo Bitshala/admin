@@ -77,7 +77,7 @@ const computeTotal = (p: TableRowData): number =>
   
    const fetchWeeklyData = useCallback((selectedWeek: number) => {
     // Update the active week
-    fetch(`http://172.81.178.3:8081/weekly_data/${selectedWeek}`)
+    fetch(`http://127.0.0.1:8081/weekly_data/${selectedWeek}`)
       .then(response => {
         if (!response.ok) {
           // If response not ok, try to parse error message from backend if available
@@ -144,7 +144,7 @@ useEffect(() => {
   
 const [totalCount, setTotalCount] = useState<number | null>(null);
   useEffect(() => {
-    fetch("http://172.81.178.3:8081/students/count")
+    fetch("http://127.0.0.1:8081/students/count")
       .then(res => res.json())
       .then(data => {
         setTotalCount(data.count);
@@ -243,7 +243,7 @@ const [totalCount, setTotalCount] = useState<number | null>(null);
 
    const [weeklyData, setWeeklyData] = useState<WeeklyAttendance[]>([]);
      useEffect(() => {
-    fetch(`http://172.81.178.3:8081/attendance/weekly_counts/${week}`)
+    fetch(`http://127.0.0.1:8081/attendance/weekly_counts/${week}`)
       .then(res => res.json())
       .then(data => setWeeklyData(data))
       .catch(err => console.error("Error fetching weekly attendance:", err));
@@ -261,7 +261,7 @@ const [totalCount, setTotalCount] = useState<number | null>(null);
       exercise_good_structure: p.exerciseScore.goodStructure ? 'yes' : 'no', total: computeTotal(p)
     }));
     console.log('Saving data for week', week, payload);
-    fetch(`http://172.81.178.3:8081/weekly_data/${week}`, {
+    fetch(`http://127.0.0.1:8081/weekly_data/${week}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
