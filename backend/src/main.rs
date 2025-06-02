@@ -273,10 +273,14 @@ async fn get_weekly_data_or_common(
             .cloned()
             .collect();
         prev_week_rows.sort_by(|a, b| {
-            b.total
-            .partial_cmp(&a.total)
-            .unwrap_or(std::cmp::Ordering::Equal)
-            .then_with(|| a.name.cmp(&b.name))
+            b.attendance
+                .cmp(&a.attendance)
+                .then_with(|| {
+                    b.total
+                        .partial_cmp(&a.total)
+                        .unwrap_or(std::cmp::Ordering::Equal)
+                })
+                .then_with(|| b.name.cmp(&a.name))
         });
 
         let tas = TA::all_variants()
@@ -292,58 +296,12 @@ async fn get_weekly_data_or_common(
         let mut result_rows: Vec<RowData> = Vec::new();
         let mut index = 0;
         for row in prev_week_rows.iter_mut() {
-            // if let Some(existing_row) = state_table
-            //     .rows
-            //     .iter()
-            //     .find(|r| r.name == row.name && r.week == week)
-            // {
-            //     if existing_row.ta.as_deref() == Some("NA") {
-            //         let (group_id, assigned_ta) = if row.attendance.as_deref() == Some("yes") {
-            //             let group_id = ((idx / max_people_per_group) % tas.len()) + 1;
-            //             (format!("Group {}", group_id), tas[group_id - 1])
-            //         } else {
-            //             ("Group 6".to_string(), TA::Setu)
-            //         };
-
-            //         row.group_id = group_id.clone();
-            //         row.ta = Some(format!("{:?}", assigned_ta));
-            //     } else {
-            //         // row.group_id = existing_row.group_id.clone();
-            //         // row.ta = existing_row.ta.clone();
-            //         let (group_id, assigned_ta) = if row.attendance.as_deref() == Some("yes") {
-            //             let group_id = ((idx / max_people_per_group) % tas.len()) + 1;
-            //             (format!("Group {}", group_id), tas[group_id - 1])
-            //         } else {
-            //             ("Group 6".to_string(), TA::Setu)
-            //         };
-
-            //         row.group_id = group_id.clone();
-            //         row.ta = Some(format!("{:?}", assigned_ta));
-            //     }
-            // } else {
-            //     let (group_id, assigned_ta) = if row.attendance.as_deref() == Some("yes") {
-            //         let group_id = ((idx / max_people_per_group) % tas.len()) + 1;
-            //         (format!("Group {}", group_id), tas[group_id - 1])
-            //     } else {
-            //         ("Group 6".to_string(), TA::Setu)
-            //     };
-
-            //     row.group_id = group_id.clone();
-            //     row.ta = Some(format!("{:?}", assigned_ta));
-            // }
-
             let (group_id, assigned_ta) = if row.attendance.as_deref() == Some("yes") {
                 let group_id = ((index / max_people_per_group) % tas.len()) + 1;
-
-
-                // let group_id = ((idx / max_people_per_group) % tas.len()) + 1;
-                println!("Assigning {} at {} with group ID {}", row.name, index, group_id);
                 (format!("Group {}", group_id), tas[group_id - 1])
             } else {
                 ("Group 6".to_string(), TA::Setu)
             };
-            
-
 
             row.group_id = group_id.clone();
             row.ta = Some(format!("{:?}", assigned_ta));
