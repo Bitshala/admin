@@ -3,8 +3,6 @@ use actix_web::{
     App, HttpResponse, HttpServer, Responder, Result, get, http::header, middleware::Logger, post,
     web,
 };
-use rand::seq::SliceRandom;
-use rand::thread_rng;
 use rusqlite::{Connection, params};
 use serde::{Deserialize, Serialize};
 use std::{path::PathBuf, sync::Mutex};
@@ -281,9 +279,7 @@ async fn get_weekly_data_or_common(
             .then_with(|| a.name.cmp(&b.name))
         });
 
-        // Shuffle TAs for this week
-        let mut rng = thread_rng();
-        let mut tas = TA::all_variants()
+        let tas = TA::all_variants()
             .iter()
             .filter(|&&ta| ta != TA::Setu)
             .cloned()
@@ -314,7 +310,7 @@ async fn get_weekly_data_or_common(
                     // row.group_id = existing_row.group_id.clone();
                     // row.ta = existing_row.ta.clone();
                     let (group_id, assigned_ta) = if row.attendance.as_deref() == Some("yes") {
-                        let group_id = idx / max_people_per_group % tas.len() + 1;
+                        let group_id = ((idx / max_people_per_group) % tas.len()) + 1;
                         (format!("Group {}", group_id), tas[group_id - 1])
                     } else {
                         ("Group 6".to_string(), TA::Setu)
