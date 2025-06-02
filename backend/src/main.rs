@@ -290,7 +290,8 @@ async fn get_weekly_data_or_common(
 
         // Assign students to groups and TAs
         let mut result_rows: Vec<RowData> = Vec::new();
-        for (idx, row) in prev_week_rows.iter_mut().enumerate() {
+        let mut index = 0;
+        for row in prev_week_rows.iter_mut() {
             // if let Some(existing_row) = state_table
             //     .rows
             //     .iter()
@@ -332,13 +333,18 @@ async fn get_weekly_data_or_common(
             // }
 
             let (group_id, assigned_ta) = if row.attendance.as_deref() == Some("yes") {
-                let group_id = ((idx / max_people_per_group) % tas.len()) + 1;
-                println!("Assigning {} at {} with group ID {}", row.name, idx, group_id);
+                let group_id = ((index / max_people_per_group) % tas.len()) + 1;
+
+
+                // let group_id = ((idx / max_people_per_group) % tas.len()) + 1;
+                println!("Assigning {} at {} with group ID {}", row.name, index, group_id);
                 (format!("Group {}", group_id), tas[group_id - 1])
             } else {
                 ("Group 6".to_string(), TA::Setu)
             };
             
+
+
             row.group_id = group_id.clone();
             row.ta = Some(format!("{:?}", assigned_ta));
             row.week = week;
@@ -382,6 +388,8 @@ async fn get_weekly_data_or_common(
             state_table.insert_or_update(&row).unwrap();
 
             result_rows.push(row.clone());
+
+            index += 1;
         }
 
         // Update the state table with the new data
