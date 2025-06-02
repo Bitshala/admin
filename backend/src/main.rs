@@ -19,9 +19,7 @@ pub enum AppError {
 impl From<AppError> for std::io::Error {
     fn from(err: AppError) -> std::io::Error {
         match err {
-            AppError::SQLITE(e) => {
-                std::io::Error::new(std::io::ErrorKind::Other, format!("SQLite error: {}", e))
-            }
+            AppError::SQLITE(e) => std::io::Error::other(format!("SQLite error: {}", e)),
         }
     }
 }
@@ -44,7 +42,7 @@ struct TaLogin {
 
 // TODO: Remove optional values.
 // Change fa, fb, fc to its actual names.
-#[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct RowData {
     pub name: String,
     pub group_id: String,
@@ -64,6 +62,31 @@ pub struct RowData {
     pub total: Option<u64>,
     pub mail: String,
     pub week: i32,
+}
+
+impl Default for RowData {
+    fn default() -> Self {
+        RowData {
+            name: String::new(),
+            group_id: String::new(),
+            ta: None,
+            attendance: Some("no".to_string()),
+            fa: Some(0),
+            fb: Some(0),
+            fc: Some(0),
+            fd: Some(0),
+            bonus_attempt: Some(0),
+            bonus_answer_quality: Some(0),
+            bonus_follow_up: Some(0),
+            exercise_submitted: Some("no".to_string()),
+            exercise_test_passing: Some("no".to_string()),
+            exercise_good_documentation: Some("no".to_string()),
+            exercise_good_structure: Some("no".to_string()),
+            total: Some(0),
+            mail: String::new(),
+            week: 0,
+        }
+    }
 }
 
 // The whole state table
@@ -237,7 +260,7 @@ async fn get_weekly_attendance_count_for_week(
         .unwrap()
         .rows
         .iter()
-        .filter(|row| row.week == week.clone() && row.attendance == Some("yes".to_string()))
+        .filter(|row| row.week == *week && row.attendance == Some("yes".to_string()))
         .count();
 
     HttpResponse::Ok().json(serde_json::json!({
@@ -246,13 +269,32 @@ async fn get_weekly_attendance_count_for_week(
     }))
 }
 
+fn update(row: &mut RowData) {
+    row.attendance = Some("no".to_string());
+    row.fa = Some(0);
+    row.fb = Some(0);
+    row.fc = Some(0);
+    row.fd = Some(0);
+    row.bonus_attempt = Some(0);
+    row.bonus_answer_quality = Some(0);
+    row.bonus_follow_up = Some(0);
+    row.exercise_submitted = Some("no".to_string());
+    row.exercise_test_passing = Some("no".to_string());
+    row.exercise_good_documentation = Some("no".to_string());
+    row.exercise_good_structure = Some("no".to_string());
+    row.total = Some(0);
+}
+
 #[get("/weekly_data/{week}")]
 async fn get_weekly_data_or_common(
     week: web::Path<i32>,
     state: web::Data<Mutex<Table>>,
 ) -> impl Responder {
-    println!("getting and updating weekly data for week: {}", week);
-    let week: i32 = week.into_inner();
+    use rand::seq::SliceRandom;
+    use std::path::PathBuf;
+
+    let week = week.into_inner();
+    println!("Getting and updating weekly data for week: {}", week);
 
     let mut state_table = state.lock().unwrap();
 
@@ -263,107 +305,96 @@ async fn get_weekly_data_or_common(
             .filter(|row| row.week == 0)
             .cloned()
             .collect();
+
         return HttpResponse::Ok().json(week_0_rows);
     } else if week >= 1 {
-        // Sort students by total score in descending order
+        let current_week_rows: Vec<RowData> = state_table
+            .rows
+            .iter()
+            .filter(|row| row.week == week)
+            .cloned()
+            .collect();
+
+        if !current_week_rows.is_empty() {
+            println!("Week {} data already exists. Returning cached data.", week);
+            return HttpResponse::Ok().json(current_week_rows);
+        }
+
+        let mut tas: Vec<TA> = TA::all_variants()
+            .iter()
+            .cloned()
+            .filter(|ta| *ta != TA::Setu)
+            .collect();
+
         let mut prev_week_rows: Vec<RowData> = state_table
             .rows
             .iter()
-            .filter(|row| row.week == week - 1)
+            .filter(|row| row.week == week - 1 && row.attendance.as_deref() == Some("yes"))
             .cloned()
             .collect();
+
+        let setu_group: Vec<RowData> = state_table
+            .rows
+            .iter()
+            .filter(|row| row.week == week - 1 && row.attendance.as_deref() == Some("no"))
+            .cloned()
+            .map(|mut row| {
+                row.week = week;
+                row.ta = Some("Setu".to_string());
+                row.group_id = tas.len().to_string();
+                row
+            })
+            .collect();
+
         prev_week_rows.sort_by(|a, b| {
-            b.attendance
-                .cmp(&a.attendance)
-                .then_with(|| {
-                    b.total
-                        .partial_cmp(&a.total)
-                        .unwrap_or(std::cmp::Ordering::Equal)
-                })
-                .then_with(|| b.name.cmp(&a.name))
+            b.total
+                .partial_cmp(&a.total)
+                .unwrap_or(std::cmp::Ordering::Equal)
+                .then_with(|| a.name.cmp(&b.name))
         });
 
-        let tas = TA::all_variants()
-            .iter()
-            .filter(|&&ta| ta != TA::Setu)
-            .cloned()
-            .collect::<Vec<_>>();
-        //tas.shuffle(&mut rng);
+        let mut rng = rand::thread_rng();
+        tas.shuffle(&mut rng);
 
-        let max_people_per_group = 6;
+        let tas_count = tas.len();
+        let total_active_students = prev_week_rows.len();
 
-        // Assign students to groups and TAs
         let mut result_rows: Vec<RowData> = Vec::new();
-        let mut index = 0;
-        for row in prev_week_rows.iter_mut() {
-            let (group_id, assigned_ta) = if row.attendance.as_deref() == Some("yes") {
-                let group_id = ((index / max_people_per_group) % tas.len()) + 1;
-                (format!("Group {}", group_id), tas[group_id - 1])
-            } else {
-                ("Group 6".to_string(), TA::Setu)
-            };
 
-            row.group_id = group_id.clone();
+        let bucket_size = total_active_students / tas_count;
+
+        let mut group_id: isize = -1;
+
+        for (index, mut row) in prev_week_rows.into_iter().enumerate() {
+            if index % bucket_size == 0 {
+                group_id += 1;
+            }
+
+            let assigned_ta = &tas[group_id as usize];
+
+            row.group_id = format!("G{}", group_id);
             row.ta = Some(format!("{:?}", assigned_ta));
             row.week = week;
 
-            // Get the existing data from the state for the same student and week
-            if let Some(existing_row) = state_table
-                .rows
-                .iter()
-                .find(|r| r.name == row.name && r.week == week)
-            {
-                row.attendance = existing_row.attendance.clone();
-                row.fa = existing_row.fa;
-                row.fb = existing_row.fb;
-                row.fc = existing_row.fc;
-                row.fd = existing_row.fd;
-                row.bonus_attempt = existing_row.bonus_attempt;
-                row.bonus_answer_quality = existing_row.bonus_answer_quality;
-                row.bonus_follow_up = existing_row.bonus_follow_up;
-                row.exercise_submitted = existing_row.exercise_submitted.clone();
-                row.exercise_test_passing = existing_row.exercise_test_passing.clone();
-                row.exercise_good_documentation = existing_row.exercise_good_documentation.clone();
-                row.exercise_good_structure = existing_row.exercise_good_structure.clone();
-                row.total = existing_row.total;
-            } else {
-                row.attendance = Some("no".to_string());
-                row.fa = Some(0);
-                row.fb = Some(0);
-                row.fc = Some(0);
-                row.fd = Some(0);
-                row.bonus_attempt = Some(0);
-                row.bonus_answer_quality = Some(0);
-                row.bonus_follow_up = Some(0);
-                row.exercise_submitted = Some("no".to_string());
-                row.exercise_test_passing = Some("no".to_string());
-                row.exercise_good_documentation = Some("no".to_string());
-                row.exercise_good_structure = Some("no".to_string());
-                row.total = Some(0);
-            }
+            update(&mut row);
 
-            // Update the state table with the new group_id and TA
             state_table.insert_or_update(&row).unwrap();
-
-            result_rows.push(row.clone());
-
-            index += 1;
+            result_rows.push(row);
         }
 
-        // Update the state table with the new data
-        // taTable.rows = result_rows.clone();
+        result_rows.extend(setu_group);
 
-        // Write to DB
-        // TODO: This could be slow. Find better ways.
-        write_to_db(&PathBuf::from("classroom.db"), &state_table).unwrap();
+        if let Err(err) = write_to_db(&PathBuf::from("classroom.db"), &state_table) {
+            eprintln!("Failed to write to DB: {:?}", err);
+        }
 
-        HttpResponse::Ok().json(result_rows)
-    } else {
-        HttpResponse::BadRequest().json(serde_json::json!({
-            "status": "error",
-            "message": "Invalid week number"
-        }))
+        return HttpResponse::Ok().json(result_rows);
     }
+
+    HttpResponse::BadRequest().json(serde_json::json!({
+        "status": "error",
+        "message": "Invalid week number"
+    }))
 }
 
 #[post("/weekly_data/{week}")]

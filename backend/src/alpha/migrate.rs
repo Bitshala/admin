@@ -169,10 +169,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Define base groups (as in your JS `baseGroups` variable)
     // Q: Why different from base group?
     // TODO: Put them into enums.
-    let base_groups = vec!["Group 1", "Group 2", "Group 3", "Group 4", "Group 5"];
-    if base_groups.is_empty() {
-        eprintln!("Warning: base_groups is empty. Students will not be assigned a group.");
-    }
+    let _base_groups = ["Group 1", "Group 2", "Group 3", "Group 4", "Group 5"];
 
     // Fetch TA names from the ta table
     let mut stmt_fetch_tas = conn.prepare("SELECT name FROM ta")?;
