@@ -291,46 +291,56 @@ async fn get_weekly_data_or_common(
         // Assign students to groups and TAs
         let mut result_rows: Vec<RowData> = Vec::new();
         for (idx, row) in prev_week_rows.iter_mut().enumerate() {
-            if let Some(existing_row) = state_table
-                .rows
-                .iter()
-                .find(|r| r.name == row.name && r.week == week)
-            {
-                if existing_row.ta.as_deref() == Some("NA") {
-                    let (group_id, assigned_ta) = if row.attendance.as_deref() == Some("yes") {
-                        let group_id = ((idx / max_people_per_group) % tas.len()) + 1;
-                        (format!("Group {}", group_id), tas[group_id - 1])
-                    } else {
-                        ("Group 6".to_string(), TA::Setu)
-                    };
+            // if let Some(existing_row) = state_table
+            //     .rows
+            //     .iter()
+            //     .find(|r| r.name == row.name && r.week == week)
+            // {
+            //     if existing_row.ta.as_deref() == Some("NA") {
+            //         let (group_id, assigned_ta) = if row.attendance.as_deref() == Some("yes") {
+            //             let group_id = ((idx / max_people_per_group) % tas.len()) + 1;
+            //             (format!("Group {}", group_id), tas[group_id - 1])
+            //         } else {
+            //             ("Group 6".to_string(), TA::Setu)
+            //         };
 
-                    row.group_id = group_id.clone();
-                    row.ta = Some(format!("{:?}", assigned_ta));
-                } else {
-                    // row.group_id = existing_row.group_id.clone();
-                    // row.ta = existing_row.ta.clone();
-                    let (group_id, assigned_ta) = if row.attendance.as_deref() == Some("yes") {
-                        let group_id = ((idx / max_people_per_group) % tas.len()) + 1;
-                        (format!("Group {}", group_id), tas[group_id - 1])
-                    } else {
-                        ("Group 6".to_string(), TA::Setu)
-                    };
+            //         row.group_id = group_id.clone();
+            //         row.ta = Some(format!("{:?}", assigned_ta));
+            //     } else {
+            //         // row.group_id = existing_row.group_id.clone();
+            //         // row.ta = existing_row.ta.clone();
+            //         let (group_id, assigned_ta) = if row.attendance.as_deref() == Some("yes") {
+            //             let group_id = ((idx / max_people_per_group) % tas.len()) + 1;
+            //             (format!("Group {}", group_id), tas[group_id - 1])
+            //         } else {
+            //             ("Group 6".to_string(), TA::Setu)
+            //         };
 
-                    row.group_id = group_id.clone();
-                    row.ta = Some(format!("{:?}", assigned_ta));
-                }
+            //         row.group_id = group_id.clone();
+            //         row.ta = Some(format!("{:?}", assigned_ta));
+            //     }
+            // } else {
+            //     let (group_id, assigned_ta) = if row.attendance.as_deref() == Some("yes") {
+            //         let group_id = ((idx / max_people_per_group) % tas.len()) + 1;
+            //         (format!("Group {}", group_id), tas[group_id - 1])
+            //     } else {
+            //         ("Group 6".to_string(), TA::Setu)
+            //     };
+
+            //     row.group_id = group_id.clone();
+            //     row.ta = Some(format!("{:?}", assigned_ta));
+            // }
+
+            let (group_id, assigned_ta) = if row.attendance.as_deref() == Some("yes") {
+                let group_id = ((idx / max_people_per_group) % tas.len()) + 1;
+                println!("Assigning {} at {} with group ID {}", row.name, idx, group_id);
+                (format!("Group {}", group_id), tas[group_id - 1])
             } else {
-                let (group_id, assigned_ta) = if row.attendance.as_deref() == Some("yes") {
-                    let group_id = ((idx / max_people_per_group) % tas.len()) + 1;
-                    (format!("Group {}", group_id), tas[group_id - 1])
-                } else {
-                    ("Group 6".to_string(), TA::Setu)
-                };
-
-                row.group_id = group_id.clone();
-                row.ta = Some(format!("{:?}", assigned_ta));
-            }
-
+                ("Group 6".to_string(), TA::Setu)
+            };
+            
+            row.group_id = group_id.clone();
+            row.ta = Some(format!("{:?}", assigned_ta));
             row.week = week;
 
             // Get the existing data from the state for the same student and week
