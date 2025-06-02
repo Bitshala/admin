@@ -467,7 +467,7 @@ async fn main() -> Result<(), std::io::Error> {
             .service(get_total_student_count)
             .service(get_weekly_attendance_count_for_week)
     })
-    .bind(("127.0.0.1", 8081))?
+    .bind(("0.0.0.0", 8081))?
     .run()
     .await?;
 
