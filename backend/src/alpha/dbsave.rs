@@ -22,31 +22,16 @@ pub struct DbSave<'a> {
 
 impl<'a> SaveDatabaseWeekly for DbSave<'a> {
     fn save(&self) -> Result<(), DbError> {
-        let get_current_day = chrono::Local::now().date_naive().weekday();
-
 
         let db_path = Path::new("./").join(self.db_name);
     
         if db_path.exists() {
-            // Create the backup directory if it doesn't exist
             let backup_dir = Path::new("./backup");
-            if let Err(e) = fs::create_dir_all(&backup_dir) {
-            return Err(DbError::DatabaseError(format!(
-                "Failed to create backup directory: {}",
-                e
-            )));
-            }
+            fs::create_dir_all(Path::new("./backup")).unwrap(); 
 
-            let weekday = get_current_day.to_string();
-            let backup_file = backup_dir.join(format!("{}_{}", self.db_name, weekday));
+            let backup_file = backup_dir.join(format!("{}", self.db_name));
+            fs::copy(&db_path, &backup_file).unwrap();
 
-            // Copy the database file to the backup directory
-            if let Err(e) = fs::copy(&db_path, &backup_file) {
-            return Err(DbError::DatabaseError(format!(
-                "Failed to copy database file: {}",
-                e
-            )));
-            }
         } else {
             return Err(DbError::DatabaseError(format!(
             "Database file '{}' not found in project root.",
@@ -57,8 +42,4 @@ impl<'a> SaveDatabaseWeekly for DbSave<'a> {
         
         Ok(())
     }
-}
-
-fn main() {
-    let db = DbSave { db_name: "my_db" }?;
 }

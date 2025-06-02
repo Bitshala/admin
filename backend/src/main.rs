@@ -7,8 +7,13 @@ use rusqlite::{Connection, params};
 use serde::{Deserialize, Serialize};
 use std::{path::PathBuf, sync::Mutex};
 use thiserror::Error;
-// // mod classroom;
-// use classroom::get_env;
+use chrono::Datelike;
+
+pub mod alpha {
+    pub mod dbsave;
+}
+use crate::alpha::dbsave::{DbSave, SaveDatabaseWeekly};
+
 
 #[derive(Debug, Error)]
 pub enum AppError {
@@ -425,6 +430,12 @@ async fn add_weekly_data(
 async fn main() -> Result<(), std::io::Error> {
     //env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
 
+    if chrono::Local::now().date_naive().weekday() == chrono::Weekday::Wed || chrono::Local::now().date_naive().weekday() == chrono::Weekday::Sat {
+        let db = DbSave { db_name: "classroom.db" };
+        let result = SaveDatabaseWeekly::save(&db);
+        println!("{:?}", result);
+    }
+
     let table = read_from_db(&PathBuf::from("classroom.db"))?;
 
     let state = web::Data::new(Mutex::new(table));
@@ -457,7 +468,6 @@ async fn main() -> Result<(), std::io::Error> {
     .await?;
 
     // Save Everything to the database at the end
-    //write_to_db(&PathBuf::from("classroom.db"), &table)?;
 
     Ok(())
 }
