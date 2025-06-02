@@ -444,6 +444,8 @@ async fn main() -> Result<(), std::io::Error> {
     HttpServer::new(move || {
         let cors = Cors::default()
             .allow_any_origin()
+            .allowed_origin("http://localhost:5173")
+            .allowed_origin("http://172.81.178.3:5173")
             .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
             .allowed_headers(vec![
                 header::AUTHORIZATION,
