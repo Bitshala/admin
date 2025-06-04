@@ -61,7 +61,7 @@ const computeGdTotal = (gd: TableRowData['gdScore']): number =>
   (30 / 5) * gd.fa + (30 / 5) * gd.fb + (20 / 5) * gd.fc + (20 / 5) * gd.fd;
 
 const computeBonusTotal = (b: TableRowData['bonusScore']): number =>
- (10 / 5) * b.attempt + (10 / 5) * b.good + (10 / 5) * b.followUp;
+  10 * b.attempt + 10 * b.good + 10 * b.followUp;
 
 const computeExerciseTotal = (e: TableRowData['exerciseScore']): number =>
   (e.Submitted ? 10 : 0) +
