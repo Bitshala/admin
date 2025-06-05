@@ -412,12 +412,17 @@ async fn add_weekly_data(
     //     .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
 
     let mut state_table = state.lock().unwrap();
-
-    // For each incoming entry, update or insert
+ 
     for incoming_row in student_data.iter() {
         state_table.insert_or_update(incoming_row)?;
     }
 
+    if student_data.len() < state_table.rows.len() {
+        let incoming_names:Vec<(&String, i32)> = student_data.iter().map(|row| (&row.name, row.week)).collect();
+        state_table.rows.retain(|row| {
+            !(row.week == student_data[0].week && !incoming_names.contains(&(&row.name, row.week)))
+        });
+    }
     // Write to DB
     write_to_db(&db_path, &state_table)?;
 
