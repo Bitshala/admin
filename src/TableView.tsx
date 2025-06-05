@@ -412,9 +412,9 @@ const TableView: React.FC = () => {
 
       {/* Original JSX continues below */}
       <div className="max-w-full mx-auto">
-        <h1>Cohort Name</h1>
+        <h1>Learning Bitcoin From Command Line</h1>
         {/* ... rest of H2, H3 ... */}
-        <h2 className='font-light'>End Date - Start Date</h2>
+        <h2 className='font-light'>30th May - 27th july</h2>
         <h2 className='font-light'>Github Classroom Master Repository</h2>
         <h3 className="">Cohort Participants</h3>
 
