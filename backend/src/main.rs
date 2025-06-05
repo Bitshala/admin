@@ -9,10 +9,8 @@ use std::{path::PathBuf, sync::Mutex};
 use thiserror::Error;
 use chrono::Datelike;
 
-pub mod alpha {
-    pub mod dbsave;
-}
-use crate::alpha::dbsave::{DbSave, SaveDatabaseWeekly};
+mod utils;
+use utils::dbsave::{DbSave,SaveDatabaseWeekly};
 
 
 #[derive(Debug, Error)]
