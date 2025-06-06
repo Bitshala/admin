@@ -448,7 +448,7 @@ async fn main() -> Result<(), std::io::Error> {
         let cors = Cors::default()
             .allow_any_origin()
             .allowed_origin("http://localhost:5173")
-            .allowed_origin("https://admin.bitshal.org")
+            .allowed_origin("https://admin.bitshala.org")
             .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
             .allowed_headers(vec![
                 header::AUTHORIZATION,
