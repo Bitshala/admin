@@ -56,7 +56,7 @@ const TableView: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [week, setWeek] = useState(0);
 
-  const baseGroups = useMemo(() => ['Group 1', 'Group 2', 'Group 3', 'Group 4', 'Group 5', 'Group 6'], []);
+  const baseGroups = useMemo(() => ['Group 0', 'Group 1', 'Group 2', 'Group 3', 'Group 4', 'Group 5'], []);
   const canEditFields = isEditing && week !== 0;
 
   const [searchTerm, setSearchTerm] = useState<string>('');
