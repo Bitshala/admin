@@ -375,7 +375,7 @@ async fn get_weekly_data_or_common(
 
             let assigned_ta = &tas[group_id as usize];
 
-            row.group_id = format!("Group {}", group_id);
+            row.group_id = format!("Group {}", group_id + 1);
             row.ta = Some(format!("{:?}", assigned_ta));
             row.week = week;
 
