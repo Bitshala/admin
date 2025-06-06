@@ -104,7 +104,7 @@ const TableView: React.FC = () => {
     computeExerciseTotal(p.exerciseScore), [computeGdTotal, computeBonusTotal, computeExerciseTotal]);
 
   const fetchWeeklyData = useCallback((selectedWeek: number) => {
-    fetch(`https://localhost:8081/weekly_data/${selectedWeek}`)
+    fetch(`https://admin.bitshala.org/weekly_data/${selectedWeek}`)
       .then(response => {
         if (!response.ok) {
           return response.text().then(text => {
@@ -140,7 +140,7 @@ const TableView: React.FC = () => {
 
   const [totalCount, setTotalCount] = useState<number | null>(null);
   useEffect(() => {
-    fetch("https://localhost:8081/students/count")
+    fetch("https://admin.bitshala.org/students/count")
       .then(res => res.json()).then(data => setTotalCount(data.count))
       .catch(err => console.error("Error fetching total count:", err));
   }, []);
@@ -197,7 +197,7 @@ const TableView: React.FC = () => {
   type WeeklyAttendance = { week: number; attended: number; };
   const [weeklyData, setWeeklyData] = useState<WeeklyAttendance>({ week: 0, attended: 0 });
   useEffect(() => {
-    fetch(`https://localhost:8081/attendance/weekly_counts/${week}`)
+    fetch(`https://admin.bitshala.org/attendance/weekly_counts/${week}`)
       .then(res => res.json())
       .then(apiData => {
         if (Array.isArray(apiData)) {
@@ -221,7 +221,7 @@ const TableView: React.FC = () => {
       exercise_good_documentation: p.exerciseScore.goodDoc ? 'yes' : 'no', exercise_good_structure: p.exerciseScore.goodStructure ? 'yes' : 'no',
       total: computeTotal(p)
     }));
-    fetch(`https://localhost:8081/weekly_data/${week}`, {
+    fetch(`https://admin.bitshala.org/weekly_data/${week}`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
     })
       .then(r => {
