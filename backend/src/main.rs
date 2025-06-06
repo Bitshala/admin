@@ -344,7 +344,7 @@ async fn get_weekly_data_or_common(
             .map(|mut row| {
                 row.week = week;
                 row.ta = Some("Setu".to_string());
-                row.group_id = tas.len().to_string();
+                row.group_id = format!("Group {}", tas.len().to_string()); 
                 row
             })
             .collect();
@@ -375,7 +375,7 @@ async fn get_weekly_data_or_common(
 
             let assigned_ta = &tas[group_id as usize];
 
-            row.group_id = format!("G{}", group_id);
+            row.group_id = format!("Group {}", group_id);
             row.ta = Some(format!("{:?}", assigned_ta));
             row.week = week;
 
