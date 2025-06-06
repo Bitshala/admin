@@ -318,10 +318,10 @@ async fn get_weekly_data_or_common(
             .cloned()
             .collect();
 
-        if !current_week_rows.is_empty() {
-            println!("Week {} data already exists. Returning cached data.", week);
-            return HttpResponse::Ok().json(current_week_rows);
-        }
+        // if !current_week_rows.is_empty() {
+        //     println!("Week {} data already exists. Returning cached data.", week);
+        //     return HttpResponse::Ok().json(current_week_rows);
+        // }
 
         let mut tas: Vec<TA> = TA::all_variants()
             .iter()
