@@ -311,12 +311,12 @@ async fn get_weekly_data_or_common(
 
         return HttpResponse::Ok().json(week_0_rows);
     } else if week >= 1 {
-        let current_week_rows: Vec<RowData> = state_table
-            .rows
-            .iter()
-            .filter(|row| row.week == week)
-            .cloned()
-            .collect();
+        // let current_week_rows: Vec<RowData> = state_table
+        //     .rows
+        //     .iter()
+        //     .filter(|row| row.week == week)
+        //     .cloned()
+        //     .collect();
 
         // if !current_week_rows.is_empty() {
         //     println!("Week {} data already exists. Returning cached data.", week);
