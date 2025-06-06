@@ -5,12 +5,16 @@ use actix_web::{
 };
 use rusqlite::{Connection, params};
 use serde::{Deserialize, Serialize};
-use std::{path::PathBuf, sync::Mutex};
+use std::{path::PathBuf, sync::Mutex, thread};
 use thiserror::Error;
 use chrono::Datelike;
 
 mod utils;
 use utils::dbsave::{DbSave,SaveDatabaseWeekly};
+
+use crate::utilll::db_backup;
+
+mod utilll;
 
 
 #[derive(Debug, Error)]
@@ -412,32 +416,53 @@ async fn add_weekly_data(
     //     .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
 
     let mut state_table = state.lock().unwrap();
- 
+    
+    // UPDATE EVERYTHING HERE
     for incoming_row in student_data.iter() {
         state_table.insert_or_update(incoming_row)?;
-    }
+    }   
 
-    if student_data.len() < state_table.rows.len() {
+    let x = state_table.rows.iter().filter(|row| row.week == student_data[0].week).count();
+
+    if student_data.len() < x {
         let incoming_names:Vec<(&String, i32)> = student_data.iter().map(|row| (&row.name, row.week)).collect();
         state_table.rows.retain(|row| {
             !(row.week == student_data[0].week && !incoming_names.contains(&(&row.name, row.week)))
         });
     }
+
+    // turn the student data into a hashset of names.
+    // filter the state data with week, and turn it into a hashset of names.
+    // find the difference between the two hashsets.
+    // call the drop(&mut state_date, name) -> Result<(), Apperror> on state data.
+
     // Write to DB
     write_to_db(&db_path, &state_table)?;
 
     Ok(HttpResponse::Ok().body("Weekly data inserted/updated successfully"))
 }
 
+#[allow(unused_assignments)]
 #[actix_web::main]
 async fn main() -> Result<(), std::io::Error> {
     //env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
 
-    if chrono::Local::now().date_naive().weekday() == chrono::Weekday::Wed || chrono::Local::now().date_naive().weekday() == chrono::Weekday::Sat {
-        let db = DbSave { db_name: "classroom.db" };
-        let result = SaveDatabaseWeekly::save(&db);
-        println!("{:?}", result);
-    }
+    // if chrono::Local::now().date_naive().weekday() == chrono::Weekday::Wed || chrono::Local::now().date_naive().weekday() == chrono::Weekday::Sat {
+    //     let db = DbSave { db_name: "classroom.db" };
+    //     let result = SaveDatabaseWeekly::save(&db);
+    //     println!("{:?}", result);
+    // }
+
+    let mut shutdown = false;
+
+    let thread= thread::Builder::new()
+        .name("db_backup_thread".to_string())
+        .spawn(move || {
+            while shutdown == false {
+                utilll::db_backup();
+            }
+        })
+        .expect("Failed to spawn backup thread");
 
     let table = read_from_db(&PathBuf::from("classroom.db"))?;
 
@@ -475,7 +500,8 @@ async fn main() -> Result<(), std::io::Error> {
     .await?;
 
     // Save Everything to the database at the end
-
+    shutdown = true;
+    thread.join().expect("Failed to join backup thread");
     Ok(())
 }
 
