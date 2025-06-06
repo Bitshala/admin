@@ -8,11 +8,11 @@ function Login() {
   const navigate = useNavigate();
 
   const handleLogin = () => {
-    fetch('http://172.81.178.3:8081/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ gmail: email }),
-    })
+      fetch('/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gmail: email }),
+      })
       .then(res => {
         if (!res.ok) throw new Error('Access denied');
         return res.json();
