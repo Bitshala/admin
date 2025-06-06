@@ -344,7 +344,7 @@ async fn get_weekly_data_or_common(
             .map(|mut row| {
                 row.week = week;
                 row.ta = Some("Setu".to_string());
-                row.group_id = format!("Group {}", tas.len().to_string()); 
+                row.group_id = format!("Group {}", (tas.len()+1).to_string()); 
                 row
             })
             .collect();
