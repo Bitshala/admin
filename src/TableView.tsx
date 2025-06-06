@@ -73,7 +73,7 @@ const TableView: React.FC = () => {
   const [showTableRowForm, setShowTableRowForm] = useState(false);
   const [newStudent, setNewStudent] = useState<Omit<TableRowData, 'id' | 'total' | 'week'>>({
     ...initialNewStudentFormStateProto,
-    group: baseGroups[0] || 'Group 1',
+    group: baseGroups[0] || 'Group 0',
   });
 
   // --- State for Context Menu ---
@@ -252,7 +252,7 @@ const TableView: React.FC = () => {
   const getSortIndicator = (key: keyof TableRowData) => (sortConfig.key === key ? (sortConfig.direction === 'ascending' ? ' 🔼' : ' 🔽') : '');
 
   const openAddNewRowForm = () => {
-    setNewStudent({ ...initialNewStudentFormStateProto, group: baseGroups[0] || 'Group 1' });
+    setNewStudent({ ...initialNewStudentFormStateProto, group: baseGroups[0] || 'Group 0' });
     setShowTableRowForm(true);
   };
 
