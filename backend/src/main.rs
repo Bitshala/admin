@@ -366,7 +366,7 @@ async fn get_weekly_data_or_common(
 
         let bucket_size = total_active_students / tas_count;
 
-        let mut group_id: isize = -1;
+        let mut group_id: isize = 0;
 
         for (index, mut row) in prev_week_rows.into_iter().enumerate() {
             if index % bucket_size == 0 {
