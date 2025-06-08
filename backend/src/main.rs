@@ -311,19 +311,8 @@ async fn get_weekly_data_or_common(
 
         return HttpResponse::Ok().json(week_0_rows);
     } else if week >= 1 {
-        // let current_week_rows: Vec<RowData> = state_table
-        //     .rows
-        //     .iter()
-        //     .filter(|row| row.week == week)
-        //     .cloned()
-        //     .collect();
 
-        // if !current_week_rows.is_empty() {
-        //     println!("Week {} data already exists. Returning cached data.", week);
-        //     return HttpResponse::Ok().json(current_week_rows);
-        // }
-
-        let mut tas: Vec<TA> = TA::all_variants()
+        let tas: Vec<TA> = TA::all_variants()
             .iter()
             .cloned()
             .filter(|ta| *ta != TA::Setu)
@@ -356,31 +345,23 @@ async fn get_weekly_data_or_common(
                 .then_with(|| a.name.cmp(&b.name))
         });
 
-        let mut rng = rand::thread_rng();
-        tas.shuffle(&mut rng);
-
-        let tas_count = tas.len();
-        let total_active_students = prev_week_rows.len();
-
         let mut result_rows: Vec<RowData> = Vec::new();
-
-        let bucket_size = total_active_students / tas_count;
-
         let mut group_id: isize = -1;
 
         for (index, mut row) in prev_week_rows.into_iter().enumerate() {
-            if index % bucket_size == 0 {
+            if index < 30 {
+                if index % 6 == 0 {
+                    group_id += 1;
+                }
+            } else {
                 group_id += 1;
             }
-
-            let assigned_ta = &tas[group_id as usize];
-
-            row.group_id = format!("Group {}", group_id + 1);
+            let index = (group_id as usize) % tas.len();  
+            let assigned_ta = &tas[index]; 
+            row.group_id = format!("Group {}", index + 1);
             row.ta = Some(format!("{:?}", assigned_ta));
             row.week = week;
-
             update(&mut row);
-
             state_table.insert_or_update(&row).unwrap();
             result_rows.push(row);
         }
@@ -447,8 +428,6 @@ async fn main() -> Result<(), std::io::Error> {
     HttpServer::new(move || {
         let cors = Cors::default()
             .allow_any_origin()
-            .allowed_origin("http://localhost:5173")
-            .allowed_origin("https://admin.bitshala.org")
             .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
             .allowed_headers(vec![
                 header::AUTHORIZATION,
