@@ -3,15 +3,14 @@ use actix_web::{
     App, HttpResponse, HttpServer, Responder, Result, get, http::header, middleware::Logger, post,
     web,
 };
+use chrono::Datelike;
 use rusqlite::{Connection, params};
 use serde::{Deserialize, Serialize};
 use std::{path::PathBuf, sync::Mutex};
 use thiserror::Error;
-use chrono::Datelike;
 
 mod utils;
-use utils::dbsave::{DbSave,SaveDatabaseWeekly};
-
+use utils::dbsave::{DbSave, SaveDatabaseWeekly};
 
 #[derive(Debug, Error)]
 pub enum AppError {
@@ -272,7 +271,6 @@ async fn get_weekly_attendance_count_for_week(
     }))
 }
 
-
 #[get("/weekly_data/{week}")]
 async fn get_weekly_data_or_common(
     week: web::Path<i32>,
@@ -295,7 +293,6 @@ async fn get_weekly_data_or_common(
 
         return HttpResponse::Ok().json(week_0_rows);
     } else if week >= 1 {
-
         let tas: Vec<TA> = TA::all_variants()
             .iter()
             .cloned()
@@ -309,28 +306,28 @@ async fn get_weekly_data_or_common(
             .cloned()
             .collect();
 
-
         // sort by attendance.
         prev_week_rows.sort_by(|a, b| {
-            b.attendance.partial_cmp(&a.attendance).unwrap_or(std::cmp::Ordering::Equal).then_with(||
-            b.total
-                .partial_cmp(&a.total)
+            b.attendance
+                .partial_cmp(&a.attendance)
                 .unwrap_or(std::cmp::Ordering::Equal)
-                .then_with(|| b.name.cmp(&a.name)))
+                .then_with(|| {
+                    b.total
+                        .partial_cmp(&a.total)
+                        .unwrap_or(std::cmp::Ordering::Equal)
+                        .then_with(|| b.name.cmp(&a.name))
+                })
         });
-
-
 
         let mut result_rows: Vec<RowData> = Vec::new();
         let mut group_id: isize = -1;
 
         for (index, mut row) in prev_week_rows.into_iter().enumerate() {
-            println!("index {} and row data {:?}" , index ,row);
+            println!("index {} and row data {:?}", index, row);
             if row.attendance.as_deref() == Some("no") {
                 row.group_id = format!("Group {}", 6);
                 row.ta = Some("Setu".to_string());
-            }
-            else if row.attendance.as_deref() == Some("yes") {
+            } else if row.attendance.as_deref() == Some("yes") {
                 if index < 30 {
                     if index % 6 == 0 {
                         group_id += 1;
@@ -338,12 +335,11 @@ async fn get_weekly_data_or_common(
                 } else {
                     group_id += 1;
                 }
-                let index = (group_id as usize) % tas.len();  
-                let assigned_ta = &tas[index]; 
+                let index = (group_id as usize) % tas.len();
+                let assigned_ta = &tas[(index + week as usize - 1) % tas.len()];
                 row.group_id = format!("Group {}", index + 1);
                 row.ta = Some(format!("{:?}", assigned_ta));
-                
-            }            
+            }
             row.week = week;
 
             if let Some(existing_row) = state_table
@@ -385,7 +381,6 @@ async fn get_weekly_data_or_common(
         }
         //let db_path = PathBuf::from("classroom.db");
         //write_to_db(&db_path, &state_table).unwrap();
-    
 
         write_to_db(&PathBuf::from("classroom.db"), &state_table).unwrap();
 
@@ -403,16 +398,16 @@ async fn delete_data(
     _week: web::Path<i32>,
     row_to_delete: web::Json<RowData>,
     state: web::Data<Mutex<Table>>,
- ) -> Result<HttpResponse, actix_web::Error> {
+) -> Result<HttpResponse, actix_web::Error> {
     let db_path = PathBuf::from("classroom.db");
 
     let mut state_table = state.lock().unwrap();
     // Only remove the row that matches name, mail, and week
-    if let Some(pos) = state_table.rows.iter().position(|row| 
-        row.name == row_to_delete.name && 
-        row.mail == row_to_delete.mail && 
-        row.week == row_to_delete.week
-    ) {
+    if let Some(pos) = state_table.rows.iter().position(|row| {
+        row.name == row_to_delete.name
+            && row.mail == row_to_delete.mail
+            && row.week == row_to_delete.week
+    }) {
         state_table.rows.remove(pos);
     }
 
@@ -429,24 +424,26 @@ async fn add_weekly_data(
 ) -> Result<HttpResponse, actix_web::Error> {
     let db_path = PathBuf::from("classroom.db");
     let mut state_table = state.lock().unwrap();
- 
+
     for incoming_row in student_data.iter() {
         state_table.insert_or_update(incoming_row)?;
     }
-    
+
     write_to_db(&db_path, &state_table)?;
 
     Ok(HttpResponse::Ok().body("Weekly data inserted/updated successfully"))
 }
 
-
-
 #[actix_web::main]
 async fn main() -> Result<(), std::io::Error> {
     //env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
 
-    if chrono::Local::now().date_naive().weekday() == chrono::Weekday::Wed || chrono::Local::now().date_naive().weekday() == chrono::Weekday::Sat {
-        let db = DbSave { db_name: "classroom.db" };
+    if chrono::Local::now().date_naive().weekday() == chrono::Weekday::Wed
+        || chrono::Local::now().date_naive().weekday() == chrono::Weekday::Sat
+    {
+        let db = DbSave {
+            db_name: "classroom.db",
+        };
         let result = SaveDatabaseWeekly::save(&db);
         println!("{:?}", result);
     }
@@ -478,7 +475,6 @@ async fn main() -> Result<(), std::io::Error> {
             .service(add_weekly_data)
             .service(get_total_student_count)
             .service(get_weekly_attendance_count_for_week)
-            
     })
     .bind(("127.0.0.1", 8081))?
     .run()

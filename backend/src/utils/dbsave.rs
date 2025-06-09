@@ -1,6 +1,6 @@
-use thiserror::Error;
-use std::path::Path;
 use std::fs;
+use std::path::Path;
+use thiserror::Error;
 
 // Define a custom error type
 #[derive(Debug, Error)]
@@ -21,24 +21,21 @@ pub struct DbSave<'a> {
 
 impl<'a> SaveDatabaseWeekly for DbSave<'a> {
     fn save(&self) -> Result<(), DbError> {
-
         let db_path = Path::new("./").join(self.db_name);
-    
+
         if db_path.exists() {
             let backup_dir = Path::new("./backup");
-            fs::create_dir_all(Path::new("./backup")).unwrap(); 
+            fs::create_dir_all(Path::new("./backup")).unwrap();
 
             let backup_file = backup_dir.join(format!("{}", self.db_name));
             fs::copy(&db_path, &backup_file).unwrap();
-
         } else {
             return Err(DbError::DatabaseError(format!(
-            "Database file '{}' not found in project root.",
-            self.db_name
+                "Database file '{}' not found in project root.",
+                self.db_name
             )));
         }
-        
-        
+
         Ok(())
     }
 }
