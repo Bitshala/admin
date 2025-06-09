@@ -227,16 +227,22 @@ impl TA {
     }
 }
 
+
+const TOKEN: &str  = "token-mpzbqlbbxtjrjyxcwigsexdqadxmgumdizmnpwocfdobjkfdxwhflnhvavplpgyxtsplxisvxalvwgvjwdyvusvalapxeqjdhnsyoyhywcdwucshdoyvefpnobnslqfg";
 // --- Handlers ---
 #[post("/login")]
 /// Only allow TAs to login with specific emails.
+/// On success, send a string token back to the frontend.
 async fn login(item: web::Json<TaLogin>) -> impl Responder {
     println!("TA login attempt: {:?}", item.gmail);
     if let Some(ta) = TA::from_email(&item.gmail) {
         println!("TA login success.");
+        // For demonstration, use a simple token (in production, use JWT or similar)
+        let token = format!("{}", TOKEN);
         HttpResponse::Ok().json(serde_json::json!({
             "status": "success",
-            "message": format!("Access granted for TA: {:?}", ta)
+            "message": format!("Access granted for TA: {:?}", ta),
+            "token": token
         }))
     } else {
         HttpResponse::Unauthorized().json(serde_json::json!({
@@ -283,8 +289,23 @@ async fn get_weekly_attendance_count_for_week(
 async fn get_weekly_data_or_common(
     week: web::Path<i32>,
     state: web::Data<Mutex<Table>>,
+    req: actix_web::HttpRequest,
 ) -> impl Responder {
     use std::path::PathBuf;
+
+    // Check for the token in the Authorization header
+    
+    let auth_header = req
+        .headers()
+        .get(actix_web::http::header::AUTHORIZATION)
+        .and_then(|h| h.to_str().ok());
+
+    if auth_header != Some(TOKEN) {
+        return HttpResponse::Unauthorized().json(serde_json::json!({
+            "status": "error",
+            "message": "Unauthorized: missing or invalid token"
+        }));
+    }
 
     let week = week.into_inner();
     println!("Getting and updating weekly data for week: {}", week);
@@ -387,8 +408,6 @@ async fn get_weekly_data_or_common(
             state_table.insert_or_update(&row).unwrap();
             result_rows.push(row);
         }
-        //let db_path = PathBuf::from("classroom.db");
-        //write_to_db(&db_path, &state_table).unwrap();
 
         write_to_db(&PathBuf::from("classroom.db"), &state_table).unwrap();
 

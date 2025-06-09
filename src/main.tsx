@@ -6,7 +6,20 @@ import './index.css'
 import Login from './Login.tsx'
 import TableView from './TableView.tsx'
 import 'virtual:uno.css'
+import { useLocation, Navigate } from 'react-router-dom';
 
+const TOKEN  = "token-mpzbqlbbxtjrjyxcwigsexdqadxmgumdizmnpwocfdobjkfdxwhflnhvavplpgyxtsplxisvxalvwgvjwdyvusvalapxeqjdhnsyoyhywcdwucshdoyvefpnobnslqfg";
+const isAuthenticated = (token?: string) => {
+  if (token === TOKEN){
+      return !!token;
+  }
+};
+
+const ProtectedRoute = ({ element }: { element: JSX.Element }) => {
+  const location = useLocation();
+  const token = location.state?.token;
+  return isAuthenticated(token) ? element : <Navigate to="/" replace />;
+};
 
 const router = createBrowserRouter([
   {
@@ -15,11 +28,8 @@ const router = createBrowserRouter([
   },
   {
     path: "/admin",
-    element: <TableView />,
+    element: <ProtectedRoute element={<TableView />} />,
   },
-
-
-  
 ]);
 
 createRoot(document.getElementById('root')!).render(

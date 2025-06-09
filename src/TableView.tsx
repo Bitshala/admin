@@ -90,8 +90,14 @@ const TableView: React.FC = () => {
     [computeGdTotal, computeBonusTotal, computeExerciseTotal]
   );
 
+  const TOKEN  = "token-mpzbqlbbxtjrjyxcwigsexdqadxmgumdizmnpwocfdobjkfdxwhflnhvavplpgyxtsplxisvxalvwgvjwdyvusvalapxeqjdhnsyoyhywcdwucshdoyvefpnobnslqfg";
+
   const fetchWeeklyData = useCallback((selectedWeek: number) => {
-    fetch(`http://localhost:8081/weekly_data/${selectedWeek}`)
+    fetch(`http://localhost:8081/weekly_data/${selectedWeek}`, {
+      headers: {
+        'Authorization': `${TOKEN}`,
+      },
+    })
       .then(response => {
         if (!response.ok) {
           return response.text().then(text => {
