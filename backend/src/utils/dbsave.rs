@@ -1,6 +1,7 @@
 use std::fs;
 use std::path::Path;
 use thiserror::Error;
+use chrono::Local;
 
 // Define a custom error type
 #[derive(Debug, Error)]
@@ -27,7 +28,15 @@ impl<'a> SaveDatabaseWeekly for DbSave<'a> {
             let backup_dir = Path::new("./backup");
             fs::create_dir_all(Path::new("./backup")).unwrap();
 
-            let backup_file = backup_dir.join(format!("{}", self.db_name));
+            let now = Local::now();
+            let day_of_week = now.format("%A"); // e.g., Monday
+            let date_time = now.format("%Y-%m-%d_%H-%M-%S"); // e.g., 2024-06-07_15-30-00
+            let backup_file = backup_dir.join(format!(
+                "{}_{}_{}.db",
+                self.db_name,
+                day_of_week,
+                date_time
+            ));
             fs::copy(&db_path, &backup_file).unwrap();
         } else {
             return Err(DbError::DatabaseError(format!(

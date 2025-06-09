@@ -438,15 +438,25 @@ async fn add_weekly_data(
 async fn main() -> Result<(), std::io::Error> {
     //env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
 
-    if chrono::Local::now().date_naive().weekday() == chrono::Weekday::Wed
-        || chrono::Local::now().date_naive().weekday() == chrono::Weekday::Sat
-    {
-        let db = DbSave {
-            db_name: "classroom.db",
-        };
-        let result = SaveDatabaseWeekly::save(&db);
-        println!("{:?}", result);
-    }
+    // Spawn a background thread to periodically check and save the database on Wed/Sat
+    std::thread::spawn(|| {
+        loop {
+            let now = chrono::Local::now();
+            let weekday = now.date_naive().weekday();
+            if weekday == chrono::Weekday::Wed || weekday == chrono::Weekday::Sat {
+                let db = DbSave {
+                    db_name: "classroom.db",
+                };
+                let result = SaveDatabaseWeekly::save(&db);
+                println!("{:?}", result);
+                // Sleep for 24 hours to avoid repeated saves on the same day
+                std::thread::sleep(std::time::Duration::from_secs(60 * 60 * 24));
+            } else {
+                // Check again in 1 hour
+                std::thread::sleep(std::time::Duration::from_secs(60 * 60));
+            }
+        }
+    });
 
     let table = read_from_db(&PathBuf::from("classroom.db"))?;
 
