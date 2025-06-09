@@ -305,45 +305,45 @@ async fn get_weekly_data_or_common(
         let mut prev_week_rows: Vec<RowData> = state_table
             .rows
             .iter()
-            .filter(|row| row.week == week - 1 && row.attendance.as_deref() == Some("yes"))
+            .filter(|row| row.week == week - 1)
             .cloned()
             .collect();
 
-        let setu_group: Vec<RowData> = state_table
-            .rows
-            .iter()
-            .filter(|row| row.week == week - 1 && row.attendance.as_deref() == Some("no"))
-            .cloned()
-            .map(|mut row| {
-                row.week = week;
-                row.ta = Some("Setu".to_string());
-                row.group_id = format!("Group {}", (tas.len()+1).to_string()); 
-                row
-            })
-            .collect();
 
+        // sort by attendance.
         prev_week_rows.sort_by(|a, b| {
+            b.attendance.partial_cmp(&a.attendance).unwrap_or(std::cmp::Ordering::Equal).then_with(||
             b.total
                 .partial_cmp(&a.total)
                 .unwrap_or(std::cmp::Ordering::Equal)
-                .then_with(|| a.name.cmp(&b.name))
+                .then_with(|| b.name.cmp(&a.name)))
         });
+
+
 
         let mut result_rows: Vec<RowData> = Vec::new();
         let mut group_id: isize = -1;
 
         for (index, mut row) in prev_week_rows.into_iter().enumerate() {
-            if index < 30 {
-                if index % 6 == 0 {
+            println!("index {} and row data {:?}" , index ,row);
+            if row.attendance.as_deref() == Some("no") {
+                row.group_id = format!("Group {}", 6);
+                row.ta = Some("Setu".to_string());
+            }
+            else if row.attendance.as_deref() == Some("yes") {
+                if index < 30 {
+                    if index % 6 == 0 {
+                        group_id += 1;
+                    }
+                } else {
                     group_id += 1;
                 }
-            } else {
-                group_id += 1;
-            }
-            let index = (group_id as usize) % tas.len();  
-            let assigned_ta = &tas[index]; 
-            row.group_id = format!("Group {}", index + 1);
-            row.ta = Some(format!("{:?}", assigned_ta));
+                let index = (group_id as usize) % tas.len();  
+                let assigned_ta = &tas[index]; 
+                row.group_id = format!("Group {}", index + 1);
+                row.ta = Some(format!("{:?}", assigned_ta));
+                
+            }            
             row.week = week;
 
             if let Some(existing_row) = state_table
@@ -383,12 +383,11 @@ async fn get_weekly_data_or_common(
             state_table.insert_or_update(&row).unwrap();
             result_rows.push(row);
         }
+        //let db_path = PathBuf::from("classroom.db");
+        //write_to_db(&db_path, &state_table).unwrap();
+    
 
-        result_rows.extend(setu_group);
-
-        if let Err(err) = write_to_db(&PathBuf::from("classroom.db"), &state_table) {
-            eprintln!("Failed to write to DB: {:?}", err);
-        }
+        write_to_db(&PathBuf::from("classroom.db"), &state_table).unwrap();
 
         return HttpResponse::Ok().json(result_rows);
     }
