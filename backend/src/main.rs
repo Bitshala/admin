@@ -272,21 +272,6 @@ async fn get_weekly_attendance_count_for_week(
     }))
 }
 
-fn update(row: &mut RowData) {
-    row.attendance = Some("no".to_string());
-    row.fa = Some(0);
-    row.fb = Some(0);
-    row.fc = Some(0);
-    row.fd = Some(0);
-    row.bonus_attempt = Some(0);
-    row.bonus_answer_quality = Some(0);
-    row.bonus_follow_up = Some(0);
-    row.exercise_submitted = Some("no".to_string());
-    row.exercise_test_passing = Some("no".to_string());
-    row.exercise_good_documentation = Some("no".to_string());
-    row.exercise_good_structure = Some("no".to_string());
-    row.total = Some(0);
-}
 
 #[get("/weekly_data/{week}")]
 async fn get_weekly_data_or_common(
