@@ -8,7 +8,7 @@ function Login() {
   const navigate = useNavigate();
 
   const handleLogin = () => {
-      fetch('https://admin.bitshala.org/login', {
+      fetch('http://localhost:8081/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ gmail: email }),

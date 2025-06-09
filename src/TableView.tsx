@@ -84,7 +84,6 @@ const TableView: React.FC = () => {
     targetId: number | null;
   }>({ visible: false, x: 0, y: 0, targetId: null });
   const contextMenuRef = useRef<HTMLDivElement>(null); // Ref for the context menu div
-
   // ---
 
   const computeGdTotal = useCallback((gd: TableRowData['gdScore']): number =>
@@ -105,7 +104,7 @@ const TableView: React.FC = () => {
     computeExerciseTotal(p.exerciseScore), [computeGdTotal, computeBonusTotal, computeExerciseTotal]);
 
   const fetchWeeklyData = useCallback((selectedWeek: number) => {
-    fetch(`https://admin.bitshala.org/weekly_data/${selectedWeek}`)
+    fetch(`http://localhost:8081/weekly_data/${selectedWeek}`)
       .then(response => {
         if (!response.ok) {
           return response.text().then(text => {
@@ -135,13 +134,13 @@ const TableView: React.FC = () => {
         setData(formattedData);
       })
       .catch(error => { console.error(`Error fetching data for week ${selectedWeek}:`, error); setData([]); });
-  }, [computeTotal]);
+  }, [computeTotal, computeBonusTotal, computeExerciseTotal, computeGdTotal]);
 
-  useEffect(() => { fetchWeeklyData(week); }, [fetchWeeklyData, week]);
+  useEffect(() => { fetchWeeklyData(0); }, [fetchWeeklyData]);
 
   const [totalCount, setTotalCount] = useState<number | null>(null);
   useEffect(() => {
-    fetch("https://admin.bitshala.org/students/count")
+    fetch("http://localhost:8081/students/count")
       .then(res => res.json()).then(data => setTotalCount(data.count))
       .catch(err => console.error("Error fetching total count:", err));
   }, []);
@@ -153,19 +152,12 @@ const TableView: React.FC = () => {
   }, [data]);
 
   const processedData = useMemo(() => {
-
     let D_filteredData = [...data];
-
     if (selectedGroup !== 'All Groups') D_filteredData = D_filteredData.filter(p => p.group === selectedGroup);
-
     if (selectedTA !== 'All TAs') D_filteredData = D_filteredData.filter(p => p.ta === selectedTA);
-
     if (attendanceFilter === 'Present') D_filteredData = D_filteredData.filter(p => p.attendance === true);
-
     else if (attendanceFilter === 'Absent') D_filteredData = D_filteredData.filter(p => p.attendance === false);
-
     if (searchTerm) D_filteredData = D_filteredData.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
-    
     if (sortConfig.key) {
       D_filteredData.sort((a, b) => {
         const aValue = a[sortConfig.key!]; const bValue = b[sortConfig.key!];
@@ -180,13 +172,10 @@ const TableView: React.FC = () => {
         return 0;
       });
     }
-
     return D_filteredData;
-
   }, [data, searchTerm, sortConfig, selectedGroup, selectedTA, attendanceFilter]);
 
   const requestSort = (key: keyof TableRowData) => {
-
     let direction: 'ascending' | 'descending' = 'ascending';
     if (sortConfig.key === key && sortConfig.direction === 'ascending') direction = 'descending';
     setSortConfig({ key, direction });
@@ -206,11 +195,9 @@ const TableView: React.FC = () => {
   const handleEdit = () => setIsEditing(true);
 
   type WeeklyAttendance = { week: number; attended: number; };
-
   const [weeklyData, setWeeklyData] = useState<WeeklyAttendance>({ week: 0, attended: 0 });
-
-  const getWeeklyData =(week:number) =>{
-    fetch(`https://admin.bitshala.org/attendance/weekly_counts/${week}`)
+  useEffect(() => {
+    fetch(`http://localhost:8081/attendance/weekly_counts/${week}`)
       .then(res => res.json())
       .then(apiData => {
         if (Array.isArray(apiData)) {
@@ -221,53 +208,27 @@ const TableView: React.FC = () => {
         } else { setWeeklyData({ week: week, attended: 0 }); }
       })
       .catch(err => { console.error("Error fetching weekly attendance:", err); setWeeklyData({ week: week, attended: 0 }); });
-  }
-  useEffect(() => {
-  getWeeklyData(week);
   }, [week]);
 
   const [isSaved, SetSaved] = useState(false);
   const handleSave = () => {
-    // MODIFIED: Filter data to only include students with attendance = true
-    const payload = data
-      .filter(p => p.attendance === true)
-      .map(p => ({
-        name: p.name,
-        mail: p.email,
-        attendance: p.attendance ? 'yes' : 'no',
-        week: p.week ?? week,
-        group_id: p.group,
-        ta: p.ta === 'N/A' ? undefined : p.ta,
-        fa: p.gdScore.fa,
-        fb: p.gdScore.fb,
-        fc: p.gdScore.fc,
-        fd: p.gdScore.fd,
-        bonus_attempt: p.bonusScore.attempt,
-        bonus_answer_quality: p.bonusScore.good,
-        bonus_follow_up: p.bonusScore.followUp,
-        exercise_submitted: p.exerciseScore.Submitted ? 'yes' : 'no',
-        exercise_test_passing: p.exerciseScore.privateTest ? 'yes' : 'no',
-        exercise_good_documentation: p.exerciseScore.goodDoc ? 'yes' : 'no',
-        exercise_good_structure: p.exerciseScore.goodStructure ? 'yes' : 'no',
-        total: computeTotal(p)
-      }));
-
-    fetch(`https://admin.bitshala.org/weekly_data/${week}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+    const payload = data.map(p => ({
+      name: p.name, mail: p.email, attendance: p.attendance ? 'yes' : 'no', week: p.week ?? week,
+      group_id: p.group, ta: p.ta === 'N/A' ? undefined : p.ta,
+      fa: p.gdScore.fa, fb: p.gdScore.fb, fc: p.gdScore.fc, fd: p.gdScore.fd,
+      bonus_attempt: p.bonusScore.attempt, bonus_answer_quality: p.bonusScore.good, bonus_follow_up: p.bonusScore.followUp,
+      exercise_submitted: p.exerciseScore.Submitted ? 'yes' : 'no', exercise_test_passing: p.exerciseScore.privateTest ? 'yes' : 'no',
+      exercise_good_documentation: p.exerciseScore.goodDoc ? 'yes' : 'no', exercise_good_structure: p.exerciseScore.goodStructure ? 'yes' : 'no',
+      total: computeTotal(p)
+    }));
+    fetch(`http://localhost:8081/weekly_data/${week}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
     })
-    
-    .then(r => {
-      if (!r.ok) throw new Error(r.statusText);
-      setIsEditing(false);
-      SetSaved(true);
-      getWeeklyData(week)
-      return r.json();
-    })
-    .catch(e => console.error('Save failed', e));
-
-
+      .then(r => {
+        if (!r.ok) throw new Error(r.statusText);
+        setIsEditing(false); SetSaved(true); return r.json();
+      })
+      .catch(e => console.error('Save failed', e));
   };
 
   const downloadCSV = () => {
@@ -333,66 +294,14 @@ const TableView: React.FC = () => {
     });
   };
 
-
-
-const handleDeleteRow = () => {
-  if (contextMenu.targetId === null) {
-    setContextMenu({ visible: false, x: 0, y: 0, targetId: null });
-    return;
-  }
-
-  const rowToDelete = data.find(p => p.id === contextMenu.targetId);
-  if (!rowToDelete) {
-    console.error("Could not find row to delete in frontend state.");
-    setContextMenu({ visible: false, x: 0, y: 0, targetId: null });
-    return;
-  }
-
-  // Map frontend data to the format the backend expects
-  const payload = {
-      name: rowToDelete.name,
-      mail: rowToDelete.email,
-      week: rowToDelete.week ?? week, // Use the row's week, fallback to component's week
-      group_id: rowToDelete.group,
-      // Include other fields with default values to match the backend RowData struct
-      ta: rowToDelete.ta === 'N/A' ? undefined : rowToDelete.ta,
-      attendance: rowToDelete.attendance ? 'yes' : 'no',
-      fa: rowToDelete.gdScore.fa,
-      fb: rowToDelete.gdScore.fb,
-      fc: rowToDelete.gdScore.fc,
-      fd: rowToDelete.gdScore.fd,
-      bonus_attempt: rowToDelete.bonusScore.attempt,
-      bonus_answer_quality: rowToDelete.bonusScore.good,
-      bonus_follow_up: rowToDelete.bonusScore.followUp,
-      exercise_submitted: rowToDelete.exerciseScore.Submitted ? 'yes' : 'no',
-      exercise_test_passing: rowToDelete.exerciseScore.privateTest ? 'yes' : 'no',
-      exercise_good_documentation: rowToDelete.exerciseScore.goodDoc ? 'yes' : 'no',
-      exercise_good_structure: rowToDelete.exerciseScore.goodStructure ? 'yes' : 'no',
-      total: computeTotal(rowToDelete)
-  };
-  
- 
-  fetch(`https://admin.bitshala.org/del/${week}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload), // Send the correctly mapped payload
-  })
-  .then(response => {
-    if (!response.ok) {
-        // Try to get more detailed error from the server body
-        return response.text().then(text => { throw new Error(text || response.statusText) });
+  const handleDeleteRow = () => {
+    if (contextMenu.targetId !== null) {
+      setData(prevData => prevData.filter(p => p.id !== contextMenu.targetId));
+      setIsEditing(true); // A deletion is an edit
+      SetSaved(false);    // Changes are not saved
     }
-    // Success! Now update the local state
-    setData(prevData => prevData.filter(p => p.id !== contextMenu.targetId));
-    getWeeklyData(week); 
-  })
-  .catch(e => console.error('Delete failed:', e))
-  .finally(() => {
-    // Always close the context menu
-    setContextMenu({ visible: false, x: 0, y: 0, targetId: null });
-  });
-};
-
+    setContextMenu({ visible: false, x: 0, y: 0, targetId: null }); // Close menu
+  };
 
   useEffect(() => {
     const handleClickOutsideContextMenu = (event: MouseEvent) => {
