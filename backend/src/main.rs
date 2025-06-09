@@ -3,20 +3,28 @@ use actix_web::{
     App, HttpResponse, HttpServer, Responder, Result, get, http::header, middleware::Logger, post,
     web,
 };
-use chrono::Datelike;
+use chrono::{Datelike, Local};
 use rusqlite::{Connection, params};
 use serde::{Deserialize, Serialize};
 use std::{path::PathBuf, sync::Mutex};
 use thiserror::Error;
-
+use std::path::Path;
 mod utils;
-use utils::dbsave::{DbSave, SaveDatabaseWeekly};
+use std::fs;
 
 #[derive(Debug, Error)]
 pub enum AppError {
     #[error("Sqlite DB error: {0}")]
     SQLITE(#[from] rusqlite::Error),
+    
 }
+
+#[derive(Debug, Error)]
+pub enum DbError {
+    #[error("Database error: {0}")]
+    DatabaseError(String),
+}
+
 
 impl From<AppError> for std::io::Error {
     fn from(err: AppError) -> std::io::Error {
@@ -434,6 +442,34 @@ async fn add_weekly_data(
     Ok(HttpResponse::Ok().body("Weekly data inserted/updated successfully"))
 }
 
+
+fn backup(db_name:&str) -> Result<(), DbError> {
+        let db_path = Path::new("./").join(db_name);
+
+        if db_path.exists() {
+            let backup_dir = Path::new("./backup");
+            fs::create_dir_all(Path::new("./backup")).unwrap();
+
+            let now = Local::now();
+            let day_of_week = now.format("%A"); // e.g., Monday
+            let date_time = now.format("%Y-%m-%d"); // e.g., 2024-06-07_15-30-00
+            let backup_file = backup_dir.join(format!(
+                "{}_{}_{}.db",
+                db_name,
+                day_of_week,
+                date_time
+            ));
+            fs::copy(&db_path, &backup_file).unwrap();
+        } else {
+            return Err(DbError::DatabaseError(format!(
+                "Database file '{}' not found in project root.",
+                db_name
+            )));
+        }
+
+        Ok(())
+    }
+
 #[actix_web::main]
 async fn main() -> Result<(), std::io::Error> {
     //env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
@@ -443,11 +479,9 @@ async fn main() -> Result<(), std::io::Error> {
         loop {
             let now = chrono::Local::now();
             let weekday = now.date_naive().weekday();
-            if weekday == chrono::Weekday::Wed || weekday == chrono::Weekday::Sat {
-                let db = DbSave {
-                    db_name: "classroom.db",
-                };
-                let result = SaveDatabaseWeekly::save(&db);
+            if weekday == chrono::Weekday::Mon || weekday == chrono::Weekday::Sat {
+                let db_name ="classroom.db";
+                let result = backup(&db_name);
                 println!("{:?}", result);
                 // Sleep for 24 hours to avoid repeated saves on the same day
                 std::thread::sleep(std::time::Duration::from_secs(60 * 60 * 24));
