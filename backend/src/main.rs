@@ -293,7 +293,6 @@ async fn get_weekly_data_or_common(
     week: web::Path<i32>,
     state: web::Data<Mutex<Table>>,
 ) -> impl Responder {
-    use rand::seq::SliceRandom;
     use std::path::PathBuf;
 
     let week = week.into_inner();
@@ -361,7 +360,41 @@ async fn get_weekly_data_or_common(
             row.group_id = format!("Group {}", index + 1);
             row.ta = Some(format!("{:?}", assigned_ta));
             row.week = week;
-            update(&mut row);
+
+            if let Some(existing_row) = state_table
+                .rows
+                .iter()
+                .find(|r| r.name == row.name && r.week == week)
+            {
+                row.attendance = existing_row.attendance.clone();
+                row.fa = existing_row.fa;
+                row.fb = existing_row.fb;
+                row.fc = existing_row.fc;
+                row.fd = existing_row.fd;
+                row.bonus_attempt = existing_row.bonus_attempt;
+                row.bonus_answer_quality = existing_row.bonus_answer_quality;
+                row.bonus_follow_up = existing_row.bonus_follow_up;
+                row.exercise_submitted = existing_row.exercise_submitted.clone();
+                row.exercise_test_passing = existing_row.exercise_test_passing.clone();
+                row.exercise_good_documentation = existing_row.exercise_good_documentation.clone();
+                row.exercise_good_structure = existing_row.exercise_good_structure.clone();
+                row.total = existing_row.total;
+            } else {
+                row.attendance = Some("no".to_string());
+                row.fa = Some(0);
+                row.fb = Some(0);
+                row.fc = Some(0);
+                row.fd = Some(0);
+                row.bonus_attempt = Some(0);
+                row.bonus_answer_quality = Some(0);
+                row.bonus_follow_up = Some(0);
+                row.exercise_submitted = Some("no".to_string());
+                row.exercise_test_passing = Some("no".to_string());
+                row.exercise_good_documentation = Some("no".to_string());
+                row.exercise_good_structure = Some("no".to_string());
+                row.total = Some(0);
+            }
+
             state_table.insert_or_update(&row).unwrap();
             result_rows.push(row);
         }
@@ -381,6 +414,29 @@ async fn get_weekly_data_or_common(
     }))
 }
 
+#[post("/del/{week}")]
+async fn delete_data(
+    _week: web::Path<i32>,
+    row_to_delete: web::Json<RowData>,
+    state: web::Data<Mutex<Table>>,
+ ) -> Result<HttpResponse, actix_web::Error> {
+    let db_path = PathBuf::from("classroom.db");
+
+    let mut state_table = state.lock().unwrap();
+    // Only remove the row that matches name, mail, and week
+    if let Some(pos) = state_table.rows.iter().position(|row| 
+        row.name == row_to_delete.name && 
+        row.mail == row_to_delete.mail && 
+        row.week == row_to_delete.week
+    ) {
+        state_table.rows.remove(pos);
+    }
+
+    write_to_db(&db_path, &state_table)?;
+
+    Ok(HttpResponse::Ok().body("Weekly data inserted/updated successfully"))
+}
+
 #[post("/weekly_data/{week}")]
 async fn add_weekly_data(
     _week: web::Path<i32>,
@@ -388,27 +444,18 @@ async fn add_weekly_data(
     state: web::Data<Mutex<Table>>,
 ) -> Result<HttpResponse, actix_web::Error> {
     let db_path = PathBuf::from("classroom.db");
-
-    // let mut table = read_from_db(&db_path)
-    //     .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
-
     let mut state_table = state.lock().unwrap();
  
     for incoming_row in student_data.iter() {
         state_table.insert_or_update(incoming_row)?;
     }
-
-    if student_data.len() < state_table.rows.len() {
-        let incoming_names:Vec<(&String, i32)> = student_data.iter().map(|row| (&row.name, row.week)).collect();
-        state_table.rows.retain(|row| {
-            !(row.week == student_data[0].week && !incoming_names.contains(&(&row.name, row.week)))
-        });
-    }
-    // Write to DB
+    
     write_to_db(&db_path, &state_table)?;
 
     Ok(HttpResponse::Ok().body("Weekly data inserted/updated successfully"))
 }
+
+
 
 #[actix_web::main]
 async fn main() -> Result<(), std::io::Error> {
@@ -442,10 +489,12 @@ async fn main() -> Result<(), std::io::Error> {
             .wrap(cors)
             .wrap(Logger::default())
             .service(login)
+            .service(delete_data)
             .service(get_weekly_data_or_common)
             .service(add_weekly_data)
             .service(get_total_student_count)
             .service(get_weekly_attendance_count_for_week)
+            
     })
     .bind(("127.0.0.1", 8081))?
     .run()
