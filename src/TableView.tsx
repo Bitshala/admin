@@ -281,7 +281,7 @@ const TableView: React.FC = () => {
         exercise_good_structure: p.exerciseScore.goodStructure ? 'yes' : 'no',
         total: computeTotal(p)
       }));
-
+      console.log(payload,"payload");
     fetch(`http://localhost:8081/weekly_data/${week}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -291,6 +291,7 @@ const TableView: React.FC = () => {
       if (!r.ok) throw new Error(r.statusText);
       setIsEditing(false);
       SetSaved(true);
+      
       setEditedRows([]); // Reset edited rows on successful save
       getWeeklyData(week);
       return r.json();
@@ -335,17 +336,32 @@ const TableView: React.FC = () => {
 
   const handleConfirmAddStudent = () => {
     if (!newStudent.name.trim()) { alert("Student name is required."); return; }
-    const newId = Date.now();
-    const studentToAdd: TableRowData = {
-      id: newId, name: newStudent.name, email: newStudent.email, group: newStudent.group,
-      ta: newStudent.ta || 'N/A', attendance: newStudent.attendance, gdScore: newStudent.gdScore,
-      bonusScore: newStudent.bonusScore, exerciseScore: newStudent.exerciseScore,
-      week: week, total: computeTotal(newStudent),
-    };
-    setData(prevData => [...prevData, studentToAdd]);
-    setIsEditing(true);
-    SetSaved(false);
-    setShowTableRowForm(false);
+
+    const payload = {
+        name: newStudent.name, mail: newStudent.email, attendance: newStudent.attendance ? 'yes' : 'no', week: week ?? week,
+        group_id: newStudent.group, ta: newStudent.ta === 'N/A' ? undefined : newStudent.ta, fa: newStudent.gdScore.fa, fb: newStudent.gdScore.fb,
+        fc: newStudent.gdScore.fc, fd: newStudent.gdScore.fd, bonus_attempt: newStudent.bonusScore.attempt,
+        bonus_answer_quality: newStudent.bonusScore.good, bonus_follow_up: newStudent.bonusScore.followUp,
+        exercise_submitted: newStudent.exerciseScore.Submitted ? 'yes' : 'no',
+        exercise_test_passing: newStudent.exerciseScore.privateTest ? 'yes' : 'no',
+        exercise_good_documentation: newStudent.exerciseScore.goodDoc ? 'yes' : 'no',
+        exercise_good_structure: newStudent.exerciseScore.goodStructure ? 'yes' : 'no',
+        total: computeTotal(newStudent)
+    }
+    console.log(payload,"payload")
+    fetch(`http://localhost:8081/weekly_data/${week}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify([payload]),
+    })
+    .then(r => {
+      if (!r.ok) throw new Error(r.statusText);
+      setIsEditing(false);
+      SetSaved(true);
+      getWeeklyData(week);
+      return r.json();
+    })
+    .catch(e => console.error('Save failed', e));
   };
 
   const handleDeleteRow = () => {
