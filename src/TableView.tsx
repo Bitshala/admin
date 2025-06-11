@@ -142,7 +142,7 @@ const TableView: React.FC = () => {
       .catch(err => { console.error("Error fetching weekly attendance:", err); setWeeklyData({ week: week, attended: 0 }); });
   }, []);
 
-  // useEffect(() => { fetchWeeklyData(week); getWeeklyData(week); }, [fetchWeeklyData, getWeeklyData, week]);
+  useEffect(() => { fetchWeeklyData(week); getWeeklyData(week); }, [fetchWeeklyData, getWeeklyData, week]);
 
   useEffect(() => {
     fetch("https://admin.bitshala.org/students/count")

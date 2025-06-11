@@ -6,9 +6,9 @@ use actix_web::{
 use chrono::{Datelike, Local};
 use rusqlite::{Connection, params};
 use serde::{Deserialize, Serialize};
+use std::path::Path;
 use std::{path::PathBuf, sync::Mutex};
 use thiserror::Error;
-use std::path::Path;
 mod utils;
 use std::fs;
 
@@ -16,7 +16,6 @@ use std::fs;
 pub enum AppError {
     #[error("Sqlite DB error: {0}")]
     SQLITE(#[from] rusqlite::Error),
-    
 }
 
 #[derive(Debug, Error)]
@@ -24,7 +23,6 @@ pub enum DbError {
     #[error("Database error: {0}")]
     DatabaseError(String),
 }
-
 
 impl From<AppError> for std::io::Error {
     fn from(err: AppError) -> std::io::Error {
@@ -133,18 +131,18 @@ pub fn read_from_db(path: &PathBuf) -> Result<Table, AppError> {
             group_id: row.get(1)?,
             ta: row.get(2).ok(),
             attendance: row.get(3).ok(),
-            fa: row.get(4).ok(),
-            fb: row.get(5).ok(),
-            fc: row.get(6).ok(),
-            fd: row.get(7).ok(),
-            bonus_attempt: row.get(8).ok(),
-            bonus_answer_quality: row.get(9).ok(),
-            bonus_follow_up: row.get(10).ok(),
+            fa: row.get(4).ok().map(|v: f64| v as u64), // Convert Real to u64
+            fb: row.get(5).ok().map(|v: f64| v as u64),
+            fc: row.get(6).ok().map(|v: f64| v as u64),
+            fd: row.get(7).ok().map(|v: f64| v as u64),
+            bonus_attempt: row.get(8).ok().map(|v: f64| v as u64),
+            bonus_answer_quality: row.get(9).ok().map(|v: f64| v as u64),
+            bonus_follow_up: row.get(10).ok().map(|v: f64| v as u64),
             exercise_submitted: row.get(11).ok(),
             exercise_test_passing: row.get(12).ok(),
             exercise_good_documentation: row.get(13).ok(),
             exercise_good_structure: row.get(14).ok(),
-            total: row.get(15).ok(),
+            total: row.get(15).ok().map(|v: f64| v as u64),
             mail: row.get(16)?,
             week: row.get(17)?,
         })
@@ -227,8 +225,7 @@ impl TA {
     }
 }
 
-
-const TOKEN: &str  = "token-mpzbqlbbxtjrjyxcwigsexdqadxmgumdizmnpwocfdobjkfdxwhflnhvavplpgyxtsplxisvxalvwgvjwdyvusvalapxeqjdhnsyoyhywcdwucshdoyvefpnobnslqfg";
+const TOKEN: &str = "token-mpzbqlbbxtjrjyxcwigsexdqadxmgumdizmnpwocfdobjkfdxwhflnhvavplpgyxtsplxisvxalvwgvjwdyvusvalapxeqjdhnsyoyhywcdwucshdoyvefpnobnslqfg";
 // --- Handlers ---
 #[post("/login")]
 /// Only allow TAs to login with specific emails.
@@ -294,7 +291,7 @@ async fn get_weekly_data_or_common(
     use std::path::PathBuf;
 
     // Check for the token in the Authorization header
-    
+
     let auth_header = req
         .headers()
         .get(actix_web::http::header::AUTHORIZATION)
@@ -352,7 +349,6 @@ async fn get_weekly_data_or_common(
         let mut group_id: isize = -1;
 
         for (index, mut row) in prev_week_rows.into_iter().enumerate() {
-            println!("index {} and row data {:?}", index, row);
             if row.attendance.as_deref() == Some("no") {
                 row.group_id = format!("Group {}", 6);
                 row.ta = Some("Setu".to_string());
@@ -461,33 +457,27 @@ async fn add_weekly_data(
     Ok(HttpResponse::Ok().body("Weekly data inserted/updated successfully"))
 }
 
+fn backup(db_name: &str) -> Result<(), DbError> {
+    let db_path = Path::new("./").join(db_name);
 
-fn backup(db_name:&str) -> Result<(), DbError> {
-        let db_path = Path::new("./").join(db_name);
+    if db_path.exists() {
+        let backup_dir = Path::new("./backup");
+        fs::create_dir_all(Path::new("./backup")).unwrap();
 
-        if db_path.exists() {
-            let backup_dir = Path::new("./backup");
-            fs::create_dir_all(Path::new("./backup")).unwrap();
-
-            let now = Local::now();
-            let day_of_week = now.format("%A"); // e.g., Monday
-            let date_time = now.format("%Y-%m-%d"); // e.g., 2024-06-07_15-30-00
-            let backup_file = backup_dir.join(format!(
-                "{}_{}_{}.db",
-                db_name,
-                day_of_week,
-                date_time
-            ));
-            fs::copy(&db_path, &backup_file).unwrap();
-        } else {
-            return Err(DbError::DatabaseError(format!(
-                "Database file '{}' not found in project root.",
-                db_name
-            )));
-        }
-
-        Ok(())
+        let now = Local::now();
+        let day_of_week = now.format("%A"); // e.g., Monday
+        let date_time = now.format("%Y-%m-%d"); // e.g., 2024-06-07_15-30-00
+        let backup_file = backup_dir.join(format!("{}_{}_{}.db", db_name, day_of_week, date_time));
+        fs::copy(&db_path, &backup_file).unwrap();
+    } else {
+        return Err(DbError::DatabaseError(format!(
+            "Database file '{}' not found in project root.",
+            db_name
+        )));
     }
+
+    Ok(())
+}
 
 #[actix_web::main]
 async fn main() -> Result<(), std::io::Error> {
@@ -499,7 +489,7 @@ async fn main() -> Result<(), std::io::Error> {
             let now = chrono::Local::now();
             let weekday = now.date_naive().weekday();
             if weekday == chrono::Weekday::Mon || weekday == chrono::Weekday::Sat {
-                let db_name ="classroom.db";
+                let db_name = "classroom.db";
                 let result = backup(&db_name);
                 println!("{:?}", result);
                 // Sleep for 24 hours to avoid repeated saves on the same day
