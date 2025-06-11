@@ -11,7 +11,7 @@ function Login() {
   const TOKEN  = "token-mpzbqlbbxtjrjyxcwigsexdqadxmgumdizmnpwocfdobjkfdxwhflnhvavplpgyxtsplxisvxalvwgvjwdyvusvalapxeqjdhnsyoyhywcdwucshdoyvefpnobnslqfg";
 
   const handleLogin = () => {
-    fetch('http://localhost:8081/login', {
+    fetch('https://admin.bitshala.org/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ gmail: email }),

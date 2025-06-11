@@ -93,7 +93,7 @@ const TableView: React.FC = () => {
   const TOKEN  = "token-mpzbqlbbxtjrjyxcwigsexdqadxmgumdizmnpwocfdobjkfdxwhflnhvavplpgyxtsplxisvxalvwgvjwdyvusvalapxeqjdhnsyoyhywcdwucshdoyvefpnobnslqfg";
 
   const fetchWeeklyData = useCallback((selectedWeek: number) => {
-    fetch(`http://localhost:8081/weekly_data/${selectedWeek}`, {
+    fetch(`https://admin.bitshala.org/weekly_data/${selectedWeek}`, {
       headers: {
         'Authorization': `${TOKEN}`,
       },
@@ -129,7 +129,7 @@ const TableView: React.FC = () => {
   }, [computeTotal]);
 
   const getWeeklyData = useCallback((week: number) => {
-    fetch(`http://localhost:8081/attendance/weekly_counts/${week}`)
+    fetch(`https://admin.bitshala.org/attendance/weekly_counts/${week}`)
       .then(res => res.json())
       .then(apiData => {
         if (Array.isArray(apiData)) {
@@ -145,7 +145,7 @@ const TableView: React.FC = () => {
   useEffect(() => { fetchWeeklyData(week); getWeeklyData(week); }, [fetchWeeklyData, getWeeklyData, week]);
 
   useEffect(() => {
-    fetch("http://localhost:8081/students/count")
+    fetch("https://admin.bitshala.org/students/count")
       .then(res => res.json()).then(data => setTotalCount(data.count))
       .catch(err => console.error("Error fetching total count:", err));
   }, []);
@@ -288,7 +288,7 @@ const TableView: React.FC = () => {
         total: computeTotal(p)
       }));
       console.log(payload,"payload");
-    fetch(`http://localhost:8081/weekly_data/${week}`, {
+    fetch(`https://admin.bitshala.org/weekly_data/${week}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -355,7 +355,7 @@ const TableView: React.FC = () => {
         total: computeTotal(newStudent)
     }
     console.log(payload,"payload")
-    fetch(`http://localhost:8081/weekly_data/${week}`, {
+    fetch(`https://admin.bitshala.org/weekly_data/${week}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify([payload]),
@@ -390,7 +390,7 @@ const TableView: React.FC = () => {
         exercise_good_structure: rowToDelete.exerciseScore.goodStructure ? 'yes' : 'no',
         total: computeTotal(rowToDelete)
     };
-    fetch(`http://localhost:8081/del/${week}`, {
+    fetch(`https://admin.bitshala.org/del/${week}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
