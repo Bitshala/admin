@@ -3,20 +3,25 @@ use actix_web::{
     App, HttpResponse, HttpServer, Responder, Result, get, http::header, middleware::Logger, post,
     web,
 };
+use chrono::{Datelike, Local};
 use rusqlite::{Connection, params};
 use serde::{Deserialize, Serialize};
+use std::path::Path;
 use std::{path::PathBuf, sync::Mutex};
 use thiserror::Error;
-use chrono::Datelike;
-
 mod utils;
-use utils::dbsave::{DbSave,SaveDatabaseWeekly};
-
+use std::fs;
 
 #[derive(Debug, Error)]
 pub enum AppError {
     #[error("Sqlite DB error: {0}")]
     SQLITE(#[from] rusqlite::Error),
+}
+
+#[derive(Debug, Error)]
+pub enum DbError {
+    #[error("Database error: {0}")]
+    DatabaseError(String),
 }
 
 impl From<AppError> for std::io::Error {
@@ -126,18 +131,18 @@ pub fn read_from_db(path: &PathBuf) -> Result<Table, AppError> {
             group_id: row.get(1)?,
             ta: row.get(2).ok(),
             attendance: row.get(3).ok(),
-            fa: row.get(4).ok(),
-            fb: row.get(5).ok(),
-            fc: row.get(6).ok(),
-            fd: row.get(7).ok(),
-            bonus_attempt: row.get(8).ok(),
-            bonus_answer_quality: row.get(9).ok(),
-            bonus_follow_up: row.get(10).ok(),
+            fa: row.get(4).ok().map(|v: f64| v as u64), // Convert Real to u64
+            fb: row.get(5).ok().map(|v: f64| v as u64),
+            fc: row.get(6).ok().map(|v: f64| v as u64),
+            fd: row.get(7).ok().map(|v: f64| v as u64),
+            bonus_attempt: row.get(8).ok().map(|v: f64| v as u64),
+            bonus_answer_quality: row.get(9).ok().map(|v: f64| v as u64),
+            bonus_follow_up: row.get(10).ok().map(|v: f64| v as u64),
             exercise_submitted: row.get(11).ok(),
             exercise_test_passing: row.get(12).ok(),
             exercise_good_documentation: row.get(13).ok(),
             exercise_good_structure: row.get(14).ok(),
-            total: row.get(15).ok(),
+            total: row.get(15).ok().map(|v: f64| v as u64),
             mail: row.get(16)?,
             week: row.get(17)?,
         })
@@ -220,16 +225,21 @@ impl TA {
     }
 }
 
+const TOKEN: &str = "token-mpzbqlbbxtjrjyxcwigsexdqadxmgumdizmnpwocfdobjkfdxwhflnhvavplpgyxtsplxisvxalvwgvjwdyvusvalapxeqjdhnsyoyhywcdwucshdoyvefpnobnslqfg";
 // --- Handlers ---
 #[post("/login")]
 /// Only allow TAs to login with specific emails.
+/// On success, send a string token back to the frontend.
 async fn login(item: web::Json<TaLogin>) -> impl Responder {
     println!("TA login attempt: {:?}", item.gmail);
     if let Some(ta) = TA::from_email(&item.gmail) {
         println!("TA login success.");
+        // For demonstration, use a simple token (in production, use JWT or similar)
+        let token = format!("{}", TOKEN);
         HttpResponse::Ok().json(serde_json::json!({
             "status": "success",
-            "message": format!("Access granted for TA: {:?}", ta)
+            "message": format!("Access granted for TA: {:?}", ta),
+            "token": token
         }))
     } else {
         HttpResponse::Unauthorized().json(serde_json::json!({
@@ -272,28 +282,27 @@ async fn get_weekly_attendance_count_for_week(
     }))
 }
 
-fn update(row: &mut RowData) {
-    row.attendance = Some("no".to_string());
-    row.fa = Some(0);
-    row.fb = Some(0);
-    row.fc = Some(0);
-    row.fd = Some(0);
-    row.bonus_attempt = Some(0);
-    row.bonus_answer_quality = Some(0);
-    row.bonus_follow_up = Some(0);
-    row.exercise_submitted = Some("no".to_string());
-    row.exercise_test_passing = Some("no".to_string());
-    row.exercise_good_documentation = Some("no".to_string());
-    row.exercise_good_structure = Some("no".to_string());
-    row.total = Some(0);
-}
-
 #[get("/weekly_data/{week}")]
 async fn get_weekly_data_or_common(
     week: web::Path<i32>,
     state: web::Data<Mutex<Table>>,
+    req: actix_web::HttpRequest,
 ) -> impl Responder {
     use std::path::PathBuf;
+
+    // Check for the token in the Authorization header
+
+    let auth_header = req
+        .headers()
+        .get(actix_web::http::header::AUTHORIZATION)
+        .and_then(|h| h.to_str().ok());
+
+    if auth_header != Some(TOKEN) {
+        return HttpResponse::Unauthorized().json(serde_json::json!({
+            "status": "error",
+            "message": "Unauthorized: missing or invalid token"
+        }));
+    }
 
     let week = week.into_inner();
     println!("Getting and updating weekly data for week: {}", week);
@@ -310,49 +319,54 @@ async fn get_weekly_data_or_common(
 
         return HttpResponse::Ok().json(week_0_rows);
     } else if week >= 1 {
-        // Sort students by total score in descending order
+        let tas: Vec<TA> = TA::all_variants()
+            .iter()
+            .cloned()
+            .filter(|ta| *ta != TA::Setu)
+            .collect();
+
         let mut prev_week_rows: Vec<RowData> = state_table
             .rows
             .iter()
             .filter(|row| row.week == week - 1)
             .cloned()
             .collect();
+
+        // sort by attendance.
         prev_week_rows.sort_by(|a, b| {
             b.attendance
-                .cmp(&a.attendance)
+                .partial_cmp(&a.attendance)
+                .unwrap_or(std::cmp::Ordering::Equal)
                 .then_with(|| {
                     b.total
                         .partial_cmp(&a.total)
                         .unwrap_or(std::cmp::Ordering::Equal)
+                        .then_with(|| b.name.cmp(&a.name))
                 })
-                .then_with(|| b.name.cmp(&a.name))
         });
 
-        let tas = TA::all_variants()
-            .iter()
-            .filter(|&&ta| ta != TA::Setu)
-            .cloned()
-            .collect::<Vec<_>>();
-        //tas.shuffle(&mut rng);
-
-        let max_people_per_group = 6;
-
-        // Assign students to groups and TAs
         let mut result_rows: Vec<RowData> = Vec::new();
-        let mut index = 0;
-        for row in prev_week_rows.iter_mut() {
-            let (group_id, assigned_ta) = if row.attendance.as_deref() == Some("yes") {
-                let group_id = ((index / max_people_per_group) % tas.len()) + 1;
-                (format!("Group {}", group_id), tas[group_id - 1])
-            } else {
-                ("Group 6".to_string(), TA::Setu)
-            };
+        let mut group_id: isize = -1;
 
-            row.group_id = group_id.clone();
-            row.ta = Some(format!("{:?}", assigned_ta));
+        for (index, mut row) in prev_week_rows.into_iter().enumerate() {
+            if row.attendance.as_deref() == Some("no") {
+                row.group_id = format!("Group {}", 6);
+                row.ta = Some("Setu".to_string());
+            } else if row.attendance.as_deref() == Some("yes") {
+                if index < 30 {
+                    if index % 6 == 0 {
+                        group_id += 1;
+                    }
+                } else {
+                    group_id += 1;
+                }
+                let index = (group_id as usize) % tas.len();
+                let assigned_ta = &tas[(index + week as usize - 1) % tas.len()];
+                row.group_id = format!("Group {}", index + 1);
+                row.ta = Some(format!("{:?}", assigned_ta));
+            }
             row.week = week;
 
-            // Get the existing data from the state for the same student and week
             if let Some(existing_row) = state_table
                 .rows
                 .iter()
@@ -387,28 +401,42 @@ async fn get_weekly_data_or_common(
                 row.total = Some(0);
             }
 
-            // Update the state table with the new group_id and TA
             state_table.insert_or_update(&row).unwrap();
-
-            result_rows.push(row.clone());
-
-            index += 1;
+            result_rows.push(row);
         }
 
-        // Update the state table with the new data
-        // taTable.rows = result_rows.clone();
-
-        // Write to DB
-        // TODO: This could be slow. Find better ways.
         write_to_db(&PathBuf::from("classroom.db"), &state_table).unwrap();
 
-        HttpResponse::Ok().json(result_rows)
-    } else {
-        HttpResponse::BadRequest().json(serde_json::json!({
-            "status": "error",
-            "message": "Invalid week number"
-        }))
+        return HttpResponse::Ok().json(result_rows);
     }
+
+    HttpResponse::BadRequest().json(serde_json::json!({
+        "status": "error",
+        "message": "Invalid week number"
+    }))
+}
+
+#[post("/del/{week}")]
+async fn delete_data(
+    _week: web::Path<i32>,
+    row_to_delete: web::Json<RowData>,
+    state: web::Data<Mutex<Table>>,
+) -> Result<HttpResponse, actix_web::Error> {
+    let db_path = PathBuf::from("classroom.db");
+
+    let mut state_table = state.lock().unwrap();
+    // Only remove the row that matches name, mail, and week
+    if let Some(pos) = state_table.rows.iter().position(|row| {
+        row.name == row_to_delete.name
+            && row.mail == row_to_delete.mail
+            && row.week == row_to_delete.week
+    }) {
+        state_table.rows.remove(pos);
+    }
+
+    write_to_db(&db_path, &state_table)?;
+
+    Ok(HttpResponse::Ok().body("Weekly data inserted/updated successfully"))
 }
 
 #[post("/weekly_data/{week}")]
@@ -418,37 +446,60 @@ async fn add_weekly_data(
     state: web::Data<Mutex<Table>>,
 ) -> Result<HttpResponse, actix_web::Error> {
     let db_path = PathBuf::from("classroom.db");
-
-    // let mut table = read_from_db(&db_path)
-    //     .map_err(|e| actix_web::error::ErrorInternalServerError(e.to_string()))?;
-
     let mut state_table = state.lock().unwrap();
- 
+
     for incoming_row in student_data.iter() {
         state_table.insert_or_update(incoming_row)?;
     }
 
-    if student_data.len() < state_table.rows.len() {
-        let incoming_names:Vec<(&String, i32)> = student_data.iter().map(|row| (&row.name, row.week)).collect();
-        state_table.rows.retain(|row| {
-            !(row.week == student_data[0].week && !incoming_names.contains(&(&row.name, row.week)))
-        });
-    }
-    // Write to DB
     write_to_db(&db_path, &state_table)?;
 
     Ok(HttpResponse::Ok().body("Weekly data inserted/updated successfully"))
+}
+
+fn backup(db_name: &str) -> Result<(), DbError> {
+    let db_path = Path::new("./").join(db_name);
+
+    if db_path.exists() {
+        let backup_dir = Path::new("./backup");
+        fs::create_dir_all(Path::new("./backup")).unwrap();
+
+        let now = Local::now();
+        let day_of_week = now.format("%A"); // e.g., Monday
+        let date_time = now.format("%Y-%m-%d"); // e.g., 2024-06-07_15-30-00
+        let backup_file = backup_dir.join(format!("{}_{}_{}.db", db_name, day_of_week, date_time));
+        fs::copy(&db_path, &backup_file).unwrap();
+    } else {
+        return Err(DbError::DatabaseError(format!(
+            "Database file '{}' not found in project root.",
+            db_name
+        )));
+    }
+
+    Ok(())
 }
 
 #[actix_web::main]
 async fn main() -> Result<(), std::io::Error> {
     //env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
 
-    if chrono::Local::now().date_naive().weekday() == chrono::Weekday::Wed || chrono::Local::now().date_naive().weekday() == chrono::Weekday::Sat {
-        let db = DbSave { db_name: "classroom.db" };
-        let result = SaveDatabaseWeekly::save(&db);
-        println!("{:?}", result);
-    }
+    // Spawn a background thread to periodically check and save the database on Wed/Sat
+    std::thread::spawn(|| {
+        loop {
+            let now = chrono::Local::now();
+            let weekday = now.date_naive().weekday();
+            if weekday == chrono::Weekday::Mon || weekday == chrono::Weekday::Sat {
+                let db_name = "classroom.db";
+                let result = backup(&db_name);
+                println!("{:?}", result);
+                // Sleep for 24 hours to avoid repeated saves on the same day
+                std::thread::sleep(std::time::Duration::from_secs(60 * 60 * 24));
+            } else {
+                // Check again in 1 hour
+                std::thread::sleep(std::time::Duration::from_secs(60 * 60));
+            }
+        }
+    });
 
     let table = read_from_db(&PathBuf::from("classroom.db"))?;
 
@@ -458,8 +509,6 @@ async fn main() -> Result<(), std::io::Error> {
     HttpServer::new(move || {
         let cors = Cors::default()
             .allow_any_origin()
-            .allowed_origin("http://localhost:5173")
-            .allowed_origin("https://admin.bitshala.org")
             .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
             .allowed_headers(vec![
                 header::AUTHORIZATION,
@@ -474,6 +523,7 @@ async fn main() -> Result<(), std::io::Error> {
             .wrap(cors)
             .wrap(Logger::default())
             .service(login)
+            .service(delete_data)
             .service(get_weekly_data_or_common)
             .service(add_weekly_data)
             .service(get_total_student_count)

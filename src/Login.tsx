@@ -7,18 +7,24 @@ function Login() {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
+
+  const TOKEN  = "token-mpzbqlbbxtjrjyxcwigsexdqadxmgumdizmnpwocfdobjkfdxwhflnhvavplpgyxtsplxisvxalvwgvjwdyvusvalapxeqjdhnsyoyhywcdwucshdoyvefpnobnslqfg";
+
   const handleLogin = () => {
-      fetch('https://admin.bitshala.org/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ gmail: email }),
-      })
+    fetch('https://admin.bitshala.org/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ gmail: email }),
+    })
       .then(res => {
         if (!res.ok) throw new Error('Access denied');
         return res.json();
       })
-      .then(() => {
-        navigate('/admin');
+      .then(data => {
+        const token = data.token;
+        if (token === TOKEN){
+          navigate('/admin', { state: { token } });
+        }
       })
       .catch(err => {
         setError(err.message || 'Login failed');
