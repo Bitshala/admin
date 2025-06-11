@@ -275,7 +275,6 @@ const TableView: React.FC = () => {
 
   const handleSave = () => {
     const payload = editedRows
-      .filter(p => p.attendance === true)
       .map(p => ({
         name: p.name, mail: p.email, attendance: p.attendance ? 'yes' : 'no', week: p.week ?? week,
         group_id: p.group, ta: p.ta === 'N/A' ? undefined : p.ta, fa: p.gdScore.fa, fb: p.gdScore.fb,
