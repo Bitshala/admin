@@ -1,15 +1,19 @@
 use actix_cors::Cors;
+
 use actix_web::{
     App, HttpResponse, HttpServer, Responder, Result, get, http::header, middleware::Logger, post,
     web,
 };
 use chrono::{Datelike, Local};
+
 use rusqlite::{Connection, params};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::path::Path;
 use std::{path::PathBuf, sync::Mutex};
 use thiserror::Error;
 mod utils;
+use utils::classroom::{get_submitted_assignments, Assignment };
 use std::fs;
 
 #[derive(Debug, Error)]
@@ -120,6 +124,23 @@ impl Table {
         Ok(())
     }
 }
+
+
+pub fn get_github_to_name_mapping(path: &PathBuf, github_username: &String) -> Option<String> {
+    let conn = Connection::open(path).ok()?;
+    let mut stmt = conn.prepare("SELECT Name FROM Participants WHERE Github LIKE ?").ok()?;
+    
+    let pattern = format!("%{}", github_username);
+    let mut rows = stmt.query_map([&pattern], |row| {
+        Ok(row.get::<_, String>(0)?) // Name
+    }).ok()?;
+    if let Some(Ok(name)) = rows.next() {
+        Some(name)
+    } else {
+        None
+    }
+}
+
 
 //data functions
 pub fn read_from_db(path: &PathBuf) -> Result<Table, AppError> {
@@ -344,9 +365,27 @@ async fn get_weekly_data_or_common(
                         .then_with(|| b.name.cmp(&a.name))
                 })
         });
+        
 
         let mut result_rows: Vec<RowData> = Vec::new();
         let mut group_id: isize = -1;
+
+        let assignments = get_submitted_assignments().await.unwrap();
+        let submitted: Vec<&Assignment> = assignments
+        .iter()
+        .filter(|a| a.is_submitted())
+        .collect();
+        
+        let mut name_to_assignment: HashMap<String, &Assignment> = HashMap::new();
+        let db_path = PathBuf::from("classroom.db"); // Adjust path as needed
+        
+        for assignment in &submitted {
+            println!("{:#?}", assignment);
+            if let Some(participant_name) = get_github_to_name_mapping(&db_path, &assignment.github_username) {
+                println!("Mapped GitHub '{}' to participant '{}'", assignment.github_username, participant_name);
+                name_to_assignment.insert(participant_name, assignment);
+            }
+        }
 
         for (index, mut row) in prev_week_rows.into_iter().enumerate() {
             if row.attendance.as_deref() == Some("no") {
@@ -400,7 +439,22 @@ async fn get_weekly_data_or_common(
                 row.exercise_good_structure = Some("no".to_string());
                 row.total = Some(0);
             }
-
+            
+                    
+            if let Some(matching_assignment) = name_to_assignment.get(&row.name) {
+                if matching_assignment.get_week() == week.to_string() {  // Remove parentheses
+                    println!("Found assignment for participant: {}", row.name);
+                    row.exercise_submitted = Some("yes".to_string());
+                    row.exercise_test_passing = Some(
+                        if matching_assignment.points_awarded == "100" {
+                            "yes".to_string()
+                        } else {
+                            "no".to_string()
+                        }
+                    );
+                }
+            }
+                    
             state_table.insert_or_update(&row).unwrap();
             result_rows.push(row);
         }
@@ -501,8 +555,8 @@ async fn main() -> Result<(), std::io::Error> {
         }
     });
 
-    let table = read_from_db(&PathBuf::from("classroom.db"))?;
 
+    let table = read_from_db(&PathBuf::from("classroom.db"))?;
     let state = web::Data::new(Mutex::new(table));
 
     // Process shit depending upon query.
