@@ -508,7 +508,7 @@ const TableView: React.FC = () => {
         <h3 className="">Cohort Participants</h3>
 
         <div className='flex gap-4 mb-4 items-center'>
-          {[0, 1, 2, 3, 4].map(i => (
+          {[0, 1, 2, 3, 4, 5, 6].map(i => (
             <button key={i} onClick={() => { setWeek(i); fetchWeeklyData(i); SetSaved(false); setIsEditing(false); setContextMenu({visible: false, x: 0, y: 0, targetId: null}); setEditedRows([]); }}
               className={`font-light text-xl pb-1 ${week === i ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-600 hover:text-indigo-500'}`}>
               Week {i}
