@@ -547,8 +547,7 @@ async fn main() -> Result<(), std::io::Error> {
             let weekday = now.date_naive().weekday();
             if weekday == chrono::Weekday::Mon || weekday == chrono::Weekday::Sat {
                 let db_name = "classroom.db";
-                let result = backup(&db_name);
-                println!("{:?}", result);
+                let _result = backup(&db_name);
                 // Sleep for 24 hours to avoid repeated saves on the same day
                 std::thread::sleep(std::time::Duration::from_secs(60 * 60 * 24));
             } else {

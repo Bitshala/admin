@@ -68,7 +68,11 @@ pub async fn get_submitted_assignments(
     println!("GitHub token: {}", token);
     let octocrab = Octocrab::builder().personal_token(token).build()?;
 
-    let week = WEEK::from_number(week_number).unwrap();
+    let week = if let Some(week) = WEEK::from_number(week_number) {
+        week
+    } else {
+        return Ok(vec![]);
+    };
 
     let assignment_id = week.to_assign_id();
     let endpoint = format!("/assignments/{assignment_id}/grades");
