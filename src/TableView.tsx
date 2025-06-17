@@ -436,12 +436,10 @@ const fetchStudentRepoLink = async (week: number, student_name: string) => {
         fetch(`https://admin.bitshala.org/link/${week}/${student_name}`)
          .then(res => res.json())
          .then(data => {
-         console.log('Data', data);
-         window.open(data, "_blank");
+          console.log(data.url);
       })
       .catch(err => { console.error("Error", err);});
   };
-
   // --- RENDER ---
   return (
     <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen font-sans">
