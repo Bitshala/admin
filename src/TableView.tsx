@@ -432,14 +432,35 @@ const TableView: React.FC = () => {
   const getSortIndicator = (key: keyof TableRowData) => (sortConfig.key === key ? (sortConfig.direction === 'ascending' ? ' 🔼' : ' 🔽') : '');
   const scoreOptions = [0, 1, 2, 3, 4, 5];
 
-const fetchStudentRepoLink = async (week: number, student_name: string) => {
-        fetch(`https://admin.bitshala.org/${week}/${student_name}`)
-         .then(res => res.json())
-         .then(data => {
-          console.log(data.url);
-      })
-      .catch(err => { console.error("Error", err);});
-  };
+    const fetchStudentRepoLink = async (week: number, student_name: string) => {
+    try {
+      const res = await fetch(`https://admin.bitshala.org/repo/${week}/${student_name}`);
+      
+      const contentType = res.headers.get("Content-Type") || "";
+      if (!res.ok) {
+        const text = await res.text();
+        console.error(`Server Error ${res.status}:`, text);
+        return;
+      }
+
+      if (!contentType.includes("application/json")) {
+        const text = await res.text();
+        console.error("Expected JSON, got:", text);
+        return;
+      }
+
+      const data = await res.json();
+      console.log("Repo Link:", data.url);
+      if (data.url) {
+        window.open(data.url, '_blank');
+      }
+
+    } catch (err) {
+      console.error("fetchStudentRepoLink error:", err);
+    }
+};
+
+  
   // --- RENDER ---
   return (
     <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen font-sans">
