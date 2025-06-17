@@ -13,8 +13,8 @@ use std::path::Path;
 use std::{path::PathBuf, sync::Mutex};
 use thiserror::Error;
 mod utils;
-use utils::classroom::{get_submitted_assignments, Assignment };
 use std::fs;
+use utils::classroom::{Assignment, get_submitted_assignments};
 
 #[derive(Debug, Error)]
 pub enum AppError {
@@ -125,22 +125,24 @@ impl Table {
     }
 }
 
-
 pub fn get_github_to_name_mapping(path: &PathBuf, github_username: &String) -> Option<String> {
     let conn = Connection::open(path).ok()?;
-    let mut stmt = conn.prepare("SELECT Name FROM Participants WHERE Github LIKE ?").ok()?;
-    
+    let mut stmt = conn
+        .prepare("SELECT Name FROM Participants WHERE Github LIKE ?")
+        .ok()?;
+
     let pattern = format!("%{}", github_username);
-    let mut rows = stmt.query_map([&pattern], |row| {
-        Ok(row.get::<_, String>(0)?) // Name
-    }).ok()?;
+    let mut rows = stmt
+        .query_map([&pattern], |row| {
+            Ok(row.get::<_, String>(0)?) // Name
+        })
+        .ok()?;
     if let Some(Ok(name)) = rows.next() {
         Some(name)
     } else {
         None
     }
 }
-
 
 //data functions
 pub fn read_from_db(path: &PathBuf) -> Result<Table, AppError> {
@@ -311,8 +313,6 @@ async fn get_weekly_data_or_common(
 ) -> impl Responder {
     use std::path::PathBuf;
 
-    // Check for the token in the Authorization header
-
     let auth_header = req
         .headers()
         .get(actix_web::http::header::AUTHORIZATION)
@@ -365,24 +365,20 @@ async fn get_weekly_data_or_common(
                         .then_with(|| b.name.cmp(&a.name))
                 })
         });
-        
 
         let mut result_rows: Vec<RowData> = Vec::new();
         let mut group_id: isize = -1;
 
-        let assignments = get_submitted_assignments().await.unwrap();
-        let submitted: Vec<&Assignment> = assignments
-        .iter()
-        .filter(|a| a.is_submitted())
-        .collect();
-        
+        let assignments = get_submitted_assignments(week).await.unwrap();
+        let submitted: Vec<&Assignment> = assignments.iter().filter(|a| a.is_submitted()).collect();
+
         let mut name_to_assignment: HashMap<String, &Assignment> = HashMap::new();
         let db_path = PathBuf::from("classroom.db"); // Adjust path as needed
-        
+
         for assignment in &submitted {
-            println!("{:#?}", assignment);
-            if let Some(participant_name) = get_github_to_name_mapping(&db_path, &assignment.github_username) {
-                println!("Mapped GitHub '{}' to participant '{}'", assignment.github_username, participant_name);
+            if let Some(participant_name) =
+                get_github_to_name_mapping(&db_path, &assignment.github_username)
+            {
                 name_to_assignment.insert(participant_name, assignment);
             }
         }
@@ -439,22 +435,19 @@ async fn get_weekly_data_or_common(
                 row.exercise_good_structure = Some("no".to_string());
                 row.total = Some(0);
             }
-            
-                    
+
             if let Some(matching_assignment) = name_to_assignment.get(&row.name) {
-                if matching_assignment.get_week() == week.to_string() {  // Remove parentheses
-                    println!("Found assignment for participant: {}", row.name);
+                if matching_assignment.get_week() == week.to_string() {
                     row.exercise_submitted = Some("yes".to_string());
-                    row.exercise_test_passing = Some(
-                        if matching_assignment.points_awarded == "100" {
+                    row.exercise_test_passing =
+                        Some(if matching_assignment.points_awarded == "100" {
                             "yes".to_string()
                         } else {
                             "no".to_string()
-                        }
-                    );
+                        });
                 }
             }
-                    
+
             state_table.insert_or_update(&row).unwrap();
             result_rows.push(row);
         }
@@ -533,6 +526,30 @@ fn backup(db_name: &str) -> Result<(), DbError> {
     Ok(())
 }
 
+#[post("/link/{week}/{student_name}")]
+async fn get_student_repo_link(
+    info: web::Path<(i32, String)>,
+) -> Result<HttpResponse, actix_web::Error> {
+    let (week, student_name) = info.into_inner();
+    let assignments = get_submitted_assignments(week).await.unwrap();
+    let submitted: Vec<&Assignment> = assignments.iter().filter(|a| a.is_submitted()).collect();
+
+    let db_path = PathBuf::from("classroom.db");
+    let mut student_url = "".to_string();
+
+    //for loops conclude to unit type ()
+    for assignment in &submitted {
+        if let Some(participant_name) =
+            get_github_to_name_mapping(&db_path, &assignment.github_username)
+        {
+            if participant_name == student_name {
+                student_url = (assignment.student_repository_url).to_string();
+            }
+        }
+    }
+    Ok(HttpResponse::Ok().json(serde_json::json!({ "repo_link": student_url })))
+}
+
 #[actix_web::main]
 async fn main() -> Result<(), std::io::Error> {
     //env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
@@ -544,8 +561,10 @@ async fn main() -> Result<(), std::io::Error> {
             let weekday = now.date_naive().weekday();
             if weekday == chrono::Weekday::Mon || weekday == chrono::Weekday::Sat {
                 let db_name = "classroom.db";
-                let result = backup(&db_name);
-                println!("{:?}", result);
+                let result: std::result::Result<(), DbError> = backup(&db_name);
+                if let Err(e) = result {
+                    eprintln!("Failed to backup database: {}", e);
+                }
                 // Sleep for 24 hours to avoid repeated saves on the same day
                 std::thread::sleep(std::time::Duration::from_secs(60 * 60 * 24));
             } else {
@@ -554,7 +573,6 @@ async fn main() -> Result<(), std::io::Error> {
             }
         }
     });
-
 
     let table = read_from_db(&PathBuf::from("classroom.db"))?;
     let state = web::Data::new(Mutex::new(table));
@@ -582,6 +600,7 @@ async fn main() -> Result<(), std::io::Error> {
             .service(add_weekly_data)
             .service(get_total_student_count)
             .service(get_weekly_attendance_count_for_week)
+            .service(get_student_repo_link)
     })
     .bind(("127.0.0.1", 8081))?
     .run()

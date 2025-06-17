@@ -432,6 +432,30 @@ const TableView: React.FC = () => {
   const getSortIndicator = (key: keyof TableRowData) => (sortConfig.key === key ? (sortConfig.direction === 'ascending' ? ' 🔼' : ' 🔽') : '');
   const scoreOptions = [0, 1, 2, 3, 4, 5];
 
+const fetchStudentRepoLink = async (week: number, student_name: string) => {
+  try {
+    // 1. Await the fetch call to get the response object
+    const response = await fetch(`https://admin.bitshala.org1/link/${week}/${student_name}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    // 2. Check if the server responded with an error status
+    if (!response.ok) {
+      // Try to get a detailed error message from the response body
+      const errorData = await response.text(); // Use .text() in case the error isn't valid JSON
+      throw new Error(`Request failed with status ${response.status}: ${errorData}`);
+    }
+    const data = await response.json();
+    if (data.repo_link) {
+      window.open(data.repo_link, "_blank");
+    }
+
+  } catch (error) {
+    console.error('An error occurred:', error);
+  }
+};
+
   // --- RENDER ---
   return (
     <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen font-sans">
@@ -508,8 +532,8 @@ const TableView: React.FC = () => {
         <h3 className="">Cohort Participants</h3>
 
         <div className='flex gap-4 mb-4 items-center'>
-          {[0, 1, 2, 3, 4].map(i => (
-            <button key={i} onClick={() => { setWeek(i); fetchWeeklyData(i); SetSaved(false); setIsEditing(false); setContextMenu({visible: false, x: 0, y: 0, targetId: null}); setEditedRows([]); }}
+          {[0, 1, 2, 3, 4, 5, 6].map(i => (
+            <button key={i} onClick={() => { setWeek(i); SetSaved(false); setIsEditing(false); setContextMenu({visible: false, x: 0, y: 0, targetId: null}); setEditedRows([]); }}
               className={`font-light text-xl pb-1 ${week === i ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-600 hover:text-indigo-500'}`}>
               Week {i}
             </button>
@@ -557,7 +581,9 @@ const TableView: React.FC = () => {
                   <th scope="col" colSpan={4} className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">GD SCORE</th>
                   <th scope="col" colSpan={3} className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">BONUS SCORE</th>
                   <th scope="col" colSpan={4} className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">EXERCISE SCORES</th>
-                  <th scope="col" rowSpan={2} className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider align-middle">Total</th>
+                  <th scope="col" rowSpan={2} className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider align-middle cursor-pointer hover:bg-gray-200" onClick={() => requestSort('total')}>
+                    Total{getSortIndicator('total')}
+                  </th>
                 </tr>
                 <tr className="bg-gray-100">
                   <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">Communication</th><th scope="col" className="px-3 py-2 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">Depth Of Answer</th><th scope="col" className="px-3 py-2 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">Technical Bitcoin Fluency</th><th scope="col" className="px-3 py-2 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">Engagement</th>
@@ -586,7 +612,18 @@ const TableView: React.FC = () => {
                     </td>
                     {(['fa', 'fb', 'fc', 'fd'] as const).map(key => (<td key={key} className="px-3 py-4 whitespace-nowrap text-center text-sm"><select value={person.gdScore[key]} disabled={!canEditFields} onChange={e => handleGdScoreChange(person.id, key, e.target.value)} className="border border-gray-300 rounded-md shadow-sm p-1 text-sm focus:ring-indigo-500 focus:border-indigo-500 disabled:cursor-not-allowed disabled:bg-gray-100">{scoreOptions.map(val => (<option key={val} value={val}>{val === 0 ? '-' : val}</option>))}</select></td>))}
                     {(['attempt', 'good', 'followUp'] as const).map(key => (<td key={key} className="px-3 py-4 whitespace-nowrap text-center text-sm"><select value={person.bonusScore[key]} disabled={!canEditFields} onChange={e => handleBonusScoreChange(person.id, key, e.target.value)} className="border border-gray-300 rounded-md shadow-sm p-1 text-sm focus:ring-indigo-500 focus:border-indigo-500 disabled:cursor-not-allowed disabled:bg-gray-100">{scoreOptions.map(val => (<option key={val} value={val}>{val === 0 ? '-' : val}</option>))}</select></td>))}
-                    {(['Submitted', 'privateTest', 'goodStructure', 'goodDoc'] as const).map(key => (<td key={key} className="px-3 py-4 whitespace-nowrap text-center text-sm"><input type="checkbox" checked={person.exerciseScore[key]}  onChange={() => handleExerciseScoreChange(person.id, key)} className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 disabled:cursor-not-allowed disabled:bg-gray-100"/></td>))}
+                    {(['Submitted', 'privateTest', 'goodStructure', 'goodDoc'] as const).map(key => (
+                      <td key={key} className="px-3 py-4 whitespace-nowrap text-center text-sm">
+                          <div className='flex gap-2'>
+                            <input type="checkbox" checked={person.exerciseScore[key]}  
+                            onChange={() => handleExerciseScoreChange(person.id, key)} 
+                            className=" h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 disabled:cursor-not-allowed disabled:bg-gray-100"/>
+                            {key === 'Submitted' && person.exerciseScore[key] === true? 
+                              <svg onClick={() => fetchStudentRepoLink(week, person.name)} xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="20" height="20" viewBox="0 0 50 50">
+                              <path d="M 25 2 C 12.309295 2 2 12.309295 2 25 C 2 37.690705 12.309295 48 25 48 C 37.690705 48 48 37.690705 48 25 C 48 12.309295 37.690705 2 25 2 z M 25 4 C 36.609824 4 46 13.390176 46 25 C 46 36.609824 36.609824 46 25 46 C 13.390176 46 4 36.609824 4 25 C 4 13.390176 13.390176 4 25 4 z M 25 11 A 3 3 0 0 0 22 14 A 3 3 0 0 0 25 17 A 3 3 0 0 0 28 14 A 3 3 0 0 0 25 11 z M 21 21 L 21 23 L 22 23 L 23 23 L 23 36 L 22 36 L 21 36 L 21 38 L 22 38 L 23 38 L 27 38 L 28 38 L 29 38 L 29 36 L 28 36 L 27 36 L 27 21 L 26 21 L 22 21 L 21 21 z"></path>
+                              </svg>   : null}
+                          </div>
+                      </td>))}
                     <td className="px-6 py-4 text-center text-sm font-medium text-gray-700">{isEditing ? computeTotal(person) : person.total}</td>
                   </tr>
                 ))}
