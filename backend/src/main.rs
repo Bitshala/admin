@@ -526,7 +526,7 @@ fn backup(db_name: &str) -> Result<(), DbError> {
     Ok(())
 }
 
-#[get("/link/{week}/{student_name}")]
+#[get("/{week}/{student_name}")]
 async fn get_student_repo_link(
     info: web::Path<(i32, String)>,
 ) -> impl Responder {

@@ -433,7 +433,7 @@ const TableView: React.FC = () => {
   const scoreOptions = [0, 1, 2, 3, 4, 5];
 
 const fetchStudentRepoLink = async (week: number, student_name: string) => {
-        fetch(`https://admin.bitshala.org/link/${week}/${student_name}`)
+        fetch(`https://admin.bitshala.org/${week}/${student_name}`)
          .then(res => res.json())
          .then(data => {
           console.log(data.url);
