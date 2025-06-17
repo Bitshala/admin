@@ -434,7 +434,7 @@ const TableView: React.FC = () => {
 
     const fetchStudentRepoLink = async (week: number, student_name: string) => {
     try {
-      const res = await fetch(`https://admin.bitshala.org/repo/${week}/${student_name}`);
+      const res = await fetch(`https://admin.bitshala.org/${week}/${student_name}`);
       
       const contentType = res.headers.get("Content-Type") || "";
       if (!res.ok) {
