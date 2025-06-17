@@ -526,28 +526,53 @@ fn backup(db_name: &str) -> Result<(), DbError> {
     Ok(())
 }
 
-#[post("/link/{week}/{student_name}")]
+#[get("/link/{week}/{student_name}")]
 async fn get_student_repo_link(
     info: web::Path<(i32, String)>,
 ) -> Result<HttpResponse, actix_web::Error> {
     let (week, student_name) = info.into_inner();
-    let assignments = get_submitted_assignments(week).await.unwrap();
+    
+    // Handle potential errors from get_submitted_assignments
+    let assignments = match get_submitted_assignments(week).await {
+        Ok(assignments) => assignments,
+        Err(e) => {
+            eprintln!("Failed to get submitted assignments: {:?}", e);
+            return Ok(HttpResponse::InternalServerError()
+                .content_type("application/json")
+                .json(serde_json::json!({
+                    "error": "Failed to retrieve assignments",
+                    "repo_link": ""
+                })));
+        }
+    };
+    
     let submitted: Vec<&Assignment> = assignments.iter().filter(|a| a.is_submitted()).collect();
-
     let db_path = PathBuf::from("classroom.db");
-    let mut student_url = "".to_string();
-
-    //for loops conclude to unit type ()
+    let mut student_url = String::new();
+    
+    // Search for the student's repository
     for assignment in &submitted {
-        if let Some(participant_name) =
-            get_github_to_name_mapping(&db_path, &assignment.github_username)
-        {
-            if participant_name == student_name {
-                student_url = (assignment.student_repository_url).to_string();
+        if let Some(participant_name) = get_github_to_name_mapping(&db_path, &assignment.github_username) {
+            if participant_name.trim().to_lowercase() == student_name.trim().to_lowercase() {
+                student_url = assignment.student_repository_url.clone();
+                break;
             }
         }
     }
-    Ok(HttpResponse::Ok().json(serde_json::json!({ "repo_link": student_url })))
+    
+    // Always return JSON with consistent structure
+    let response = serde_json::json!({
+        "repo_link": student_url,
+        "found": !student_url.is_empty(),
+        "week": week,
+        "student_name": student_name
+    });
+    
+    println!("Returning JSON response: {}", response);
+    
+    Ok(HttpResponse::Ok()
+        .content_type("application/json")
+        .json(response))
 }
 
 #[actix_web::main]
