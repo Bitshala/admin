@@ -1,5 +1,5 @@
 use octocrab::Octocrab;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::env;
 use thiserror::Error;
@@ -13,7 +13,7 @@ pub struct Classroom {
     url: String, // URL to the classroom on classroom.github.com
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, Serialize)]
 pub struct Assignment {
     pub assignment_name: String,
     pub assignment_url: String,
