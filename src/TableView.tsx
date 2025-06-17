@@ -435,7 +435,7 @@ const TableView: React.FC = () => {
 const fetchStudentRepoLink = async (week: number, student_name: string) => {
   try {
     // 1. Await the fetch call to get the response object
-    const response = await fetch(`http://localhost:8081/link/${week}/${student_name}`, {
+    const response = await fetch(`https://admin.bitshala.org1/link/${week}/${student_name}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     });
