@@ -287,7 +287,7 @@ const TableView: React.FC = () => {
         total: computeTotal(p)
       }));
       console.log(payload,"payload");
-    fetch(`https://admin.bitshala.org/weekly_data/${week}`, {
+    fetch(`https:///weekly_data/${week}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -354,7 +354,7 @@ const TableView: React.FC = () => {
         total: computeTotal(newStudent)
     }
     console.log(payload,"payload")
-    fetch(`https://admin.bitshala.org/weekly_data/${week}`, {
+    fetch(`https:///weekly_data/${week}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify([payload]),
@@ -433,7 +433,7 @@ const TableView: React.FC = () => {
   const scoreOptions = [0, 1, 2, 3, 4, 5];
 
 const fetchStudentRepoLink = async (week: number, student_name: string) => {
-        fetch(`http://localhost:8081/link/${week}/${student_name}`)
+        fetch(`https://admin.bitshala.org/link/${week}/${student_name}`)
          .then(res => res.json())
          .then(data => {
          console.log('Data', data);
