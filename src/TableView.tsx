@@ -433,29 +433,14 @@ const TableView: React.FC = () => {
   const scoreOptions = [0, 1, 2, 3, 4, 5];
 
 const fetchStudentRepoLink = async (week: number, student_name: string) => {
-  try {
-    // 1. Await the fetch call to get the response object
-    const response = await fetch(`https://admin.bitshala.org/link/${week}/${student_name}`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    });
-
-    // 2. Check if the server responded with an error status
-    if (!response.ok) {
-      // Try to get a detailed error message from the response body
-      const errorData = await response.text(); // Use .text() in case the error isn't valid JSON
-      throw new Error(`Request failed with status ${response.status}: ${errorData}`);
-    }
-    const data = await response.json();
-    console.log(data);
-    if (data) {
-      window.open(data, "_blank");
-    }
-
-  } catch (error) {
-    console.error('An error occurred:', error);
-  }
-};
+        fetch(`http://localhost:8081/link/${week}/${student_name}`)
+         .then(res => res.json())
+         .then(data => {
+         console.log('Data', data);
+         window.open(data, "_blank");
+      })
+      .catch(err => { console.error("Error", err);});
+  };
 
   // --- RENDER ---
   return (
