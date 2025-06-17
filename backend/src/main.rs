@@ -547,7 +547,8 @@ async fn get_student_repo_link(
             }
         }
     }
-    return HttpResponse::Ok().json(student_url);
+    // Return as JSON object with a "url" field
+    return HttpResponse::Ok().json(serde_json::json!({ "url": student_url }));
 }
 
 #[actix_web::main]
