@@ -434,25 +434,26 @@ const TableView: React.FC = () => {
 
 const fetchStudentRepoLink = async (week: number, student_name: string) => {
   try {
-    // 1. Await the fetch call to get the response object
-    const response = await fetch(`https://admin.bitshala.org1/link/${week}/${student_name}`, {
-      method: 'POST',
+    const response = await fetch(`https://admin.bitshala.org/link/${week}/${student_name}`, {
+      method: 'GET',
       headers: { 'Content-Type': 'application/json' },
     });
 
-    // 2. Check if the server responded with an error status
     if (!response.ok) {
-      // Try to get a detailed error message from the response body
       const errorData = await response.text(); // Use .text() in case the error isn't valid JSON
       throw new Error(`Request failed with status ${response.status}: ${errorData}`);
     }
-    const data = await response.json();
-    if (data.repo_link) {
-      window.open(data.repo_link, "_blank");
-    }
 
+    const data = await response.json();
+    if (data.repo_link && data.repo_link.trim() !== "") {
+      window.open(data.repo_link, "_blank");
+    } else {
+      console.warn("No repository link found for this student");
+      alert("No repository link found for this student");
+    }
   } catch (error) {
-    console.error('An error occurred:', error);
+    console.error("Error fetching student repo link:", error);
+    alert("Failed to fetch repository link. Please try again.");
   }
 };
 
