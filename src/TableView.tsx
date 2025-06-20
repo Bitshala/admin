@@ -287,7 +287,7 @@ const TableView: React.FC = () => {
         total: computeTotal(p)
       }));
       console.log(payload,"payload");
-    fetch(`https:///weekly_data/${week}`, {
+    fetch(`https://admin.bitshala.org/weekly_data/${week}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
