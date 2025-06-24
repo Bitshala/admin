@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
-
+import { useNavigate } from 'react-router-dom';
 // --- INTERFACES ---
 interface ApiStudentEntry {
   name: string;
@@ -74,6 +74,7 @@ const TableView: React.FC = () => {
   const [weeklyData, setWeeklyData] = useState<{ week: number; attended: number; }>({ week: 0, attended: 0 });
 
   const canEditFields = isEditing && week !== 0;
+  const navigate = useNavigate();
 
   // --- DATA COMPUTATION & FETCHING ---
   const computeGdTotal = useCallback((gd: TableRowData['gdScore']): number =>
@@ -102,6 +103,7 @@ const TableView: React.FC = () => {
         if (!response.ok) {
           return response.text().then(text => {
             let errorDetail = text;
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             try { const jsonError = JSON.parse(text); errorDetail = jsonError.message || text; } catch (e) { /* ignore */ }
             throw new Error(`Server error: ${response.status} - ${errorDetail}`);
           });
@@ -353,8 +355,7 @@ const TableView: React.FC = () => {
         exercise_good_structure: newStudent.exerciseScore.goodStructure ? 'yes' : 'no',
         total: computeTotal(newStudent)
     }
-    console.log(payload,"payload")
-    fetch(`https:///weekly_data/${week}`, {
+    fetch(`https://admin.bitshala.org/weekly_data/${week}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify([payload]),
@@ -364,7 +365,7 @@ const TableView: React.FC = () => {
       setIsEditing(false);
       SetSaved(true);
       getWeeklyData(week);
-      return r.json();
+      return r.text();
     })
     .catch(e => console.error('Save failed', e));
   };
@@ -543,6 +544,10 @@ const TableView: React.FC = () => {
               Week {i}
             </button>
           ))}
+           <button onClick={() => { navigate('/result');}}
+              className={`font-light text-xl pb-1`}>
+              Result
+            </button>
         </div>
         
         <div className="mb-4 flex flex-wrap gap-4 items-center">

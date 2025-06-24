@@ -527,9 +527,7 @@ fn backup(db_name: &str) -> Result<(), DbError> {
 }
 
 #[get("/students/{week}/{student_name}")]
-async fn get_student_repo_link(
-    info: web::Path<(i32, String)>,
-) -> impl Responder {
+async fn get_student_repo_link(info: web::Path<(i32, String)>) -> impl Responder {
     let (week, student_name) = info.into_inner();
     let assignments = get_submitted_assignments(week).await.unwrap();
     let submitted: Vec<&Assignment> = assignments.iter().filter(|a| a.is_submitted()).collect();
@@ -549,6 +547,42 @@ async fn get_student_repo_link(
     }
     // Return as JSON object with a "url" field
     return HttpResponse::Ok().json(serde_json::json!({ "url": student_url }));
+}
+
+#[get("/students/total_scores")]
+async fn get_students_by_total_score(state: web::Data<Mutex<Table>>) -> impl Responder {
+    println!("Fetching students ordered by total score (desc)");
+    let state_table = state.lock().unwrap();
+
+    let mut student_data: HashMap<String, (RowData, u64)> = HashMap::new();
+
+    for row in &state_table.rows {
+        let total_score = row.total.unwrap_or(0);
+
+        student_data
+            .entry(row.name.clone())
+            .and_modify(|(existing_row, accumulated_total)| {
+                *accumulated_total += total_score;
+                if row.week > existing_row.week {
+                    *existing_row = row.clone();
+                }
+            })
+            .or_insert((row.clone(), total_score));
+    }
+
+    let mut response: Vec<(RowData, u64)> = student_data
+        .into_values()
+        .map(|(mut row, total_sum)| {
+            row.total = Some(total_sum);
+            (row, total_sum)
+        })
+        .collect();
+
+    response.sort_by(|a, b| b.1.cmp(&a.1));
+
+    let final_response: Vec<RowData> = response.into_iter().map(|(row, _)| row).collect();
+
+    HttpResponse::Ok().json(final_response)
 }
 
 #[actix_web::main]
@@ -602,6 +636,7 @@ async fn main() -> Result<(), std::io::Error> {
             .service(get_total_student_count)
             .service(get_weekly_attendance_count_for_week)
             .service(get_student_repo_link)
+            .service(get_students_by_total_score)
     })
     .bind(("127.0.0.1", 8081))?
     .run()
