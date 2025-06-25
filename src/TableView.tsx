@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 // --- INTERFACES ---
 interface ApiStudentEntry {
   name: string;
@@ -464,74 +465,74 @@ const TableView: React.FC = () => {
   
   // --- RENDER ---
   return (
-    <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen font-sans">
+    <div className="p-4 sm:p-6 lg:p-8 bg-zinc-50 min-h-screen  bg-zinc-900 text-zinc-300/90">
       {showTableRowForm && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-          <div className="bg-white border-gray-300 text-gray-800 rounded-lg shadow-xl flex flex-col w-full max-w-2xl max-h-[90vh]">
-            <div className="flex justify-between items-center p-4 border-b border-gray-200">
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-op-50">
+          <div className="bg-white border-zinc-300 text-zinc-800 rounded-lg shadow-xl flex flex-col w-full max-w-2xl max-h-90vh">
+            <div className="flex justify-between items-center p-4 border-b border-zinc-200">
               <h3 className="text-xl font-semibold">Add New Student (Week {week})</h3>
-              <button className="text-gray-400 hover:text-gray-600 text-2xl leading-none p-1" onClick={() => setShowTableRowForm(false)} aria-label="Close">&times;</button>
+              <button className="text-zinc-400 hover:text-zinc-600 text-2xl leading-none p-1" onClick={() => setShowTableRowForm(false)} aria-label="Close">&times;</button>
             </div>
             <div className="p-6 space-y-4 overflow-y-auto">
               {/* Form fields */}
               <div>
-                <label htmlFor="form-name" className="block text-sm font-medium text-gray-700">Name <span className="text-red-500">*</span></label>
-                <input type="text" name="name" id="form-name" value={newStudent.name} onChange={handleNewStudentChange} required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"/>
+                <label htmlFor="form-name" className="block text-sm font-medium text-zinc-700">Name <span className="text-red-500">*</span></label>
+                <input type="text" name="name" id="form-name" value={newStudent.name} onChange={handleNewStudentChange} required className="mt-1 block w-full px-3 py-2 border border-zinc-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm"/>
               </div>
               <div>
-                <label htmlFor="form-email" className="block text-sm font-medium text-gray-700">Email</label>
-                <input type="email" name="email" id="form-email" value={newStudent.email} onChange={handleNewStudentChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"/>
+                <label htmlFor="form-email" className="block text-sm font-medium text-zinc-700">Email</label>
+                <input type="email" name="email" id="form-email" value={newStudent.email} onChange={handleNewStudentChange} className="mt-1 block w-full px-3 py-2 border border-zinc-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm"/>
               </div>
               <div>
-                <label htmlFor="form-group" className="block text-sm font-medium text-gray-700">Group</label>
-                <select name="group" id="form-group" value={newStudent.group} onChange={handleNewStudentChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                <label htmlFor="form-group" className="block text-sm font-medium text-zinc-700">Group</label>
+                <select name="group" id="form-group" value={newStudent.group} onChange={handleNewStudentChange} className="mt-1 block w-full px-3 py-2 border border-zinc-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm">
                   {baseGroups.map(g => <option key={g} value={g}>{g}</option>)}
                 </select>
               </div>
               <div>
-                <label htmlFor="form-ta" className="block text-sm font-medium text-gray-700">TA</label>
-                <input type="text" name="ta" id="form-ta" value={newStudent.ta} onChange={handleNewStudentChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"/>
+                <label htmlFor="form-ta" className="block text-sm font-medium text-zinc-700">TA</label>
+                <input type="text" name="ta" id="form-ta" value={newStudent.ta} onChange={handleNewStudentChange} className="mt-1 block w-full px-3 py-2 border border-zinc-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 sm:text-sm"/>
               </div>
               <div className="flex items-center">
-                <input type="checkbox" name="attendance" id="form-attendance" checked={newStudent.attendance} onChange={handleNewStudentChange} className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"/>
-                <label htmlFor="form-attendance" className="ml-2 block text-sm text-gray-900">Attended This Week</label>
+                <input type="checkbox" name="attendance" id="form-attendance" checked={newStudent.attendance} onChange={handleNewStudentChange} className="h-4 w-4 text-orange-600 border-zinc-300 rounded focus:ring-orange-500"/>
+                <label htmlFor="form-attendance" className="ml-2 block text-sm text-zinc-900">Attended This Week</label>
               </div>
               <fieldset className="border p-4 rounded-md">
-                <legend className="text-sm font-medium text-gray-700 px-1">GD Scores</legend>
+                <legend className="text-sm font-medium text-zinc-700 px-1">GD Scores</legend>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-2">
-                  {(['fa', 'fb', 'fc', 'fd'] as const).map(key => (<div key={key}><label htmlFor={`form-gdScore.${key}`} className="block text-xs font-medium text-gray-600 capitalize">{key.replace('f','Factor ')}</label><select name={`gdScore.${key}`} id={`form-gdScore.${key}`} value={newStudent.gdScore[key]} onChange={handleNewStudentChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">{scoreOptions.map(val => <option key={val} value={val}>{val === 0 ? '-' : val}</option>)}</select></div>))}
+                  {(['fa', 'fb', 'fc', 'fd'] as const).map(key => (<div key={key}><label htmlFor={`form-gdScore.${key}`} className="block text-xs font-medium text-zinc-600 capitalize">{key.replace('f','Factor ')}</label><select name={`gdScore.${key}`} id={`form-gdScore.${key}`} value={newStudent.gdScore[key]} onChange={handleNewStudentChange} className="mt-1 block w-full px-3 py-2 border border-zinc-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm">{scoreOptions.map(val => <option key={val} value={val}>{val === 0 ? '-' : val}</option>)}</select></div>))}
                 </div>
               </fieldset>
               <fieldset className="border p-4 rounded-md">
-                <legend className="text-sm font-medium text-gray-700 px-1">Bonus Scores</legend>
+                <legend className="text-sm font-medium text-zinc-700 px-1">Bonus Scores</legend>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-2">
-                  {(['attempt', 'good', 'followUp'] as const).map(key => (<div key={key}><label htmlFor={`form-bonusScore.${key}`} className="block text-xs font-medium text-gray-600 capitalize">{key}</label><select name={`bonusScore.${key}`} id={`form-bonusScore.${key}`} value={newStudent.bonusScore[key]} onChange={handleNewStudentChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">{scoreOptions.map(val => <option key={val} value={val}>{val === 0 ? '-' : val}</option>)}</select></div>))}
+                  {(['attempt', 'good', 'followUp'] as const).map(key => (<div key={key}><label htmlFor={`form-bonusScore.${key}`} className="block text-xs font-medium text-zinc-600 capitalize">{key}</label><select name={`bonusScore.${key}`} id={`form-bonusScore.${key}`} value={newStudent.bonusScore[key]} onChange={handleNewStudentChange} className="mt-1 block w-full px-3 py-2 border border-zinc-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm">{scoreOptions.map(val => <option key={val} value={val}>{val === 0 ? '-' : val}</option>)}</select></div>))}
                 </div>
               </fieldset>
               <fieldset className="border p-4 rounded-md">
-                <legend className="text-sm font-medium text-gray-700 px-1">Exercise Scores</legend>
+                <legend className="text-sm font-medium text-zinc-700 px-1">Exercise Scores</legend>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2 mt-2">
-                  {(Object.keys(newStudent.exerciseScore) as Array<keyof TableRowData['exerciseScore']>).map(key => (<div key={key} className="flex items-center"><input type="checkbox" name={`exerciseScore.${key}`} id={`form-exerciseScore.${key}`} checked={newStudent.exerciseScore[key]} onChange={handleNewStudentChange} className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"/><label htmlFor={`form-exerciseScore.${key}`} className="ml-2 block text-sm text-gray-900 capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</label></div>))}
+                  {(Object.keys(newStudent.exerciseScore) as Array<keyof TableRowData['exerciseScore']>).map(key => (<div key={key} className="flex items-center"><input type="checkbox" name={`exerciseScore.${key}`} id={`form-exerciseScore.${key}`} checked={newStudent.exerciseScore[key]} onChange={handleNewStudentChange} className="h-4 w-4 text-orange-600 border-zinc-300 rounded focus:ring-orange-500"/><label htmlFor={`form-exerciseScore.${key}`} className="ml-2 block text-sm text-zinc-900 capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</label></div>))}
                 </div>
               </fieldset>
             </div>
-            <div className="flex justify-end items-center p-4 border-t border-gray-200 space-x-3">
-              <button type="button" onClick={() => setShowTableRowForm(false)} className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Cancel</button>
-              <button type="button" onClick={handleConfirmAddStudent} className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Add Student</button>
+            <div className="flex justify-end items-center p-4 border-t border-zinc-200 space-x-3">
+              <button type="button" onClick={() => setShowTableRowForm(false)} className="px-4 py-2 text-sm font-medium text-zinc-700 bg-white border border-zinc-300 rounded-md shadow-sm hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">Cancel</button>
+              <button type="button" onClick={handleConfirmAddStudent} className="px-4 py-2 text-sm font-medium text-white bg-orange-600 border border-transparent rounded-md shadow-sm hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">Add Student</button>
             </div>
           </div>
         </div>
       )}
 
       {contextMenu.visible && (
-        <div ref={contextMenuRef} style={{ top: contextMenu.y, left: contextMenu.x }} className="fixed z-[1000] bg-white border border-gray-300 rounded-md shadow-lg py-1 w-40">
+        <div ref={contextMenuRef} style={{ top: contextMenu.y, left: contextMenu.x }} className="fixed z-1000 bg-white border border-zinc-300 rounded-md shadow-lg py-1 w-40">
           <ul>
-            <li><button onClick={handleDeleteRow} className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-500 hover:text-white">Delete Row</button></li>
+            <li><button onClick={handleDeleteRow} className="w-full text-left px-4 py-2 text-sm text-zinc-700 hover:bg-red-500 hover:text-white">Delete Row</button></li>
           </ul>
         </div>
       )}
 
-      <div className="max-w-full mx-auto">
+      <div className="max-w-full mx-auto ">
         <h1>Learning Bitcoin From Command Line</h1>
         <h2 className='font-light'>30th May - 27th july</h2>
         <h2 className='font-light'>Github Classroom Master Repository</h2>
@@ -540,28 +541,28 @@ const TableView: React.FC = () => {
         <div className='flex gap-4 mb-4 items-center'>
           {[0, 1, 2, 3, 4, 5, 6].map(i => (
             <button key={i} onClick={() => { setWeek(i); SetSaved(false); setIsEditing(false); setContextMenu({visible: false, x: 0, y: 0, targetId: null}); setEditedRows([]); }}
-              className={`font-light text-xl pb-1 ${week === i ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-600 hover:text-indigo-500'}`}>
+              className="b-0 bg-orange-400 hover:bg-orange-500 text-white font-light text-xl px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors duration-200">
               Week {i}
             </button>
           ))}
            <button onClick={() => { navigate('/result');}}
-              className={`font-light text-xl pb-1`}>
+              className="b-0 bg-orange-400 hover:bg-orange-500 text-white font-light text-xl px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors duration-200">
               Result
             </button>
         </div>
         
         <div className="mb-4 flex flex-wrap gap-4 items-center">
-          <input type="text" placeholder="Search by name..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 flex-grow sm:flex-grow-0 sm:w-auto"/>
-          <select id="groupFilter" value={selectedGroup} onChange={(e) => setSelectedGroup(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+          <input type="text" placeholder="Search by name..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="px-3 py-2 border border-zinc-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 flex-grow sm:flex-grow-0 sm:w-auto"/>
+          <select id="groupFilter" value={selectedGroup} onChange={(e) => setSelectedGroup(e.target.value)} className="px-3 py-2 border border-zinc-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500">
             {['All Groups', ...baseGroups].map(groupName => <option key={groupName} value={groupName}>{groupName}</option>)}
           </select>
-          <select id="taFilter" value={selectedTA} onChange={(e) => setSelectedTA(e.target.value)} className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+          <select id="taFilter" value={selectedTA} onChange={(e) => setSelectedTA(e.target.value)} className="px-3 py-2 border border-zinc-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500">
             {taOptions.map(taName => <option key={taName} value={taName}>{taName}</option>)}
           </select>
-          <select id="attendanceFilter" value={attendanceFilter} onChange={e => setAttendanceFilter(e.target.value as 'All' | 'Present' | 'Absent')} className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+          <select id="attendanceFilter" value={attendanceFilter} onChange={e => setAttendanceFilter(e.target.value as 'All' | 'Present' | 'Absent')} className="px-3 py-2 border border-zinc-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500">
             <option value="All">All Attendance</option><option value="Present">Present</option><option value="Absent">Absent</option>
           </select>
-          <button onClick={handleClear} className="px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 border border-gray-300 rounded-md">Clear Filters</button>
+          <button onClick={handleClear} className="px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-100 border border-zinc-300 rounded-md">Clear Filters</button>
         </div>
 
         <div className="flex justify-between items-center gap-2 mb-4 mt-8">
@@ -571,77 +572,164 @@ const TableView: React.FC = () => {
             <div>Absentes: {(totalCount && weeklyData.attended !== undefined) ? (totalCount - weeklyData.attended) : '...'}</div>
           </div>
           <div className='flex gap-2'>
-            <button onClick={openAddNewRowForm} className="px-4 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600">Add New Row</button>
-            <button onClick={handleEdit} disabled={isEditing} className="px-4 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600 disabled:opacity-50">Edit</button>
-            <button onClick={handleSave} disabled={!isEditing} className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50">Save</button>
-            <button onClick={downloadCSV} disabled={!isSaved} className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 disabled:opacity-50">Download CSV</button>
+            <button onClick={openAddNewRowForm} className="b-0 px-4 py-2 bg-orange-400 hover:bg-orange-500 text-white rounded ">Add New Row</button>
+            <button onClick={handleEdit} disabled={isEditing} className="b-0 px-4 py-2 bg-orange-400 hover:bg-orange-500 text-white rounded  ">Edit</button>
+            <button onClick={handleSave} disabled={!isEditing} className="b-0 px-4 py-2  text-white rounded bg-green-400 hover:bg-green-500 ">Save</button>
+            <button onClick={downloadCSV}  className="b-0 px-4 py-2 bg-yellow-600 text-white rounded ">Download CSV</button>
           </div>
         </div>
 
-        <div className="shadow-lg rounded-xl overflow-hidden bg-white">
+        <div className="shadow-lg overflow-hidden bg-zinc-900">
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-100">
+            <table className="min-w-full divide-y divide-zinc-900">
+              <thead className="bg-zinc-50 sticky top-0 z-10 shadow-sm">
                 <tr>
-                  <th scope="col" rowSpan={2} className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider align-middle cursor-pointer hover:bg-gray-200" onClick={() => requestSort('name')}>Name{getSortIndicator('name')}</th>
-                  <th scope="col" rowSpan={2} className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider align-middle hidden sm:table-cell">Email</th>
-                  {week > 0 && <th scope="col" rowSpan={2} className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider hidden sm:table-cell align-middle cursor-pointer hover:bg-gray-200" onClick={() => requestSort('group')}>Group{getSortIndicator('group')}</th>}
-                  <th scope="col" rowSpan={2} className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider hidden md:table-cell align-middle">TA</th>
-                  <th scope="col" rowSpan={2} className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider hidden lg:table-cell align-middle">Attendance</th>
-                  <th scope="col" colSpan={4} className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">GD SCORE</th>
-                  <th scope="col" colSpan={3} className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">BONUS SCORE</th>
-                  <th scope="col" colSpan={4} className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">EXERCISE SCORES</th>
-                  <th scope="col" rowSpan={2} className="px-6 py-3 text-center text-xs font-medium text-gray-600 uppercase tracking-wider align-middle cursor-pointer hover:bg-gray-200" onClick={() => requestSort('total')}>
+                  <th 
+                    scope="col" 
+                    rowSpan={2} 
+                    className="px-6 py-3 text-left text-xs font-semibold text-zinc-700 uppercase hover:bg-orange-50 tracking-wider align-middle cursor-pointer bg-orange-200 transition-colors duration-200 border-b border-zinc-200" 
+                    onClick={() => requestSort('name')}
+                  >
+                    Name{getSortIndicator('name')}
+                  </th>
+                  <th 
+                    scope="col" 
+                    rowSpan={2} 
+                    className="px-6 py-3 text-left text-xs font-semibold text-zinc-700 uppercase hover:bg-orange-50 tracking-wider align-middle bg-orange-200 hidden sm:table-cell border-b border-zinc-200"
+                  >
+                    Email
+                  </th>
+                  {week > 0 && (
+                    <th 
+                      scope="col" 
+                      rowSpan={2} 
+                      className="px-6 py-3 text-left text-xs font-semibold text-zinc-700 hover:bg-orange-50 bg-orange-200 uppercase tracking-wider hidden sm:table-cell align-middle cursor-pointer hover:bg-orange-50 transition-colors duration-200 border-b border-zinc-200" 
+                      onClick={() => requestSort('group')}
+                    >
+                      Group{getSortIndicator('group')}
+                    </th>
+                  )}
+                  <th 
+                    scope="col" 
+                    rowSpan={2} 
+                    className="px-6 py-3 text-left text-xs font-semibold text-zinc-700  hover:bg-orange-50 bg-orange-200 uppercase tracking-wider hidden md:table-cell align-middle border-b border-zinc-200"
+                  >
+                    TA
+                  </th>
+                  <th 
+                    scope="col" 
+                    rowSpan={2} 
+                    className="px-6 py-3 text-left text-xs font-semibold text-zinc-700  hover:bg-orange-50  bg-orange-200 uppercase tracking-wider hidden lg:table-cell align-middle border-b border-zinc-200"
+                  >
+                    Attendance
+                  </th>
+                  <th 
+                    scope="col" 
+                    colSpan={4} 
+                    className="px-6 py-3 text-center text-xs font-semibold hover:bg-orange-50 uppercase tracking-wider bg-orange-200 text-zinc-700 border-b border-zinc-200"
+                  >
+                    GD SCORE
+                  </th>
+                  <th 
+                    scope="col" 
+                    colSpan={3} 
+                    className="px-6 py-3 text-center text-xs font-semibold  hover:bg-orange-50 uppercase tracking-wider bg-orange-200 text-zinc-700 border-b border-zinc-200"
+                  >
+                    BONUS SCORE
+                  </th>
+                  <th 
+                    scope="col" 
+                    colSpan={4} 
+                    className="px-6 py-3 text-center text-xs font-semibold hover:bg-orange-50 text-orange-700 uppercase tracking-wider bg-orange-200 text-zinc-700 border-b border-zinc-200"
+                  >
+                    EXERCISE SCORES
+                  </th>
+                  <th 
+                    scope="col" 
+                    rowSpan={2} 
+                    className="px-6 py-3 text-center text-xs font-semibold text-zinc-700 uppercase tracking-wider align-middle cursor-pointer hover:bg-orange-50 bg-orange-200 text-zinc-700 transition-colors duration-200 border-b border-zinc-200" 
+                    onClick={() => requestSort('total')}
+                  >
                     Total{getSortIndicator('total')}
                   </th>
                 </tr>
-                <tr className="bg-gray-100">
-                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">Communication</th><th scope="col" className="px-3 py-2 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">Depth Of Answer</th><th scope="col" className="px-3 py-2 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">Technical Bitcoin Fluency</th><th scope="col" className="px-3 py-2 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">Engagement</th>
-                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">Attempt</th><th scope="col" className="px-3 py-2 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">Good</th><th scope="col" className="px-3 py-2 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">Follow Up</th>
-                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">Submitted</th><th scope="col" className="px-3 py-2 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">Github Test</th><th scope="col" className="px-3 py-2 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">Good Structure</th><th scope="col" className="px-3 py-2 text-center text-xs font-medium text-gray-600 uppercase tracking-wider">Good doc</th>
+                <tr className="bg-zinc-50">
+                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-25 border-b border-zinc-200">
+                    Communication
+                  </th>
+                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-25 border-b border-zinc-200">
+                    Depth Of Answer
+                  </th>
+                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-25 border-b border-zinc-200">
+                    Technical Bitcoin Fluency
+                  </th>
+                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-25 border-b border-zinc-200">
+                    Engagement
+                  </th>
+                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-25 border-b border-zinc-200">
+                    Attempt
+                  </th>
+                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-25 border-b border-zinc-200">
+                    Good
+                  </th>
+                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-25 border-b border-zinc-200">
+                    Follow Up
+                  </th>
+                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-25 border-b border-zinc-200">
+                    Submitted
+                  </th>
+                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-25 border-b border-zinc-200">
+                    Github Test
+                  </th>
+                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-25 border-b border-zinc-200">
+                    Good Structure
+                  </th>
+                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-25 border-b border-zinc-200">
+                    Good doc
+                  </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white divide-y divide-zinc-200">
                 {processedData.map((person) => (
-                  <tr key={person.id} className="hover:bg-gray-50 transition-colors duration-150">
+                  <tr key={person.id} className="hover:bg-zinc-50 transition-colors duration-150">
                     <td className="px-6 py-4 whitespace-nowrap cursor-default" onContextMenu={(e) => handleNameRightClick(e, person.id)}>
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">
-                          <div className="h-10 w-10 rounded-full bg-indigo-500 text-white flex items-center justify-center text-sm font-medium">
+                          <div className="h-10 w-10 rounded-full bg-orange-500 text-white flex items-center justify-center text-sm font-medium">
                             {person.name.charAt(0)}{(person.name.split(' ')[1]?.charAt(0) || '').toUpperCase()}
                           </div>
                         </div>
-                        <div className="ml-4"><div className="text-sm font-medium text-gray-900">{person.name}</div></div>
+                        <div className="ml-4"><div className="text-sm font-medium text-zinc-900">{person.name}</div></div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap hidden sm:table-cell"><div className="text-sm text-gray-900">{person.email || '-'}</div></td>
-                    {week > 0 && <td className="px-6 py-4 whitespace-nowrap hidden sm:table-cell"><div className="text-sm text-gray-900">{person.group}</div></td>}
-                    <td className="px-6 py-4 whitespace-nowrap hidden md:table-cell"><div className="text-sm text-gray-500">{person.ta || '-'}</div></td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden lg:table-cell">
-                        <input type="checkbox" checked={person.attendance} disabled={!isEditing} onChange={() => handleAttendanceChange(person.id)} className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 disabled:cursor-not-allowed"/>
+                    <td className="px-6 py-4 whitespace-nowrap hidden sm:table-cell"><div className="text-sm text-zinc-900">{person.email || '-'}</div></td>
+                    {week > 0 && <td className="px-6 py-4 whitespace-nowrap hidden sm:table-cell"><div className="text-sm text-zinc-900">{person.group}</div></td>}
+                    <td className="px-6 py-4 whitespace-nowrap hidden md:table-cell"><div className="text-sm text-zinc-500">{person.ta || '-'}</div></td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-500 hidden lg:table-cell">
+                        <input type="checkbox" checked={person.attendance} disabled={!isEditing} onChange={() => handleAttendanceChange(person.id)} className="h-4 w-4 text-orange-600 border-zinc-300 rounded focus:ring-orange-500 disabled:cursor-not-allowed"/>
                     </td>
-                    {(['fa', 'fb', 'fc', 'fd'] as const).map(key => (<td key={key} className="px-3 py-4 whitespace-nowrap text-center text-sm"><select value={person.gdScore[key]} disabled={!canEditFields} onChange={e => handleGdScoreChange(person.id, key, e.target.value)} className="border border-gray-300 rounded-md shadow-sm p-1 text-sm focus:ring-indigo-500 focus:border-indigo-500 disabled:cursor-not-allowed disabled:bg-gray-100">{scoreOptions.map(val => (<option key={val} value={val}>{val === 0 ? '-' : val}</option>))}</select></td>))}
-                    {(['attempt', 'good', 'followUp'] as const).map(key => (<td key={key} className="px-3 py-4 whitespace-nowrap text-center text-sm"><select value={person.bonusScore[key]} disabled={!canEditFields} onChange={e => handleBonusScoreChange(person.id, key, e.target.value)} className="border border-gray-300 rounded-md shadow-sm p-1 text-sm focus:ring-indigo-500 focus:border-indigo-500 disabled:cursor-not-allowed disabled:bg-gray-100">{scoreOptions.map(val => (<option key={val} value={val}>{val === 0 ? '-' : val}</option>))}</select></td>))}
+                    {(['fa', 'fb', 'fc', 'fd'] as const).map(key => (<td key={key} className="px-3 py-4 whitespace-nowrap text-center text-sm"><select value={person.gdScore[key]} disabled={!canEditFields} onChange={e => handleGdScoreChange(person.id, key, e.target.value)} className="border border-zinc-300 rounded-md shadow-sm p-1 text-sm focus:ring-orange-500 focus:border-orange-500 disabled:cursor-not-allowed disabled:bg-zinc-100">{scoreOptions.map(val => (<option key={val} value={val}>{val === 0 ? '-' : val}</option>))}</select></td>))}
+                    {(['attempt', 'good', 'followUp'] as const).map(key => (<td key={key} className="px-3 py-4 whitespace-nowrap text-center text-sm"><select value={person.bonusScore[key]} disabled={!canEditFields} onChange={e => handleBonusScoreChange(person.id, key, e.target.value)} className="border border-zinc-300 rounded-md shadow-sm p-1 text-sm focus:ring-orange-500 focus:border-orange-500 disabled:cursor-not-allowed disabled:bg-zinc-100">{scoreOptions.map(val => (<option key={val} value={val}>{val === 0 ? '-' : val}</option>))}</select></td>))}
                     {(['Submitted', 'privateTest', 'goodStructure', 'goodDoc'] as const).map(key => (
                       <td key={key} className="px-3 py-4 whitespace-nowrap text-center text-sm">
                           <div className='flex gap-2'>
                             <input type="checkbox" checked={person.exerciseScore[key]}  
                             onChange={() => handleExerciseScoreChange(person.id, key)} 
-                            className=" h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 disabled:cursor-not-allowed disabled:bg-gray-100"/>
+                            className=" h-4 w-4 text-orange-600 border-zinc-300 rounded focus:ring-orange-500 disabled:cursor-not-allowed disabled:bg-zinc-100"/>
                             {key === 'Submitted' && person.exerciseScore[key] === true? 
                               <svg onClick={() => fetchStudentRepoLink(week, person.name)} xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="20" height="20" viewBox="0 0 50 50">
                               <path d="M 25 2 C 12.309295 2 2 12.309295 2 25 C 2 37.690705 12.309295 48 25 48 C 37.690705 48 48 37.690705 48 25 C 48 12.309295 37.690705 2 25 2 z M 25 4 C 36.609824 4 46 13.390176 46 25 C 46 36.609824 36.609824 46 25 46 C 13.390176 46 4 36.609824 4 25 C 4 13.390176 13.390176 4 25 4 z M 25 11 A 3 3 0 0 0 22 14 A 3 3 0 0 0 25 17 A 3 3 0 0 0 28 14 A 3 3 0 0 0 25 11 z M 21 21 L 21 23 L 22 23 L 23 23 L 23 36 L 22 36 L 21 36 L 21 38 L 22 38 L 23 38 L 27 38 L 28 38 L 29 38 L 29 36 L 28 36 L 27 36 L 27 21 L 26 21 L 22 21 L 21 21 z"></path>
                               </svg>   : null}
                           </div>
                       </td>))}
-                    <td className="px-6 py-4 text-center text-sm font-medium text-gray-700">{isEditing ? computeTotal(person) : person.total}</td>
+                    <td className="px-6 py-4 text-center text-sm font-medium text-zinc-700">{isEditing ? computeTotal(person) : person.total}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-           {processedData.length === 0 && (<div className="text-center py-10 text-gray-500">No data available {searchTerm || selectedGroup !== 'All Groups' || selectedTA !== 'All TAs' || attendanceFilter !== 'All' ? 'for your current filters' : ''}.</div>)}
-           {processedData.length > 0 && (<div className="px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6"><div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between"><div><p className="text-sm text-gray-700">Showing <span className="font-medium">1</span> to <span className="font-medium">{Math.min(10, processedData.length)}</span> of{' '}<span className="font-medium">{processedData.length}</span> results</p></div></div></div>)}
+           {processedData.length === 0 && (<div className="text-center py-10 text-zinc-500">No data available {searchTerm || selectedGroup !== 'All Groups' || selectedTA !== 'All TAs' || attendanceFilter !== 'All' ? 'for your current filters' : ''}.</div>)}
+           {processedData.length > 0 && (<div className="px-4 py-3 flex items-center justify-between border-t border-zinc-200 sm:px-6"><div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between"><div><p className="text-sm text-zinc-700">Showing <span className="font-medium">1</span> to <span className="font-medium">{Math.min(10, processedData.length)}</span> of{' '}<span className="font-medium">{processedData.length}</span> results</p></div></div></div>)}
         </div>
       </div>
     </div>
