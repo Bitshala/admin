@@ -53,6 +53,7 @@ const TableView: React.FC = () => {
   const [data, setData] = useState<TableRowData[]>([]);
   const [editedRows, setEditedRows] = useState<TableRowData[]>([]);
   const [isEditing, setIsEditing] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isSaved, SetSaved] = useState(false);
   const [week, setWeek] = useState(0);
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -541,28 +542,28 @@ const TableView: React.FC = () => {
         <div className='flex gap-4 mb-4 items-center'>
           {[0, 1, 2, 3, 4, 5, 6].map(i => (
             <button key={i} onClick={() => { setWeek(i); SetSaved(false); setIsEditing(false); setContextMenu({visible: false, x: 0, y: 0, targetId: null}); setEditedRows([]); }}
-              className="b-0 bg-orange-400 hover:bg-orange-500 text-white font-light text-xl px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors duration-200">
+              className="b-0 bg-orange-400 hover:bg-orange-500 text-white font-light text-xl px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors duration-200">
               Week {i}
             </button>
           ))}
            <button onClick={() => { navigate('/result');}}
-              className="b-0 bg-orange-400 hover:bg-orange-500 text-white font-light text-xl px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors duration-200">
+              className="b-0 bg-orange-400 hover:bg-orange-500 text-white font-light text-xl px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors duration-200">
               Result
             </button>
         </div>
         
         <div className="mb-4 flex flex-wrap gap-4 items-center">
-          <input type="text" placeholder="Search by name..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="px-3 py-2 border border-zinc-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 flex-grow sm:flex-grow-0 sm:w-auto"/>
+          <input type="text" placeholder="Search by name..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="b-0 px-3 py-2 border border-zinc-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 flex-grow sm:flex-grow-0 sm:w-auto"/>
           <select id="groupFilter" value={selectedGroup} onChange={(e) => setSelectedGroup(e.target.value)} className="px-3 py-2 border border-zinc-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500">
             {['All Groups', ...baseGroups].map(groupName => <option key={groupName} value={groupName}>{groupName}</option>)}
           </select>
-          <select id="taFilter" value={selectedTA} onChange={(e) => setSelectedTA(e.target.value)} className="px-3 py-2 border border-zinc-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500">
+          <select id="taFilter" value={selectedTA} onChange={(e) => setSelectedTA(e.target.value)} className="b-0  px-3 py-2 border border-zinc-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500">
             {taOptions.map(taName => <option key={taName} value={taName}>{taName}</option>)}
           </select>
-          <select id="attendanceFilter" value={attendanceFilter} onChange={e => setAttendanceFilter(e.target.value as 'All' | 'Present' | 'Absent')} className="px-3 py-2 border border-zinc-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500">
+          <select id="attendanceFilter" value={attendanceFilter} onChange={e => setAttendanceFilter(e.target.value as 'All' | 'Present' | 'Absent')} className="b-0  px-3 py-2 border border-zinc-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500">
             <option value="All">All Attendance</option><option value="Present">Present</option><option value="Absent">Absent</option>
           </select>
-          <button onClick={handleClear} className="px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-100 border border-zinc-300 rounded-md">Clear Filters</button>
+          <button onClick={handleClear} className="b-0  px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-100 border border-zinc-300 rounded-md">Clear Filters</button>
         </div>
 
         <div className="flex justify-between items-center gap-2 mb-4 mt-8">
@@ -574,8 +575,8 @@ const TableView: React.FC = () => {
           <div className='flex gap-2'>
             <button onClick={openAddNewRowForm} className="b-0 px-4 py-2 bg-orange-400 hover:bg-orange-500 text-white rounded ">Add New Row</button>
             <button onClick={handleEdit} disabled={isEditing} className="b-0 px-4 py-2 bg-orange-400 hover:bg-orange-500 text-white rounded  ">Edit</button>
-            <button onClick={handleSave} disabled={!isEditing} className="b-0 px-4 py-2  text-white rounded bg-green-400 hover:bg-green-500 ">Save</button>
-            <button onClick={downloadCSV}  className="b-0 px-4 py-2 bg-yellow-600 text-white rounded ">Download CSV</button>
+            <button onClick={handleSave} disabled={!isEditing} className="b-0 px-4 py-2  text-white rounded bg-green-600 hover:bg-green-500 disabled:bg-green-200 ">Save</button>
+            <button onClick={downloadCSV}  className="b-0 px-4 py-2 bg-red-600 text-white rounded ">Download CSV</button>
           </div>
         </div>
 
@@ -654,37 +655,37 @@ const TableView: React.FC = () => {
                   </th>
                 </tr>
                 <tr className="bg-zinc-50">
-                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-25 border-b border-zinc-200">
+                  <th scope="col" className=" px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-100 border-b border-zinc-200">
                     Communication
                   </th>
-                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-25 border-b border-zinc-200">
+                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-100 border-b border-zinc-200">
                     Depth Of Answer
                   </th>
-                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-25 border-b border-zinc-200">
+                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-100 border-b border-zinc-200">
                     Technical Bitcoin Fluency
                   </th>
-                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-25 border-b border-zinc-200">
+                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-100 border-b border-zinc-200">
                     Engagement
                   </th>
-                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-25 border-b border-zinc-200">
+                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-100 border-b border-zinc-200">
                     Attempt
                   </th>
-                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-25 border-b border-zinc-200">
+                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-100 border-b border-zinc-200">
                     Good
                   </th>
-                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-25 border-b border-zinc-200">
+                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-100 border-b border-zinc-200">
                     Follow Up
                   </th>
-                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-25 border-b border-zinc-200">
+                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-100 border-b border-zinc-200">
                     Submitted
                   </th>
-                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-25 border-b border-zinc-200">
+                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-100 border-b border-zinc-200">
                     Github Test
                   </th>
-                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-25 border-b border-zinc-200">
+                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-100 border-b border-zinc-200">
                     Good Structure
                   </th>
-                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-25 border-b border-zinc-200">
+                  <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-100 border-b border-zinc-200">
                     Good doc
                   </th>
                 </tr>
@@ -708,14 +709,14 @@ const TableView: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-500 hidden lg:table-cell">
                         <input type="checkbox" checked={person.attendance} disabled={!isEditing} onChange={() => handleAttendanceChange(person.id)} className="h-4 w-4 text-orange-600 border-zinc-300 rounded focus:ring-orange-500 disabled:cursor-not-allowed"/>
                     </td>
-                    {(['fa', 'fb', 'fc', 'fd'] as const).map(key => (<td key={key} className="px-3 py-4 whitespace-nowrap text-center text-sm"><select value={person.gdScore[key]} disabled={!canEditFields} onChange={e => handleGdScoreChange(person.id, key, e.target.value)} className="border border-zinc-300 rounded-md shadow-sm p-1 text-sm focus:ring-orange-500 focus:border-orange-500 disabled:cursor-not-allowed disabled:bg-zinc-100">{scoreOptions.map(val => (<option key={val} value={val}>{val === 0 ? '-' : val}</option>))}</select></td>))}
-                    {(['attempt', 'good', 'followUp'] as const).map(key => (<td key={key} className="px-3 py-4 whitespace-nowrap text-center text-sm"><select value={person.bonusScore[key]} disabled={!canEditFields} onChange={e => handleBonusScoreChange(person.id, key, e.target.value)} className="border border-zinc-300 rounded-md shadow-sm p-1 text-sm focus:ring-orange-500 focus:border-orange-500 disabled:cursor-not-allowed disabled:bg-zinc-100">{scoreOptions.map(val => (<option key={val} value={val}>{val === 0 ? '-' : val}</option>))}</select></td>))}
+                    {(['fa', 'fb', 'fc', 'fd'] as const).map(key => (<td key={key} className="b-0 px-3 py-4 whitespace-nowrap text-center text-sm"><select value={person.gdScore[key]} disabled={!canEditFields} onChange={e => handleGdScoreChange(person.id, key, e.target.value)} className="border border-zinc-300 rounded-md shadow-sm p-1 text-sm focus:ring-orange-500 focus:border-orange-500 disabled:cursor-not-allowed disabled:bg-zinc-100">{scoreOptions.map(val => (<option key={val} value={val}>{val === 0 ? '-' : val}</option>))}</select></td>))}
+                    {(['attempt', 'good', 'followUp'] as const).map(key => (<td key={key} className="b-0 px-3 py-4 whitespace-nowrap text-center text-sm"><select value={person.bonusScore[key]} disabled={!canEditFields} onChange={e => handleBonusScoreChange(person.id, key, e.target.value)} className="border border-zinc-300 rounded-md shadow-sm p-1 text-sm focus:ring-orange-500 focus:border-orange-500 disabled:cursor-not-allowed disabled:bg-zinc-100">{scoreOptions.map(val => (<option key={val} value={val}>{val === 0 ? '-' : val}</option>))}</select></td>))}
                     {(['Submitted', 'privateTest', 'goodStructure', 'goodDoc'] as const).map(key => (
-                      <td key={key} className="px-3 py-4 whitespace-nowrap text-center text-sm">
+                      <td key={key} className="b-0 px-3 py-4 whitespace-nowrap text-center text-sm">
                           <div className='flex gap-2'>
                             <input type="checkbox" checked={person.exerciseScore[key]}  
                             onChange={() => handleExerciseScoreChange(person.id, key)} 
-                            className=" h-4 w-4 text-orange-600 border-zinc-300 rounded focus:ring-orange-500 disabled:cursor-not-allowed disabled:bg-zinc-100"/>
+                            className="b-0 h-4 w-4 text-orange-600 border-zinc-300 rounded focus:ring-orange-500 disabled:cursor-not-allowed disabled:bg-zinc-100"/>
                             {key === 'Submitted' && person.exerciseScore[key] === true? 
                               <svg onClick={() => fetchStudentRepoLink(week, person.name)} xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="20" height="20" viewBox="0 0 50 50">
                               <path d="M 25 2 C 12.309295 2 2 12.309295 2 25 C 2 37.690705 12.309295 48 25 48 C 37.690705 48 48 37.690705 48 25 C 48 12.309295 37.690705 2 25 2 z M 25 4 C 36.609824 4 46 13.390176 46 25 C 46 36.609824 36.609824 46 25 46 C 13.390176 46 4 36.609824 4 25 C 4 13.390176 13.390176 4 25 4 z M 25 11 A 3 3 0 0 0 22 14 A 3 3 0 0 0 25 17 A 3 3 0 0 0 28 14 A 3 3 0 0 0 25 11 z M 21 21 L 21 23 L 22 23 L 23 23 L 23 36 L 22 36 L 21 36 L 21 38 L 22 38 L 23 38 L 27 38 L 28 38 L 29 38 L 29 36 L 28 36 L 27 36 L 27 21 L 26 21 L 22 21 L 21 21 z"></path>
