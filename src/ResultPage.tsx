@@ -46,7 +46,7 @@ export const ResultPage: React.FC<ResultPageProps> = () => {
     const fetchResults = async (): Promise<void> => {
       try {
         setLoading(true);
-        const response: Response = await fetch('http://localhost:8081/students/total_scores');
+        const response: Response = await fetch('https://admin.bitshala.org/students/total_scores');
         
         if (!response.ok) {
           throw new Error('Failed to fetch results');
