@@ -52,6 +52,7 @@ export const ResultPage: React.FC<ResultPageProps> = () => {
         
         // Map the API response to match your table structure and limit to 10
         const mappedResults: StudentResult[] = data
+          .filter((student: ApiStudent) => student.total !== null && student.total > 0) 
           .map((student: ApiStudent) => ({
             name: student.name,
             email: student.mail, // Note: API uses 'mail' field
