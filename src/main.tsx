@@ -2,11 +2,12 @@ import { StrictMode, type JSX } from 'react'
 import { createRoot } from 'react-dom/client'
 
 import { createBrowserRouter, RouterProvider } from "react-router";
-import './index.css'
 import Login from './Login.tsx'
 import TableView from './TableView.tsx'
 import 'virtual:uno.css'
 import { useLocation, Navigate } from 'react-router-dom';
+import { CohortSelection } from './CohortSelection.tsx';
+import {ResultPage} from './ResultPage.tsx';
 
 const TOKEN  = "token-mpzbqlbbxtjrjyxcwigsexdqadxmgumdizmnpwocfdobjkfdxwhflnhvavplpgyxtsplxisvxalvwgvjwdyvusvalapxeqjdhnsyoyhywcdwucshdoyvefpnobnslqfg";
 const isAuthenticated = (token?: string) => {
@@ -18,6 +19,8 @@ const isAuthenticated = (token?: string) => {
 const ProtectedRoute = ({ element }: { element: JSX.Element }) => {
   const location = useLocation();
   const token = location.state?.token;
+  console.log("ProtectedRoute token:", token);
+  
   return isAuthenticated(token) ? element : <Navigate to="/" replace />;
 };
 
@@ -26,9 +29,17 @@ const router = createBrowserRouter([
     path: "/",
     element: <Login />,
   },
+    {
+    path: "/select",
+    element: <ProtectedRoute element={<CohortSelection />} />,
+  },
   {
     path: "/admin",
     element: <ProtectedRoute element={<TableView />} />,
+  },
+  {
+    path: "/result",
+    element: <ResultPage />,
   },
 ]);
 
