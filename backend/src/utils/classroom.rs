@@ -4,6 +4,8 @@ use serde_json::Value;
 use std::env;
 use thiserror::Error;
 
+use crate::utils::classroom;
+
 // Represents a GitHub Classroom
 #[derive(Debug, Deserialize)]
 pub struct Classroom {
@@ -42,6 +44,8 @@ pub enum ClassroomError {
 enum WEEK {
     One,
     Two,
+    Three,
+    Four,
 }
 
 impl WEEK {
@@ -49,6 +53,8 @@ impl WEEK {
         match week_number {
             1 => Some(WEEK::One),
             2 => Some(WEEK::Two),
+            3 => Some(WEEK::Three),
+            4 => Some(WEEK::Four),
             _ => None,
         }
     }
@@ -57,9 +63,22 @@ impl WEEK {
         match self {
             WEEK::One => 812582,
             WEEK::Two => 814648,
+            WEEK::Three => 817211,
+            WEEK::Four => 819049,
         }
     }
 }
+
+// pub async fn get_classroom_info(
+// ) -> Result<Vec<Value>, ClassroomError> {
+//     let token = env::var("GITHUB_TOKEN")?;
+//     println!("GitHub token: {}", token);
+//     let octocrab = Octocrab::builder().personal_token(token).build()?;
+
+//     let classroom = octocrab.get("/classrooms/234007/assignments", None::<&()>).await?;
+
+//     Ok(classroom)
+// }
 
 pub async fn get_submitted_assignments(
     week_number: i32,
@@ -87,12 +106,18 @@ impl Assignment {
     }
 
     // Check if assignment was submitted
-    pub fn get_week(&self) -> String {
-        let number: String = self
-            .assignment_name
-            .chars()
-            .filter(|c| c.is_numeric())
-            .collect();
-        return number;
+    pub fn get_week_pattern(&self) -> Option<u32> {
+        let name = self.assignment_name.to_lowercase();
+        if name.contains("week 1") || name.contains("week1") {
+            Some(1)
+        } else if name.contains("week 2") || name.contains("week2") {
+            Some(2)
+        } else if name.contains("week 3") || name.contains("week3") {
+            Some(3)
+        } else if name.contains("week 4") || name.contains("week4") {
+            Some(4)
+        } else {
+            None
+        }
     }
 }

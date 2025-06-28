@@ -437,7 +437,12 @@ async fn get_weekly_data_or_common(
             }
 
             if let Some(matching_assignment) = name_to_assignment.get(&row.name) {
-                if matching_assignment.get_week() == week.to_string() {
+                println!(
+                    "Found matching assignment for {} in week {}: {:#?}",
+                    row.name, week, matching_assignment
+                );
+                if matching_assignment.get_week_pattern() == Some(week as u32) {
+                    println!("hello world");
                     row.exercise_submitted = Some("yes".to_string());
                     row.exercise_test_passing =
                         Some(if matching_assignment.points_awarded == "100" {
@@ -554,7 +559,7 @@ async fn get_students_by_total_score(state: web::Data<Mutex<Table>>) -> impl Res
     println!("Fetching students ordered by total score (desc)");
     let state_table = state.lock().unwrap();
 
-    let mut student_data: HashMap<String, (RowData, u64 ,u8)> = HashMap::new();
+    let mut student_data: HashMap<String, (RowData, u64, u8)> = HashMap::new();
 
     for row in &state_table.rows {
         let total_score = row.total.unwrap_or(0);
@@ -562,9 +567,13 @@ async fn get_students_by_total_score(state: web::Data<Mutex<Table>>) -> impl Res
 
         student_data
             .entry(row.name.clone())
-            .and_modify(|(existing_row, accumulated_total , exercise_total)| {
+            .and_modify(|(existing_row, accumulated_total, exercise_total)| {
                 *accumulated_total += total_score;
-                *exercise_total += if row.exercise_test_passing == Some("yes".to_string()) { 1 } else { 0 } ;
+                *exercise_total += if row.exercise_test_passing == Some("yes".to_string()) {
+                    1
+                } else {
+                    0
+                };
                 if row.week > existing_row.week {
                     *existing_row = row.clone();
                 }
@@ -572,16 +581,15 @@ async fn get_students_by_total_score(state: web::Data<Mutex<Table>>) -> impl Res
             .or_insert((row.clone(), total_score, exercise_total));
     }
 
-    let mut response: Vec<(RowData, u64 ,u8)> = student_data
+    let mut response: Vec<(RowData, u64, u8)> = student_data
         .into_values()
-        .map(|(mut row, total_sum , exercise_total)| {
+        .map(|(mut row, total_sum, exercise_total)| {
             row.total = Some(total_sum);
-            (row, total_sum , exercise_total)
+            (row, total_sum, exercise_total)
         })
         .collect();
 
     response.sort_by(|a, b| b.2.cmp(&a.2).then_with(|| b.1.cmp(&a.1)));
-
 
     let final_response: Vec<RowData> = response.into_iter().map(|(row, _, _)| row).collect();
 
