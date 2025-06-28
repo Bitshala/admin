@@ -54,7 +54,7 @@ const TableView: React.FC = () => {
   const [editedRows, setEditedRows] = useState<TableRowData[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [isSaved, SetSaved] = useState(false);
+
   const [week, setWeek] = useState(0);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [sortConfig, setSortConfig] = useState<{ key: keyof TableRowData | null; direction: 'ascending' | 'descending' }>({
@@ -212,7 +212,7 @@ const TableView: React.FC = () => {
         return newData;
     });
     setIsEditing(true);
-    SetSaved(false);
+
   };
 
   const handleGdScoreChange = (id: number, key: keyof TableRowData['gdScore'], v: string) => {
@@ -232,7 +232,7 @@ const TableView: React.FC = () => {
         return newData;
     });
     setIsEditing(true);
-    SetSaved(false);
+
   };
 
   const handleBonusScoreChange = (id: number, key: keyof TableRowData['bonusScore'], v: string) => {
@@ -252,7 +252,7 @@ const TableView: React.FC = () => {
           return newData;
       });
       setIsEditing(true);
-      SetSaved(false);
+
   };
 
   const handleExerciseScoreChange = (id: number, key: keyof TableRowData['exerciseScore']) => {
@@ -272,7 +272,7 @@ const TableView: React.FC = () => {
           return newData;
       });
       setIsEditing(true);
-      SetSaved(false);
+  
   };
 
   const handleEdit = () => setIsEditing(true);
@@ -299,7 +299,7 @@ const TableView: React.FC = () => {
     .then(r => {
       if (!r.ok) throw new Error(r.statusText);
       setIsEditing(false);
-      SetSaved(true);
+ 
       
       setEditedRows([]); // Reset edited rows on successful save
       getWeeklyData(week);
@@ -365,7 +365,7 @@ const TableView: React.FC = () => {
     .then(r => {
       if (!r.ok) throw new Error(r.statusText);
       setIsEditing(false);
-      SetSaved(true);
+
       getWeeklyData(week);
       return r.text();
     })
@@ -541,7 +541,7 @@ const TableView: React.FC = () => {
 
         <div className='flex gap-4 mb-4 items-center'>
           {[0, 1, 2, 3, 4, 5, 6].map(i => (
-            <button key={i} onClick={() => { setWeek(i); SetSaved(false); setIsEditing(false); setContextMenu({visible: false, x: 0, y: 0, targetId: null}); setEditedRows([]); }}
+            <button key={i} onClick={() => { setWeek(i);  setIsEditing(false); setContextMenu({visible: false, x: 0, y: 0, targetId: null}); setEditedRows([]); }}
               className="b-0 bg-orange-400 hover:bg-orange-500 text-white font-light text-xl px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors duration-200">
               Week {i}
             </button>
