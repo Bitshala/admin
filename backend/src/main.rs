@@ -6,6 +6,7 @@ use actix_web::{
 };
 use chrono::{Datelike, Local};
 
+use rand::seq::index;
 use rusqlite::{Connection, params};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -20,6 +21,14 @@ use utils::classroom::{Assignment, get_submitted_assignments};
 pub enum AppError {
     #[error("Sqlite DB error: {0}")]
     SQLITE(#[from] rusqlite::Error),
+}
+
+#[derive(Serialize)]
+struct StudentScoreResponse {
+    name: String,
+    email: String,
+    total_score: u64,
+    exercise_total_score: u8,
 }
 
 #[derive(Debug, Error)]
@@ -554,6 +563,8 @@ async fn get_student_repo_link(info: web::Path<(i32, String)>) -> impl Responder
     return HttpResponse::Ok().json(serde_json::json!({ "url": student_url }));
 }
 
+
+
 #[get("/students/total_scores")]
 async fn get_students_by_total_score(state: web::Data<Mutex<Table>>) -> impl Responder {
     println!("Fetching students ordered by total score (desc)");
@@ -563,7 +574,6 @@ async fn get_students_by_total_score(state: web::Data<Mutex<Table>>) -> impl Res
 
     for row in &state_table.rows {
         let total_score = row.total.unwrap_or(0);
-        let exercise_total = 0;
 
         student_data
             .entry(row.name.clone())
@@ -578,22 +588,46 @@ async fn get_students_by_total_score(state: web::Data<Mutex<Table>>) -> impl Res
                     *existing_row = row.clone();
                 }
             })
-            .or_insert((row.clone(), total_score, exercise_total));
+            .or_insert((
+                row.clone(),
+                total_score,
+                if row.exercise_test_passing == Some("yes".to_string()) { 1 } else { 0 }
+            ));
     }
 
-    let mut response: Vec<(RowData, u64, u8)> = student_data
-        .into_values()
-        .map(|(mut row, total_sum, exercise_total)| {
-            row.total = Some(total_sum);
-            (row, total_sum, exercise_total)
+    let mut response: Vec<(RowData, u64, u8)> = student_data.into_values().collect();
+    response.sort_by(|a, b| b.1.cmp(&a.1)); // Sort by total score descending
+
+    let final_response: Vec<StudentScoreResponse> = response
+        .into_iter()
+        .map(|(row, total_sum, exercise_total)| StudentScoreResponse {
+            name: row.name,
+            email: row.mail,
+            total_score: total_sum,
+            exercise_total_score: exercise_total,
         })
         .collect();
 
-    response.sort_by(|a, b| b.2.cmp(&a.2).then_with(|| b.1.cmp(&a.1)));
-
-    let final_response: Vec<RowData> = response.into_iter().map(|(row, _, _)| row).collect();
-
     HttpResponse::Ok().json(final_response)
+}
+
+#[get("/students/{student_name}")]
+async fn get_individual_student_data(info: web::Path<String>, state: web::Data<Mutex<Table>>) -> impl Responder {
+    let student_name = info.into_inner();
+    let state_table = state.lock().unwrap();
+
+    // Collect all weeks' data for the student
+    let mut student_data: Vec<RowData> = state_table
+        .rows
+        .iter()
+        .filter(|row| row.name == student_name)
+        .cloned()
+        .collect();
+
+    // Optionally, sort by week
+    student_data.sort_by_key(|row| row.week);
+
+    HttpResponse::Ok().json(student_data)
 }
 
 #[actix_web::main]
@@ -648,6 +682,7 @@ async fn main() -> Result<(), std::io::Error> {
             .service(get_weekly_attendance_count_for_week)
             .service(get_student_repo_link)
             .service(get_students_by_total_score)
+            .service(get_individual_student_data)
     })
     .bind(("127.0.0.1", 8081))?
     .run()

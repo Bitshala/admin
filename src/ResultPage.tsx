@@ -1,36 +1,18 @@
 import { useState, useEffect } from 'react';
 
 // API Response Types (matching your Rust RowData struct)
-interface ApiStudent {
-  name: string;
-  group_id: string;
-  ta: string | null;
-  attendance: string | null;
-  fa: number | null;
-  fb: number | null;
-  fc: number | null;
-  fd: number | null;
-  bonus_attempt: number | null;
-  bonus_answer_quality: number | null;
-  bonus_follow_up: number | null;
-  exercise_submitted: string | null;
-  exercise_test_passing: string | null;
-  exercise_good_documentation: string | null;
-  exercise_good_structure: string | null;
-  total: number | null;
-  mail: string;
-  week: number;
-}
+
 
 // Frontend Display Types
 interface StudentResult {
   name: string;
   email: string;
-  totalScore: number;
+  total_score: number;
+  exercise_total_score?: number;
 }
 
 // Sort types
-type SortType = 'default' | 'totalScore';
+type SortType = 'default' | 'total_score';
 
 // Props interface (if you need to pass props later)
 type ResultPageProps = object
@@ -52,20 +34,13 @@ export const ResultPage: React.FC<ResultPageProps> = () => {
           throw new Error('Failed to fetch results');
         }
         
-        const data: ApiStudent[] = await response.json();
+        const data: StudentResult[] = await response.json();
         console.log('API Response:', data);
         
-        // Map the API response to match your table structure and limit to 10
-        const mappedResults: StudentResult[] = data
-          .filter((student: ApiStudent) => student.total !== null && student.total > 0) 
-          .map((student: ApiStudent) => ({
-            name: student.name,
-            email: student.mail, // Note: API uses 'mail' field
-            totalScore: student.total || 0
-          }));
-        
-        setOriginalResults(mappedResults); // Store original order
-        setResults(mappedResults);
+
+        console.log('Mapped Results:', data);
+        setOriginalResults(data); // Store original order
+        setResults(data);
       } catch (err) {
         const errorMessage: string = err instanceof Error ? err.message : 'An unknown error occurred';
         setError(errorMessage);
@@ -85,9 +60,9 @@ export const ResultPage: React.FC<ResultPageProps> = () => {
   };
 
   const sortByTotalScore = (): void => {
-    setCurrentSort('totalScore');
+    setCurrentSort('total_score');
     const sortedResults = [...results].sort((a: StudentResult, b: StudentResult) => {
-      return b.totalScore - a.totalScore; // Always descending
+      return b.total_score - a.total_score; // Always descending
     });
     setResults(sortedResults);
   };
@@ -156,7 +131,7 @@ export const ResultPage: React.FC<ResultPageProps> = () => {
             onClick={sortByTotalScore}
             className={`flex items-center gap-2 px-4 py-2 border rounded-lg 
                      transition-all duration-200 font-inter text-sm ${
-                       currentSort === 'totalScore'
+                       currentSort === 'total_score'
                          ? 'bg-zinc-600 border-zinc-500 text-white'
                          : 'bg-zinc-700/50 hover:bg-zinc-700 border-zinc-600/50 text-zinc-300 hover:text-white'
                      }`}
@@ -183,12 +158,14 @@ export const ResultPage: React.FC<ResultPageProps> = () => {
                 <th className="text-left p-4 text-sm font-semibold text-zinc-300 font-inter">Rank</th>
                 <th className="text-left p-4 text-sm font-semibold text-zinc-300 font-inter">Name</th>
                 <th className="text-left p-4 text-sm font-semibold text-zinc-300 font-inter">Email</th>
+                <th className="text-left p-4 text-sm font-semibold text-zinc-300 font-inter">Exercise Score</th>
                 <th className="text-left p-4 text-sm font-semibold text-zinc-300 font-inter">
                   Total Score
-                  {currentSort === 'totalScore' && (
+                  {currentSort === 'total_score' && (
                     <span className="ml-2 text-xs text-zinc-400">↓</span>
                   )}
                 </th>
+               
               </tr>
             </thead>
             <tbody>
@@ -208,11 +185,17 @@ export const ResultPage: React.FC<ResultPageProps> = () => {
                     <td className="p-4 text-zinc-400 font-inter truncate" title={student.email}>
                       {student.email}
                     </td>
-                    <td className="p-4 font-inter">
-                      <span className={`font-semibold ${getScoreColorClass(student.totalScore)}`}>
-                        {student.totalScore}
+                                  <td className="p-4 font-inter">
+                      <span className={`font-semibold ${getScoreColorClass(student.exercise_total_score ?? 0)}`}>
+                        {student.exercise_total_score}
                       </span>
                     </td>
+                    <td className="p-4 font-inter">
+                      <span className={`font-semibold ${getScoreColorClass(student.total_score)}`}>
+                        {student.total_score}
+                      </span>
+                    </td>
+      
                   </tr>
                 );
               })}
