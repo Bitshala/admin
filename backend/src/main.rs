@@ -518,6 +518,12 @@ async fn add_weekly_data(
     Ok(HttpResponse::Ok().body("Weekly data inserted/updated successfully"))
 }
 
+fn cleanup_old_backups(db_name: &str, days_ago: i64) {
+   let target_month = (Local::now() - chrono::Duration::days(days_ago)).format("%Y-%m").to_string();
+   glob::glob(&format!("backup/{}*{}*.db", db_name, target_month)).unwrap()
+       .for_each(|file| { fs::remove_file(file.unwrap()).ok(); });
+}
+
 fn backup(db_name: &str) -> Result<(), DbError> {
     let db_path = Path::new("./").join(db_name);
 
@@ -530,6 +536,8 @@ fn backup(db_name: &str) -> Result<(), DbError> {
         let date_time = now.format("%Y-%m-%d"); // e.g., 2024-06-07_15-30-00
         let backup_file = backup_dir.join(format!("{}_{}_{}.db", db_name, day_of_week, date_time));
         fs::copy(&db_path, &backup_file).unwrap();
+
+        cleanup_old_backups(db_name, 35);
     } else {
         return Err(DbError::DatabaseError(format!(
             "Database file '{}' not found in project root.",

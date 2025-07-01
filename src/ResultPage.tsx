@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type JSX } from 'react';
 
 // API Response Types (matching your Rust RowData struct)
-
 
 // Frontend Display Types
 interface StudentResult {
@@ -12,14 +11,14 @@ interface StudentResult {
 }
 
 // Sort types
-type SortType = 'default' | 'total_score';
+type SortType = 'default' | 'total_score_asc' | 'total_score_desc' | 'exercise_score_asc' | 'exercise_score_desc';
 
 // Props interface (if you need to pass props later)
 type ResultPageProps = object
 
 export const ResultPage: React.FC<ResultPageProps> = () => {
   const [results, setResults] = useState<StudentResult[]>([]);
-  const [originalResults, setOriginalResults] = useState<StudentResult[]>([]);
+  const [, setOriginalResults] = useState<StudentResult[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [currentSort, setCurrentSort] = useState<SortType>('default');
@@ -37,7 +36,6 @@ export const ResultPage: React.FC<ResultPageProps> = () => {
         const data: StudentResult[] = await response.json();
         console.log('API Response:', data);
         
-
         console.log('Mapped Results:', data);
         setOriginalResults(data); // Store original order
         setResults(data);
@@ -54,17 +52,44 @@ export const ResultPage: React.FC<ResultPageProps> = () => {
   }, []);
 
   // Sort functions
-  const sortByDefault = (): void => {
-    setCurrentSort('default');
-    setResults([...originalResults]);
+  const handleTotalScoreSort = (): void => {
+    if (currentSort === 'total_score_desc') {
+      // Switch to ascending
+      setCurrentSort('total_score_asc');
+      const sortedResults = [...results].sort((a: StudentResult, b: StudentResult) => {
+        return a.total_score - b.total_score; // Ascending
+      });
+      setResults(sortedResults);
+    } else {
+      // Switch to descending (default)
+      setCurrentSort('total_score_desc');
+      const sortedResults = [...results].sort((a: StudentResult, b: StudentResult) => {
+        return b.total_score - a.total_score; // Descending
+      });
+      setResults(sortedResults);
+    }
   };
 
-  const sortByTotalScore = (): void => {
-    setCurrentSort('total_score');
-    const sortedResults = [...results].sort((a: StudentResult, b: StudentResult) => {
-      return b.total_score - a.total_score; // Always descending
-    });
-    setResults(sortedResults);
+  const handleExerciseScoreSort = (): void => {
+    if (currentSort === 'exercise_score_desc') {
+      // Switch to ascending
+      setCurrentSort('exercise_score_asc');
+      const sortedResults = [...results].sort((a: StudentResult, b: StudentResult) => {
+        const aScore = a.exercise_total_score ?? 0;
+        const bScore = b.exercise_total_score ?? 0;
+        return aScore - bScore; // Ascending
+      });
+      setResults(sortedResults);
+    } else {
+      // Switch to descending (default)
+      setCurrentSort('exercise_score_desc');
+      const sortedResults = [...results].sort((a: StudentResult, b: StudentResult) => {
+        const aScore = a.exercise_total_score ?? 0;
+        const bScore = b.exercise_total_score ?? 0;
+        return bScore - aScore; // Descending
+      });
+      setResults(sortedResults);
+    }
   };
 
   if (loading) {
@@ -104,6 +129,28 @@ export const ResultPage: React.FC<ResultPageProps> = () => {
     }
   };
 
+  // Helper function to get sort indicator for total score
+  const getTotalScoreSortIndicator = (): JSX.Element | null => {
+    if (currentSort === 'total_score_desc') {
+      return <span className="ml-2 text-xs text-zinc-400">↓</span>;
+    }
+    if (currentSort === 'total_score_asc') {
+      return <span className="ml-2 text-xs text-zinc-400">↑</span>;
+    }
+    return null;
+  };
+
+  // Helper function to get sort indicator for exercise score
+  const getExerciseScoreSortIndicator = (): JSX.Element | null => {
+    if (currentSort === 'exercise_score_desc') {
+      return <span className="ml-2 text-xs text-zinc-400">↓</span>;
+    }
+    if (currentSort === 'exercise_score_asc') {
+      return <span className="ml-2 text-xs text-zinc-400">↑</span>;
+    }
+    return null;
+  };
+
   return (
     <div className="min-h-screen bg-zinc-900 flex items-center justify-center p-8">
       <div className="w-full max-w-4xl">
@@ -111,37 +158,6 @@ export const ResultPage: React.FC<ResultPageProps> = () => {
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-2 font-inter">Cohort Result</h1>
           <p className="text-zinc-400 font-inter">Top 10 Performers this cohort</p>
-        </div>
-        
-        {/* Sort Controls */}
-        <div className="mb-6 flex justify-end gap-3">
-          <button
-            onClick={sortByDefault}
-            className={`flex items-center gap-2 px-4 py-2 border rounded-lg 
-                     transition-all duration-200 font-inter text-sm ${
-                       currentSort === 'default'
-                         ? 'bg-zinc-600 border-zinc-500 text-white'
-                         : 'bg-zinc-700/50 hover:bg-zinc-700 border-zinc-600/50 text-zinc-300 hover:text-white'
-                     }`}
-          >
-            <span>Default Order</span>
-          </button>
-          
-          <button
-            onClick={sortByTotalScore}
-            className={`flex items-center gap-2 px-4 py-2 border rounded-lg 
-                     transition-all duration-200 font-inter text-sm ${
-                       currentSort === 'total_score'
-                         ? 'bg-zinc-600 border-zinc-500 text-white'
-                         : 'bg-zinc-700/50 hover:bg-zinc-700 border-zinc-600/50 text-zinc-300 hover:text-white'
-                     }`}
-          >
-            <span>Sort by Score</span>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-            <span className="text-xs text-zinc-400">(High to Low)</span>
-          </button>
         </div>
         
         {/* Table */}
@@ -158,14 +174,26 @@ export const ResultPage: React.FC<ResultPageProps> = () => {
                 <th className="text-left p-4 text-sm font-semibold text-zinc-300 font-inter">Rank</th>
                 <th className="text-left p-4 text-sm font-semibold text-zinc-300 font-inter">Name</th>
                 <th className="text-left p-4 text-sm font-semibold text-zinc-300 font-inter">Email</th>
-                <th className="text-left p-4 text-sm font-semibold text-zinc-300 font-inter">Exercise Score</th>
-                <th className="text-left p-4 text-sm font-semibold text-zinc-300 font-inter">
-                  Total Score
-                  {currentSort === 'total_score' && (
-                    <span className="ml-2 text-xs text-zinc-400">↓</span>
-                  )}
+                <th 
+                  className="text-left p-4 text-sm font-semibold text-zinc-300 font-inter cursor-pointer hover:text-white transition-colors duration-200 select-none"
+                  onClick={handleExerciseScoreSort}
+                  title="Click to sort by Exercise Score"
+                >
+                  <div className="flex items-center">
+                    Exercise Score
+                    {getExerciseScoreSortIndicator()}
+                  </div>
                 </th>
-               
+                <th 
+                  className="text-left p-4 text-sm font-semibold text-zinc-300 font-inter cursor-pointer hover:text-white transition-colors duration-200 select-none"
+                  onClick={handleTotalScoreSort}
+                  title="Click to sort by Total Score"
+                >
+                  <div className="flex items-center">
+                    Total Score
+                    {getTotalScoreSortIndicator()}
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -185,7 +213,7 @@ export const ResultPage: React.FC<ResultPageProps> = () => {
                     <td className="p-4 text-zinc-400 font-inter truncate" title={student.email}>
                       {student.email}
                     </td>
-                                  <td className="p-4 font-inter">
+                    <td className="p-4 font-inter">
                       <span className={`font-semibold ${getScoreColorClass(student.exercise_total_score ?? 0)}`}>
                         {student.exercise_total_score}
                       </span>
@@ -195,7 +223,6 @@ export const ResultPage: React.FC<ResultPageProps> = () => {
                         {student.total_score}
                       </span>
                     </td>
-      
                   </tr>
                 );
               })}
