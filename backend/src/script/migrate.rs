@@ -12,36 +12,110 @@
 //!
 //! Usage:
 //! ```bash
-//! # To run migration:
-//! cargo run --bin migrate
+//! # To run migration for a specific cohort:
+//! cargo run --bin migrate BPD
+//! cargo run --bin migrate PB
+//! cargo run --bin migrate LBTCL
+//! cargo run --bin migrate MB
 //! ```
 //!
 //! This binary will:
 //! - Drop `participants`, `students`, and `ta` tables if present.
 //! - Create `participants`, `students`, and `ta` tables.
 //! - Seed the `ta` table with a fixed list of names.
-//! - Migrate all rows from `participants.csv` into `participants`.
+//! - Migrate all rows from `{cohort}.csv` into `participants`.
 //! - Populate the `students` table using data from `participants` and `ta` tables,
 //!   assigning random groups and TAs, and setting default scores and statuses.
+
 use csv::Reader;
 use rusqlite::{Connection, params};
 use std::error::Error;
+use std::env;
+
 // A structure used to get participant information from the table
 struct ParticipantInfo {
     name: String,
-    email: String, //TODO: Add more info in the particpants, add everything.
+    email: String,
+    github: String,
+}
+
+#[derive(Debug)]
+enum Cohort {
+    BPD,
+    PB,
+    LBTCL,
+    MB,
+}
+
+impl Cohort {
+    fn from_str(cohort_name: &str) -> Result<Self, String> {
+        match cohort_name.to_uppercase().as_str() {
+            "BPD" => Ok(Cohort::BPD),
+            "PB" => Ok(Cohort::PB),
+            "LBTCL" => Ok(Cohort::LBTCL),
+            "MB" => Ok(Cohort::MB),
+            _ => Err(format!("Unknown cohort: {}. Valid cohorts are: BPD, PB, LBTCL, MB", cohort_name)),
+        }
+    }
+
+    fn csv_file(&self) -> String {
+        match self {
+            Cohort::BPD => "src/csv_files/BPD.csv".to_string(),
+            Cohort::PB => "src/csv_files/PB.csv".to_string(),
+            Cohort::LBTCL => "src/csv_files/LBTCL.csv".to_string(),
+            Cohort::MB => "src/csv_files/MB.csv".to_string(),
+        }
+    }
+
+    fn db_name(&self) -> String {
+        match self {
+            Cohort::BPD => "classroom_bpd.db".to_string(),
+            Cohort::PB => "classroom_pb.db".to_string(),
+            Cohort::LBTCL => "classroom_lbtcl.db".to_string(),
+            Cohort::MB => "classroom_mb.db".to_string(),
+        }
+    }
+
+    fn name(&self) -> &str {
+        match self {
+            Cohort::BPD => "BPD",
+            Cohort::PB => "PB",
+            Cohort::LBTCL => "LBTCL",
+            Cohort::MB => "MB",
+        }
+    }
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    // Open or create the SQLite database in project root
-    let conn = Connection::open("classroom.db")?;
+    // Parse command line arguments
+    let args: Vec<String> = env::args().collect();
+    if args.len() != 2 {
+        eprintln!("Usage: {} <COHORT_NAME>", args[0]);
+        eprintln!("Valid cohorts: BPD, PB, LBTCL, MB");
+        eprintln!("Example: cargo run --bin migrate BPD");
+        std::process::exit(1);
+    }
+
+    let cohort = match Cohort::from_str(&args[1]) {
+        Ok(cohort) => cohort,
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            std::process::exit(1);
+        }
+    };
+
+    println!("Running migration for cohort: {}", cohort.name());
+    println!("Database: {}", cohort.db_name());
+    println!("CSV file: {}", cohort.csv_file());
+
+    // Open or create the SQLite database with cohort-specific name
+    let conn = Connection::open(&cohort.db_name())?;
 
     // Drop existing tables to ensure a fresh load
     conn.execute_batch(
         r#"
         DROP TABLE IF EXISTS participants;
         DROP TABLE IF EXISTS students;
-        DROP TABLE IF EXISTS ta;
     "#,
     )?;
     println!("Dropped existing tables (if any).");
@@ -50,7 +124,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Create tables
     conn.execute_batch(
         r#"
-        CREATE TABLE participants (
+        CREATE TABLE participants(
             "ID"               TEXT PRIMARY KEY,
             "Name"             TEXT,
             "Token"            TEXT,
@@ -75,7 +149,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             name                        TEXT NOT NULL,
             group_id                    TEXT,
             ta                          TEXT,
-            attendance                  TEXT CHECK(attendance IN('yes','no')),
+            attendance                  TEXT,
             fa                          REAL,
             fb                          REAL,
             fc                          REAL,
@@ -83,41 +157,25 @@ fn main() -> Result<(), Box<dyn Error>> {
             bonus_attempt               REAL,
             bonus_answer_quality        REAL,
             bonus_follow_up             REAL,
-            exercise_submitted          TEXT CHECK(exercise_submitted IN('yes','no')),
-            exercise_test_passing       TEXT CHECK(exercise_test_passing IN('yes','no')),
-            exercise_good_documentation TEXT CHECK(exercise_good_documentation IN('yes','no')),
-            exercise_good_structure     TEXT CHECK(exercise_good_structure IN('yes','no')),
+            exercise_submitted          TEXT,
+            exercise_test_passing       TEXT,
+            exercise_good_documentation TEXT,
+            exercise_good_structure     TEXT,
             total                       REAL,
-            mail                        TEXT, -- This column will now store Email addresses
+            mail                        TEXT, 
+            GitHub                      TEXT,
             week                        INTEGER
         );
 
-        CREATE TABLE ta (
-            id   INTEGER PRIMARY KEY,
-            name TEXT NOT NULL UNIQUE
-        );
     "#,
     )?;
-    println!("Created tables: participants, students, ta.");
+    println!("Created tables: participants, students");
 
-    // Q: Why? TA values can be hardcoded in the codebase.
-    // Seed TA table with fixed list
-    let ta_seed = vec![
-        (1, "Anmol Sharma"),
-        (2, "Bala"),
-        (3, "delcin"),
-        (4, "Beulah Evanjalin"),
-        (5, "Raj"),
-        (6, "Saurabh"),
-    ];
-    let mut ta_insert_stmt = conn.prepare("INSERT INTO ta (id, name) VALUES (?1, ?2)")?;
-    for (id, name) in ta_seed {
-        ta_insert_stmt.execute(params![id, name])?;
-    }
-    println!("Seeded TA table.");
-
-    // Read and import CSV into participants table
-    let mut reader = Reader::from_path("participants.csv")?;
+    // Read from cohort-specific CSV file
+    let csv_path = cohort.csv_file();
+    println!("Reading CSV from: {}", csv_path);
+    
+    let mut reader = Reader::from_path(&csv_path)?;
     let mut insert_participant_stmt = conn.prepare(
         r#"
         INSERT OR REPLACE INTO participants (
@@ -128,12 +186,15 @@ fn main() -> Result<(), Box<dyn Error>> {
         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19)
     "#,
     )?;
+
+    let mut participant_records_imported = 0;
     for result in reader.records() {
         let record = result?;
         let fields: Vec<&str> = record.iter().collect();
         if fields.len() != 19 {
             eprintln!(
-                "Skipping row in participants.csv: expected 19 fields, got {}. Row data: {:?}",
+                "Skipping row in {}: expected 19 fields, got {}. Row data: {:?}",
+                csv_path,
                 fields.len(),
                 fields
             );
@@ -160,33 +221,21 @@ fn main() -> Result<(), Box<dyn Error>> {
             fields[17],
             fields[18], // Cohort Name, Created At, Updated At
         ])?;
+        participant_records_imported += 1;
     }
-    println!("Imported data from participants.csv into participants table.");
+    println!("Imported {} records from {} into participants table.", participant_records_imported, csv_path);
 
-    // --- Populate students table based on JavaScript logic ---
     println!("Populating students table...");
 
-    // Define base groups (as in your JS `baseGroups` variable)
-    // Q: Why different from base group?
-    // TODO: Put them into enums.
-    let _base_groups = ["Group 1", "Group 2", "Group 3", "Group 4", "Group 5"];
-
-    // Fetch TA names from the ta table
-    let mut stmt_fetch_tas = conn.prepare("SELECT name FROM ta")?;
-    let ta_names_iter = stmt_fetch_tas.query_map([], |row| row.get(0))?;
-    let mut ta_list: Vec<String> = Vec::new();
-    for ta_name_result in ta_names_iter {
-        ta_list.push(ta_name_result?);
-    }
-
-    // REVERTED: Fetch participant names and Email addresses from the participants table
+    // Fetch participant names and Email addresses from the participants table
     let mut stmt_fetch_participants =
-        conn.prepare("SELECT \"Name\", \"Email\" FROM participants")?;
+        conn.prepare("SELECT \"Name\", \"Email\", \"Github\" FROM participants")?;
     let participants_iter = stmt_fetch_participants
         .query_map([], |row| {
             Ok(ParticipantInfo {
                 name: row.get(0)?,
                 email: row.get(1)?,
+                github: row.get(2)?,
             })
         })?
         .collect::<Result<Vec<_>, _>>()?;
@@ -198,8 +247,8 @@ fn main() -> Result<(), Box<dyn Error>> {
             fa, fb, fc, fd,
             bonus_attempt, bonus_answer_quality, bonus_follow_up,
             exercise_submitted, exercise_test_passing, exercise_good_documentation, exercise_good_structure,
-            total, mail, week
-        ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18)
+            total, mail, github, week
+        ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18 , ?19)
         "#,
     )?;
 
@@ -223,9 +272,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             "no",              // exercise_test_passing (default false -> "no")
             "no",              // exercise_good_documentation (default false -> "no")
             "no",              // exercise_good_structure (default false -> "no")
-            0.0,               // total
-            participant.email, // REVERTED: mail (now sourced from participant.email)
-            0                  // week (default 0)
+            0.0,               
+            participant.email, 
+            participant.github, 
+            0                  
         ]) {
             Ok(count) if count > 0 => student_records_created += 1,
             Ok(_) => { /* Potentially a conflict, and ON CONFLICT DO NOTHING was triggered */ }
@@ -237,6 +287,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         "Populated students table with {} records.",
         student_records_created
     );
-    println!("Migration, TA seeding, and initial student data population complete.");
+    println!("Migration complete for cohort {} (database: {}).", cohort.name(), cohort.db_name());
     Ok(())
 }

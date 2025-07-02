@@ -78,6 +78,10 @@ const TableView: React.FC = () => {
   const canEditFields = isEditing && week !== 0;
   const navigate = useNavigate();
 
+  const handleStudentClick = (studentName: string) => {
+    navigate(`/student?student=${encodeURIComponent(studentName)}`);
+  };
+
   // --- DATA COMPUTATION & FETCHING ---
   const computeGdTotal = useCallback((gd: TableRowData['gdScore']): number =>
     (30 / 5) * gd.fa + (30 / 5) * gd.fb + (20 / 5) * gd.fc + (20 / 5) * gd.fd, []);
@@ -693,7 +697,7 @@ const TableView: React.FC = () => {
               <tbody className="bg-white divide-y divide-zinc-200">
                 {processedData.map((person) => (
                   <tr key={person.id} className="hover:bg-zinc-50 transition-colors duration-150">
-                    <td className="px-6 py-4 whitespace-nowrap cursor-default" onContextMenu={(e) => handleNameRightClick(e, person.id)}>
+                    <td className="px-6 py-4 whitespace-nowrap cursor-default" onClick={() => handleStudentClick(person.name)} onContextMenu={(e) => handleNameRightClick(e, person.id)}>
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">
                           <div className="h-10 w-10 rounded-full bg-orange-500 text-white flex items-center justify-center text-sm font-medium">

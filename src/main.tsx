@@ -8,6 +8,7 @@ import 'virtual:uno.css'
 import { useLocation, Navigate } from 'react-router-dom';
 import { CohortSelection } from './CohortSelection.tsx';
 import {ResultPage} from './ResultPage.tsx';
+import  StudentDetailPage  from './StudentsPage.tsx';
 
 const TOKEN  = "token-mpzbqlbbxtjrjyxcwigsexdqadxmgumdizmnpwocfdobjkfdxwhflnhvavplpgyxtsplxisvxalvwgvjwdyvusvalapxeqjdhnsyoyhywcdwucshdoyvefpnobnslqfg";
 const isAuthenticated = (token?: string) => {
@@ -36,6 +37,10 @@ const router = createBrowserRouter([
   {
     path: "/admin",
     element: <ProtectedRoute element={<TableView />} />,
+  },
+    {
+    path: "/student",
+    element:  <StudentDetailPage />,
   },
   {
     path: "/result",
