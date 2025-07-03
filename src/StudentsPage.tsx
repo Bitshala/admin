@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import  { useState, useEffect } from 'react';
 import { ArrowLeft, Mail, User, Calendar, ExternalLink, Download, TrendingUp, Loader2, AlertCircle } from 'lucide-react';
 
 // Type definitions for better type safety
