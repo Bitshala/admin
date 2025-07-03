@@ -476,7 +476,7 @@ const TableView: React.FC = () => {
           <div className="bg-white border-zinc-300 text-zinc-800 rounded-lg shadow-xl flex flex-col w-full max-w-2xl max-h-90vh">
             <div className="flex justify-between items-center p-4 border-b border-zinc-200">
               <h3 className="text-xl font-semibold">Add New Student (Week {week})</h3>
-              <button className="text-zinc-400 hover:text-zinc-600 text-2xl leading-none p-1" onClick={() => setShowTableRowForm(false)} aria-label="Close">&times;</button>
+              <button className="cursor-pointer text-zinc-400 hover:text-zinc-600 text-2xl leading-none p-1" onClick={() => setShowTableRowForm(false)} aria-label="Close">&times;</button>
             </div>
             <div className="p-6 space-y-4 overflow-y-auto">
               {/* Form fields */}
@@ -522,8 +522,8 @@ const TableView: React.FC = () => {
               </fieldset>
             </div>
             <div className="flex justify-end items-center p-4 border-t border-zinc-200 space-x-3">
-              <button type="button" onClick={() => setShowTableRowForm(false)} className="px-4 py-2 text-sm font-medium text-zinc-700 bg-white border border-zinc-300 rounded-md shadow-sm hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">Cancel</button>
-              <button type="button" onClick={handleConfirmAddStudent} className="px-4 py-2 text-sm font-medium text-white bg-orange-600 border border-transparent rounded-md shadow-sm hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">Add Student</button>
+              <button type="button" onClick={() => setShowTableRowForm(false)} className="cursor-pointer px-4 py-2 text-sm font-medium text-zinc-700 bg-white border border-zinc-300 rounded-md shadow-sm hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">Cancel</button>
+              <button type="button" onClick={handleConfirmAddStudent} className="cursor-pointer px-4 py-2 text-sm font-medium text-white bg-orange-600 border border-transparent rounded-md shadow-sm hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">Add Student</button>
             </div>
           </div>
         </div>
@@ -532,7 +532,7 @@ const TableView: React.FC = () => {
       {contextMenu.visible && (
         <div ref={contextMenuRef} style={{ top: contextMenu.y, left: contextMenu.x }} className="fixed z-1000 bg-white border border-zinc-300 rounded-md shadow-lg py-1 w-40">
           <ul>
-            <li><button onClick={handleDeleteRow} className="w-full text-left px-4 py-2 text-sm text-zinc-700 hover:bg-red-500 hover:text-white">Delete Row</button></li>
+            <li><button onClick={handleDeleteRow} className="cursor-pointer w-full text-left px-4 py-2 text-sm text-zinc-700 hover:bg-red-500 hover:text-white">Delete Row</button></li>
           </ul>
         </div>
       )}
@@ -546,12 +546,12 @@ const TableView: React.FC = () => {
         <div className='flex gap-4 mb-4 items-center'>
           {[0, 1, 2, 3, 4, 5, 6].map(i => (
             <button key={i} onClick={() => { setWeek(i);  setIsEditing(false); setContextMenu({visible: false, x: 0, y: 0, targetId: null}); setEditedRows([]); }}
-              className="b-0 bg-orange-400 hover:bg-orange-500 text-white font-light text-xl px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors duration-200">
+              className="cursor-pointer b-0 bg-orange-400 hover:bg-orange-500 text-white font-light text-xl px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors duration-200">
               Week {i}
             </button>
           ))}
            <button onClick={() => { navigate('/result');}}
-              className="b-0 bg-orange-400 hover:bg-orange-500 text-white font-light text-xl px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors duration-200">
+              className="cursor-pointer b-0 bg-orange-400 hover:bg-orange-500 text-white font-light text-xl px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors duration-200">
               Result
             </button>
         </div>
@@ -567,7 +567,7 @@ const TableView: React.FC = () => {
           <select id="attendanceFilter" value={attendanceFilter} onChange={e => setAttendanceFilter(e.target.value as 'All' | 'Present' | 'Absent')} className="b-0  px-3 py-2 border border-zinc-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500">
             <option value="All">All Attendance</option><option value="Present">Present</option><option value="Absent">Absent</option>
           </select>
-          <button onClick={handleClear} className="b-0  px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-100 border border-zinc-300 rounded-md">Clear Filters</button>
+          <button onClick={handleClear} className="cursor-pointer b-0  px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-100 border border-zinc-300 rounded-md">Clear Filters</button>
         </div>
 
         <div className="flex justify-between items-center gap-2 mb-4 mt-8">
@@ -577,10 +577,10 @@ const TableView: React.FC = () => {
             <div>Absentes: {(totalCount && weeklyData.attended !== undefined) ? (totalCount - weeklyData.attended) : '...'}</div>
           </div>
           <div className='flex gap-2'>
-            <button onClick={openAddNewRowForm} className="b-0 px-4 py-2 bg-orange-400 hover:bg-orange-500 text-white rounded ">Add New Row</button>
-            <button onClick={handleEdit} disabled={isEditing} className="b-0 px-4 py-2 bg-orange-400 hover:bg-orange-500 text-white rounded  ">Edit</button>
-            <button onClick={handleSave} disabled={!isEditing} className="b-0 px-4 py-2  text-white rounded bg-green-600 hover:bg-green-500 disabled:bg-green-200 ">Save</button>
-            <button onClick={downloadCSV}  className="b-0 px-4 py-2 bg-red-600 text-white rounded ">Download CSV</button>
+            <button onClick={openAddNewRowForm} className="cursor-pointer b-0 px-4 py-2 bg-orange-400 hover:bg-orange-500 text-white rounded ">Add New Row</button>
+            <button onClick={handleEdit} disabled={isEditing} className="cursor-pointer b-0 px-4 py-2 bg-orange-400 hover:bg-orange-500 text-white rounded  ">Edit</button>
+            <button onClick={handleSave} disabled={!isEditing} className="cursor-pointer b-0 px-4 py-2  text-white rounded bg-green-600 hover:bg-green-500 disabled:bg-green-200 ">Save</button>
+            <button onClick={downloadCSV}  className="cursor-pointer b-0 px-4 py-2 bg-red-600 text-white rounded ">Download CSV</button>
           </div>
         </div>
 
@@ -592,7 +592,7 @@ const TableView: React.FC = () => {
                   <th 
                     scope="col" 
                     rowSpan={2} 
-                    className="px-6 py-3 text-left text-xs font-semibold text-zinc-700 uppercase hover:bg-orange-50 tracking-wider align-middle cursor-pointer bg-orange-200 transition-colors duration-200 border-b border-zinc-200" 
+                    className=" px-6 py-3 text-left text-xs font-semibold text-zinc-700 uppercase hover:bg-orange-50 tracking-wider align-middle cursor-pointer bg-orange-200 transition-colors duration-200 border-b border-zinc-200" 
                     onClick={() => requestSort('name')}
                   >
                     Name{getSortIndicator('name')}
@@ -696,8 +696,8 @@ const TableView: React.FC = () => {
               </thead>
               <tbody className="bg-white divide-y divide-zinc-200">
                 {processedData.map((person) => (
-                  <tr key={person.id} className="hover:bg-zinc-50 transition-colors duration-150">
-                    <td className="px-6 py-4 whitespace-nowrap cursor-default" onClick={() => handleStudentClick(person.name)} onContextMenu={(e) => handleNameRightClick(e, person.id)}>
+                  <tr key={person.id} className="cursor-pointer hover:bg-zinc-50 transition-colors duration-150">
+                    <td className="cursor-pointer px-6 py-4 whitespace-nowrap cursor-default" onClick={() => handleStudentClick(person.name)} onContextMenu={(e) => handleNameRightClick(e, person.id)}>
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">
                           <div className="h-10 w-10 rounded-full bg-orange-500 text-white flex items-center justify-center text-sm font-medium">
@@ -713,14 +713,14 @@ const TableView: React.FC = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-500 hidden lg:table-cell">
                         <input type="checkbox" checked={person.attendance} disabled={!isEditing} onChange={() => handleAttendanceChange(person.id)} className="h-4 w-4 text-orange-600 border-zinc-300 rounded focus:ring-orange-500 disabled:cursor-not-allowed"/>
                     </td>
-                    {(['fa', 'fb', 'fc', 'fd'] as const).map(key => (<td key={key} className="b-0 px-3 py-4 whitespace-nowrap text-center text-sm"><select value={person.gdScore[key]} disabled={!canEditFields} onChange={e => handleGdScoreChange(person.id, key, e.target.value)} className="border border-zinc-300 rounded-md shadow-sm p-1 text-sm focus:ring-orange-500 focus:border-orange-500 disabled:cursor-not-allowed disabled:bg-zinc-100">{scoreOptions.map(val => (<option key={val} value={val}>{val === 0 ? '-' : val}</option>))}</select></td>))}
-                    {(['attempt', 'good', 'followUp'] as const).map(key => (<td key={key} className="b-0 px-3 py-4 whitespace-nowrap text-center text-sm"><select value={person.bonusScore[key]} disabled={!canEditFields} onChange={e => handleBonusScoreChange(person.id, key, e.target.value)} className="border border-zinc-300 rounded-md shadow-sm p-1 text-sm focus:ring-orange-500 focus:border-orange-500 disabled:cursor-not-allowed disabled:bg-zinc-100">{scoreOptions.map(val => (<option key={val} value={val}>{val === 0 ? '-' : val}</option>))}</select></td>))}
+                    {(['fa', 'fb', 'fc', 'fd'] as const).map(key => (<td key={key} className=" px-3 py-4 whitespace-nowrap text-center text-sm"><select value={person.gdScore[key]} disabled={!canEditFields} onChange={e => handleGdScoreChange(person.id, key, e.target.value)} className="b-1 bg-orange-200 rounded-md shadow-sm p-1 text-sm focus:ring-orange-500 focus:border-orange-500 disabled:cursor-not-allowed disabled:bg-zinc-100">{scoreOptions.map(val => (<option key={val} value={val}>{val === 0 ? '-' : val}</option>))}</select></td>))}
+                    {(['attempt', 'good', 'followUp'] as const).map(key => (<td key={key} className="b-0 px-3 py-4 whitespace-nowrap text-center text-sm"><select value={person.bonusScore[key]} disabled={!canEditFields} onChange={e => handleBonusScoreChange(person.id, key, e.target.value)} className="b-1 bg-orange-200  rounded-md shadow-sm p-1 text-sm focus:ring-orange-500 focus:border-orange-500 disabled:cursor-not-allowed disabled:bg-zinc-100">{scoreOptions.map(val => (<option key={val} value={val}>{val === 0 ? '-' : val}</option>))}</select></td>))}
                     {(['Submitted', 'privateTest', 'goodStructure', 'goodDoc'] as const).map(key => (
                       <td key={key} className="b-0 px-3 py-4 whitespace-nowrap text-center text-sm">
                           <div className='flex gap-2'>
                             <input type="checkbox" checked={person.exerciseScore[key]}  
                             onChange={() => handleExerciseScoreChange(person.id, key)} 
-                            className="b-0 h-4 w-4 text-orange-600 border-zinc-300 rounded focus:ring-orange-500 disabled:cursor-not-allowed disabled:bg-zinc-100"/>
+                            className="b-0 h-4 w-4 text-orange-600  rounded focus:ring-orange-500 disabled:cursor-not-allowed disabled:bg-zinc-100"/>
                             {key === 'Submitted' && person.exerciseScore[key] === true? 
                               <svg onClick={() => fetchStudentRepoLink(week, person.name)} xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="20" height="20" viewBox="0 0 50 50">
                               <path d="M 25 2 C 12.309295 2 2 12.309295 2 25 C 2 37.690705 12.309295 48 25 48 C 37.690705 48 48 37.690705 48 25 C 48 12.309295 37.690705 2 25 2 z M 25 4 C 36.609824 4 46 13.390176 46 25 C 46 36.609824 36.609824 46 25 46 C 13.390176 46 4 36.609824 4 25 C 4 13.390176 13.390176 4 25 4 z M 25 11 A 3 3 0 0 0 22 14 A 3 3 0 0 0 25 17 A 3 3 0 0 0 28 14 A 3 3 0 0 0 25 11 z M 21 21 L 21 23 L 22 23 L 23 23 L 23 36 L 22 36 L 21 36 L 21 38 L 22 38 L 23 38 L 27 38 L 28 38 L 29 38 L 29 36 L 28 36 L 27 36 L 27 21 L 26 21 L 22 21 L 21 21 z"></path>

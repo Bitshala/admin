@@ -157,7 +157,7 @@ export const ResultPage: React.FC<ResultPageProps> = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-white mb-2 font-inter">Cohort Result</h1>
-          <p className="text-zinc-400 font-inter">Top 10 Performers this cohort</p>
+          <p className="text-zinc-400 font-inter">Scores for this cohort</p>
         </div>
         
         {/* Table */}
@@ -197,7 +197,7 @@ export const ResultPage: React.FC<ResultPageProps> = () => {
               </tr>
             </thead>
             <tbody>
-              {results.slice(0, 10).map((student: StudentResult, index: number) => {
+              {results.map((student: StudentResult, index: number) => {
                 const rank = index + 1;
                 return (
                   <tr
