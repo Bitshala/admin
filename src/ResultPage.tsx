@@ -18,7 +18,6 @@ type ResultPageProps = object
 
 export const ResultPage: React.FC<ResultPageProps> = () => {
   const [results, setResults] = useState<StudentResult[]>([]);
-  const [, setOriginalResults] = useState<StudentResult[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [currentSort, setCurrentSort] = useState<SortType>('default');
@@ -34,11 +33,9 @@ export const ResultPage: React.FC<ResultPageProps> = () => {
         }
         
         const data: StudentResult[] = await response.json();
-        console.log('API Response:', data);
-        
-        console.log('Mapped Results:', data);
-        setOriginalResults(data); // Store original order
-        setResults(data);
+        const cappedData = data.filter((item) => item.total_score > 0);
+        setResults(cappedData);
+
       } catch (err) {
         const errorMessage: string = err instanceof Error ? err.message : 'An unknown error occurred';
         setError(errorMessage);

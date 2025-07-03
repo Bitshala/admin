@@ -368,6 +368,9 @@ const TableView: React.FC = () => {
     })
     .then(r => {
       if (!r.ok) throw new Error(r.statusText);
+      console.log("New student added successfully");
+      fetchWeeklyData(week);
+      setShowTableRowForm(false);
       setIsEditing(false);
 
       getWeeklyData(week);
@@ -694,6 +697,7 @@ const TableView: React.FC = () => {
                   </th>
                 </tr>
               </thead>
+              
               <tbody className="bg-white divide-y divide-zinc-200">
                 {processedData.map((person) => (
                   <tr key={person.id} className="cursor-pointer hover:bg-zinc-50 transition-colors duration-150">
