@@ -6,7 +6,7 @@ use actix_web::{
 };
 use chrono::{Datelike, Local};
 
-use log::{error, warn, info, debug, trace};
+use log::{debug, error, info, trace, warn};
 use rusqlite::{Connection, params};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -16,6 +16,7 @@ use thiserror::Error;
 mod utils;
 use std::fs;
 use utils::classroom::{Assignment, get_submitted_assignments};
+use utils::discord_auth::discord_oauth;
 
 #[derive(Debug, Error)]
 pub enum AppError {
@@ -183,9 +184,11 @@ pub fn read_from_db(path: &PathBuf) -> Result<Table, AppError> {
     })?;
 
     let rows_vec: Vec<RowData> = rows.filter_map(Result::ok).collect();
-    info!("Successfully read {} rows from the database.", rows_vec.len());
+    info!(
+        "Successfully read {} rows from the database.",
+        rows_vec.len()
+    );
     Ok(Table { rows: rows_vec })
-
 }
 
 pub fn write_to_db(path: &PathBuf, table: &Table) -> Result<(), AppError> {
@@ -220,7 +223,10 @@ pub fn write_to_db(path: &PathBuf, table: &Table) -> Result<(), AppError> {
             ],
         )?;
     }
-    info!("Successfully wrote {} rows to the database.", table.rows.len());
+    info!(
+        "Successfully wrote {} rows to the database.",
+        table.rows.len()
+    );
     tx.commit()?;
     Ok(())
 }
@@ -502,7 +508,10 @@ async fn delete_data(
     }
 
     write_to_db(&db_path, &state_table)?;
-    info!("Deleted data for {} in week {}", row_to_delete.name, row_to_delete.week);
+    info!(
+        "Deleted data for {} in week {}",
+        row_to_delete.name, row_to_delete.week
+    );
     Ok(HttpResponse::Ok().body("Weekly data deleted successfully"))
 }
 
@@ -525,9 +534,14 @@ async fn add_weekly_data(
 }
 
 fn cleanup_old_backups(db_name: &str, days_ago: i64) {
-   let target_month = (Local::now() - chrono::Duration::days(days_ago)).format("%Y-%m").to_string();
-   glob::glob(&format!("backup/{}*{}*.db", db_name, target_month)).unwrap()
-       .for_each(|file| { fs::remove_file(file.unwrap()).ok(); });
+    let target_month = (Local::now() - chrono::Duration::days(days_ago))
+        .format("%Y-%m")
+        .to_string();
+    glob::glob(&format!("backup/{}*{}*.db", db_name, target_month))
+        .unwrap()
+        .for_each(|file| {
+            fs::remove_file(file.unwrap()).ok();
+        });
 }
 
 fn backup(db_name: &str) -> Result<(), DbError> {
@@ -577,8 +591,6 @@ async fn get_student_repo_link(info: web::Path<(i32, String)>) -> impl Responder
     return HttpResponse::Ok().json(serde_json::json!({ "url": student_url }));
 }
 
-
-
 #[get("/students/total_scores")]
 async fn get_students_by_total_score(state: web::Data<Mutex<Table>>) -> impl Responder {
     info!("Fetching students ordered by total score (desc)");
@@ -605,7 +617,11 @@ async fn get_students_by_total_score(state: web::Data<Mutex<Table>>) -> impl Res
             .or_insert((
                 row.clone(),
                 total_score,
-                if row.exercise_test_passing == Some("yes".to_string()) { 1 } else { 0 }
+                if row.exercise_test_passing == Some("yes".to_string()) {
+                    1
+                } else {
+                    0
+                },
             ));
     }
 
@@ -626,7 +642,10 @@ async fn get_students_by_total_score(state: web::Data<Mutex<Table>>) -> impl Res
 }
 
 #[get("/students/{student_name}")]
-async fn get_individual_student_data(info: web::Path<String>, state: web::Data<Mutex<Table>>) -> impl Responder {
+async fn get_individual_student_data(
+    info: web::Path<String>,
+    state: web::Data<Mutex<Table>>,
+) -> impl Responder {
     let student_name = info.into_inner();
     let state_table = state.lock().unwrap();
 
@@ -697,6 +716,7 @@ async fn main() -> Result<(), std::io::Error> {
             .service(get_student_repo_link)
             .service(get_students_by_total_score)
             .service(get_individual_student_data)
+            .service(discord_oauth)
     })
     .bind(("127.0.0.1", 8081))?
     .run()
