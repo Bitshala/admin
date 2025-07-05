@@ -29,8 +29,8 @@
 
 use csv::Reader;
 use rusqlite::{Connection, params};
-use std::error::Error;
 use std::env;
+use std::error::Error;
 
 // A structure used to get participant information from the table
 struct ParticipantInfo {
@@ -54,7 +54,10 @@ impl Cohort {
             "PB" => Ok(Cohort::PB),
             "LBTCL" => Ok(Cohort::LBTCL),
             "MB" => Ok(Cohort::MB),
-            _ => Err(format!("Unknown cohort: {}. Valid cohorts are: BPD, PB, LBTCL, MB", cohort_name)),
+            _ => Err(format!(
+                "Unknown cohort: {}. Valid cohorts are: BPD, PB, LBTCL, MB",
+                cohort_name
+            )),
         }
     }
 
@@ -174,7 +177,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // Read from cohort-specific CSV file
     let csv_path = cohort.csv_file();
     println!("Reading CSV from: {}", csv_path);
-    
+
     let mut reader = Reader::from_path(&csv_path)?;
     let mut insert_participant_stmt = conn.prepare(
         r#"
@@ -223,7 +226,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         ])?;
         participant_records_imported += 1;
     }
-    println!("Imported {} records from {} into participants table.", participant_records_imported, csv_path);
+    println!(
+        "Imported {} records from {} into participants table.",
+        participant_records_imported, csv_path
+    );
 
     println!("Populating students table...");
 
@@ -257,25 +263,25 @@ fn main() -> Result<(), Box<dyn Error>> {
     for participant in participants_iter {
         // Insert into students table
         match insert_student_stmt.execute(params![
-            participant.name,  // name
-            "NA",              // group_id
-            "NA",              // ta
-            "no",              // attendance (default false -> "no")
-            0.0,               // fa
-            0.0,               // fb
-            0.0,               // fc
-            0.0,               // fd
-            "no",              // bonus_attendance (default false -> "no")
-            "no",              // bonus_answer_quality (default false -> "no")
-            "no",              // bonus_follow_up (default false -> "no")
-            "no",              // exercise_submitted (default false -> "no")
-            "no",              // exercise_test_passing (default false -> "no")
-            "no",              // exercise_good_documentation (default false -> "no")
-            "no",              // exercise_good_structure (default false -> "no")
-            0.0,               
-            participant.email, 
-            participant.github, 
-            0                  
+            participant.name, // name
+            "NA",             // group_id
+            "NA",             // ta
+            "no",             // attendance (default false -> "no")
+            0.0,              // fa
+            0.0,              // fb
+            0.0,              // fc
+            0.0,              // fd
+            "no",             // bonus_attendance (default false -> "no")
+            "no",             // bonus_answer_quality (default false -> "no")
+            "no",             // bonus_follow_up (default false -> "no")
+            "no",             // exercise_submitted (default false -> "no")
+            "no",             // exercise_test_passing (default false -> "no")
+            "no",             // exercise_good_documentation (default false -> "no")
+            "no",             // exercise_good_structure (default false -> "no")
+            0.0,
+            participant.email,
+            participant.github,
+            0
         ]) {
             Ok(count) if count > 0 => student_records_created += 1,
             Ok(_) => { /* Potentially a conflict, and ON CONFLICT DO NOTHING was triggered */ }
@@ -287,6 +293,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         "Populated students table with {} records.",
         student_records_created
     );
-    println!("Migration complete for cohort {} (database: {}).", cohort.name(), cohort.db_name());
+    println!(
+        "Migration complete for cohort {} (database: {}).",
+        cohort.name(),
+        cohort.db_name()
+    );
     Ok(())
 }

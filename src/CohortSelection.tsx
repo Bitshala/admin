@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 type CohortCardProps = {
@@ -13,17 +14,12 @@ const CohortCard = ({ title, students, startDate, onClick }: CohortCardProps) =>
       className="group relative bg-zinc-800/80 backdrop-blur-sm rounded-xl p-5 m-4 w-80 cursor-pointer transform transition-all duration-300 hover:scale-101 overflow-hidden"
       onClick={onClick}
     >
-      {/* Subtle gradient overlay */}
-      {/* <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-orange-500/10 to-transparent rounded-full -translate-y-2 translate-x-2"></div> */}
-      
-      {/* Content container */}
       <div className="relative z-10">
-        {/* Header with status */}
+        {/* Status badge + arrow icon */}
         <div className="flex items-center justify-between mb-3">
           <div className="text-xs font-medium text-orange-400 bg-orange-500/10 px-2 py-1 rounded-md font-inter">
             Active
           </div>
-          
           <div className="opacity-0 group-hover:opacity-100 transform translate-x-1 group-hover:translate-x-0 transition-all duration-300">
             <div className="w-6 h-6 rounded-lg bg-gradient-to-r from-orange-400 to-amber-400 flex items-center justify-center">
               <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -32,13 +28,13 @@ const CohortCard = ({ title, students, startDate, onClick }: CohortCardProps) =>
             </div>
           </div>
         </div>
-        
+
         {/* Title */}
         <h3 className="text-lg font-semibold text-white mb-4 font-inter leading-snug group-hover:text-orange-300 transition-colors duration-200">
           {title}
         </h3>
-        
-        {/* Stats section */}
+
+        {/* Info row */}
         <div className="flex items-center justify-between text-sm text-zinc-400">
           <div className="flex items-center">
             <div className="w-5 h-5 rounded-md bg-orange-500/10 flex items-center justify-center mr-2">
@@ -48,7 +44,7 @@ const CohortCard = ({ title, students, startDate, onClick }: CohortCardProps) =>
             </div>
             <span className="font-medium font-inter text-zinc-300">{students} students</span>
           </div>
-          
+
           <div className="flex items-center">
             <div className="w-5 h-5 rounded-md bg-amber-500/10 flex items-center justify-center mr-2">
               <svg className="w-3 h-3 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -64,33 +60,40 @@ const CohortCard = ({ title, students, startDate, onClick }: CohortCardProps) =>
 };
 
 export const CohortSelection = () => {
- const navigate = useNavigate();
+  const navigate = useNavigate();
 
+  // ✅ Cleanup ?token from the URL bar
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.has("token")) {
+      url.searchParams.delete("token");
+      window.history.replaceState({}, document.title, url.pathname);
+    }
+  }, []);
+
+  const token = localStorage.getItem("bitshala_token");
 
   const handleCohortClick = () => {
-    const token  = "token-mpzbqlbbxtjrjyxcwigsexdqadxmgumdizmnpwocfdobjkfdxwhflnhvavplpgyxtsplxisvxalvwgvjwdyvusvalapxeqjdhnsyoyhywcdwucshdoyvefpnobnslqfg";
     navigate('/admin', { state: { token } });
   };
 
   return (
     <div className="bg-zinc-900 font-mono min-h-screen flex flex-col items-center justify-center">
       <h1 className="text-3xl font-bold text-gray-200 mb-2">Cohort Selection</h1>
-      <p className="text-gray-700 mb-8">Select a cohort to Manange Students.</p>
-      
+      <p className="text-gray-700 mb-8">Select a cohort to Manage Students.</p>
+
       <div className="flex flex-wrap justify-center">
         <CohortCard
           title="LBTCL"
           students={24}
           startDate="March 15, 2025"
-          onClick={() => handleCohortClick()}
+          onClick={handleCohortClick}
         />
-        
         <CohortCard
           title="Programming Bitcoin"
-         
           students={18}
           startDate="June 1, 2025"
-          onClick={() => handleCohortClick()}
+          onClick={handleCohortClick}
         />
       </div>
     </div>
