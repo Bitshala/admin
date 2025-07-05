@@ -22,7 +22,7 @@ function Login() {
 
   const handleDiscordLogin = () => {
     const CLIENT_ID = '1365322199413821572';
-    const REDIRECT_URI = encodeURIComponent('http://admin.bitshala.org/discord/callback');
+    const REDIRECT_URI = encodeURIComponent('https://admin.bitshala.org/discord/callback');
     const SCOPES = encodeURIComponent('identify guilds');
     const discordOAuthUrl = `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=${SCOPES}`;
     window.location.href = discordOAuthUrl;
