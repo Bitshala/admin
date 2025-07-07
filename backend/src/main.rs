@@ -524,6 +524,10 @@ async fn add_weekly_data(
     let db_path = PathBuf::from("classroom.db");
     let mut state_table = state.lock().unwrap();
 
+    if student_data.is_empty() {
+        return Err(actix_web::error::ErrorBadRequest("No student data provided"));
+    }
+    
     for incoming_row in student_data.iter() {
         state_table.insert_or_update(incoming_row)?;
     }
