@@ -6,8 +6,10 @@ import Login from './pages/Login.tsx';
 import TableView from './pages/TableView.tsx';
 import { CohortSelection } from './pages/CohortSelection.tsx';
 import { ResultPage } from './pages/ResultPage.tsx';
-import StudentDetailPage from './StudentsPage.tsx';
+// import StudentDetailPage from './StudentsPage.tsx';
 import ProtectedRoute from './components/ProtectedRoute.tsx';
+import StudentDetailPage from './pages/StudentDetailPage.tsx';
+
 
 import 'virtual:uno.css';
 
