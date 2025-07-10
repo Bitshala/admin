@@ -22,7 +22,7 @@
 
 ---
 
-### Frontend Setup
+### Frontend Setup and Run
 
 
 1.  **Change directory to frotend:**
