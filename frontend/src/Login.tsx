@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { redirectToDiscordAuth, loginWithEmail, handleDiscordCallback } from './services/auth';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -7,55 +8,18 @@ function Login() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const TOKEN = "token-mpzbqlbbxtjrjyxcwigsexdqadxmgumdizmnpwocfdobjkfdxwhflnhvavplpgyxtsplxisvxalvwgvjwdyvusvalapxeqjdhnsyoyhywcdwucshdoyvefpnobnslqfg";
-
   // Handle redirect from Discord with token
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const authSource = params.get("auth");
-    const token = params.get("token");
-
-    if (authSource === "discord" && token === TOKEN) {
-      navigate('/select', { state: { token } });
-    }
+    handleDiscordCallback(location, navigate);
   }, [location, navigate]);
 
-  const handleDiscordLogin = () => {
-    const CLIENT_ID = '1365322199413821572';
-    const REDIRECT_URI = encodeURIComponent('https://admin.bitshala.org/discord/callback');
-    const SCOPES = encodeURIComponent('identify guilds');
-    const discordOAuthUrl = `https://discord.com/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=${SCOPES}`;
-    window.location.href = discordOAuthUrl;
-  };
-
-  const handleEmailLogin = () => {
-    if (!email) {
-      setError('Please enter your email address');
-      return;
+  const handleEmailLogin = async () => {
+    const result = await loginWithEmail(email);
+    if (result.success && result.token) {
+      navigate('/select', { state: { token: result.token } });
+    } else {
+      setError(result.error || 'Login failed');
     }
-
-    setError(null);
-    
-    fetch('https://admin.bitshala.org/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ gmail: email }),
-    })
-      .then(res => {
-        if (!res.ok) throw new Error('Access denied');
-        return res.json();
-      })
-      .then(data => {
-        const token = data.token;
-        if (token === TOKEN) {
-          navigate('/select', { state: { token } });
-        } else {
-          setError('Invalid token returned from server.');
-        }
-      })
-      .catch(err => {
-        setError(err.message || 'Login failed');
-      });
   };
 
   return (
@@ -70,7 +34,7 @@ function Login() {
         <div className="p-8 space-y-3">
           {/* Discord OAuth Button */}
           <button
-            onClick={handleDiscordLogin}
+            onClick={redirectToDiscordAuth}
             className="b-0 w-full py-4 text-base font-semibold bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-all duration-200 shadow-lg hover:shadow-indigo-500/20 flex items-center justify-center space-x-3"
           >
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
