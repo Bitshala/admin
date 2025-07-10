@@ -25,6 +25,17 @@ interface StudentData {
 const StudentDetailPage = ({ studentName }: { studentName?: string }) => {
   const [student, setStudent] = useState<StudentData | null>(null);
   const [loading, setLoading] = useState(true);
+  interface StudentBackground {
+    describe_yourself?: string;
+    background?: string;
+    skills?: string;
+    location?: string;
+    why?: string;
+    year?: string;
+    book?: string;
+  }
+  
+  const [studentBackground, setStudentBackground] = useState<StudentBackground>({});
   const [error, setError] = useState<string | null>(null);
 
   // Get student name from URL params if not provided as prop
@@ -148,6 +159,40 @@ const StudentDetailPage = ({ studentName }: { studentName?: string }) => {
     }
   }, [studentName]);
 
+  const getStudentBackgroundData = async (email: string) => {
+    try {
+      const response = await fetch(`https://admin.bitshala.org/data/${email}`);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch background data: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      setStudentBackground(data);
+
+      return data;
+    } catch (err) {
+      console.error('Error fetching background data:', err);
+      return null;
+    }
+  }
+
+useEffect(() => {
+  if (student && student.email) {
+    getStudentBackgroundData(student.email)
+      .then(data => {
+        if (data) {
+          console.log('Background data:', data);
+          // You can do something with the background data here if needed
+        }
+      })
+      .catch(err => {
+        console.error('Error fetching background data:', err);
+      });
+           
+  }
+}, [student]);
+ 
   // Calculation functions
   const computeGdTotal = (gd: { fa: number; fb: number; fc: number; fd: number }) => 
     (30 / 5) * gd.fa + (30 / 5) * gd.fb + (20 / 5) * gd.fc + (20 / 5) * gd.fd;
@@ -318,6 +363,51 @@ const StudentDetailPage = ({ studentName }: { studentName?: string }) => {
                 </div>
               </div>
             </div>
+              {studentBackground && (
+  <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="space-y-4">
+      <div>
+        <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">About Me</h3>
+        <p className="text-sm text-zinc-300">{studentBackground.describe_yourself }</p>
+      </div>
+      <div>
+        <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">Background</h3>
+        <p className="text-sm text-zinc-300">{studentBackground.background}</p>
+      </div>
+      <div>
+        <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">Location</h3>
+        <p className="text-sm text-zinc-300">{studentBackground.location}</p>
+      </div>
+    </div>
+    <div className="space-y-4">
+      <div>
+        <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">Technical Skills</h3>
+        <div className="flex flex-wrap gap-2 mt-1">
+          {studentBackground.skills && studentBackground.skills.split(',').map((skill, index) => (
+            <span key={index} className="inline-flex px-2 py-1 rounded-md text-xs font-medium bg-zinc-700 text-zinc-300">
+              {skill.trim()}
+            </span>
+          ))}
+        </div>
+      </div>
+      <div>
+        <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">Motivation</h3>
+        <p className="text-sm text-zinc-300">{studentBackground.why}</p>
+      </div>
+      <div>
+        <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">Year</h3>
+        <p className="text-sm text-zinc-300">{studentBackground.year}</p>
+      </div>
+      {studentBackground.book && (
+        <div>
+          <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-1">Book</h3>
+          <p className="text-sm text-zinc-300">{studentBackground.book}</p>
+        </div>
+      )}
+    </div>
+  </div>
+)}
+
           </div>
         </div>
       </div>
