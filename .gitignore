@@ -7,6 +7,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Frontend dependencies and build
 node_modules
 dist
 dist-ssr
@@ -23,12 +24,21 @@ dist-ssr
 *.sln
 *.sw?
 
-
+# Debug
 .debug
 debug
-/backend/Cargo.lock
-/backend/target/*
 
+# Backend Rust
+/backend/target/
+# Keep Cargo.lock for applications - remove this line:
+# /backend/Cargo.lock
 
-*.csv
+# Database files (runtime generated)
 *.db
+*.sqlite
+*.sqlite3
+
+# Backup directories
+backup/
+backups/
+

@@ -14,8 +14,8 @@ fi
 echo "Building backend with Cargo..."
 cargo build
 
-echo "Running backend migrations..."
-cargo run --bin migrate
+echo "Running backend migrations for LBTCL cohort..."
+cargo run --bin migrate LBTCL
 
 echo "Starting backend server with Cargo..."
 cargo run &
@@ -25,6 +25,15 @@ echo "Backend server started with PID: $BACKEND_PID"
 echo "Navigating back to the parent directory..."
 cd ..
 echo "Successfully changed to parent directory: $(pwd)"
+
+echo "Navigating to frontend directory..."
+if [ -d "./frontend" ]; then
+  cd ./frontend
+  echo "Successfully changed to frontend directory: $(pwd)"
+else
+  echo "Error: './frontend' directory not found. Please check the path."
+  exit 1
+fi
 
 echo "Installing frontend dependencies with npm..."
 npm install
