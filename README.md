@@ -1,9 +1,9 @@
 ### Backend Setup
 
-1.  **Clone the backend repository:**
+1.  **Clone the Admin repository:**
     ```bash
-    git clone [https://github.com/Vayras/ta_backend.git](https://github.com/Vayras/ta_backend.git)
-    cd ta_backend
+    git clone https://github.com/Bitshala/admin.git
+    cd backend
     ```
 
 2.  **Run database migrations:**
@@ -15,20 +15,21 @@
 3.  **Run the backend server:**
     This command will start the backend application with informational logging.
     ```bash
-    RUST_LOG=info cargo run
+    cargo build
+    cago run
     ```
-    The backend server will typically be running on a port like `localhost:8000` (or as specified in your backend configuration).
+    The backend server will typically be running on a port like `localhost:8081` (or as specified in your backend configuration).
 
 ---
 
 ### Frontend Setup
 
 
-1.  **Clone the frontend repository:**
+1.  **Change directory to frotend:**
     Open a new terminal window or navigate to a different directory for the frontend.
     ```bash
-    git https://github.com/Vayras/TAFE.git
-    cd TAFE
+    cd .. 
+
     ```
 
 2.  **Install frontend dependencies:**
