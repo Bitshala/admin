@@ -1,6 +1,10 @@
 import { type JSX } from 'react';
 import { useLocation, Navigate } from 'react-router-dom';
-import { getTokenFromLocation, isAuthenticated, storeToken } from '../services/auth';
+import {
+  getTokenFromLocation,
+  isAuthenticated,
+  storeToken,
+} from '../services/auth';
 
 interface ProtectedRouteProps {
   element: JSX.Element;

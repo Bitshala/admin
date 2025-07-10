@@ -11,27 +11,27 @@ export const getTokenFromLocation = (location: {
   search: string;
   state?: { token?: string };
 }): string | undefined => {
-  const queryToken = new URLSearchParams(location.search).get("token");
+  const queryToken = new URLSearchParams(location.search).get('token');
   const stateToken = location.state?.token;
-  const storedToken = localStorage.getItem("bitshala_token");
+  const storedToken = localStorage.getItem('bitshala_token');
 
   return stateToken || queryToken || storedToken || undefined;
 };
 
 export const storeToken = (token: string): void => {
-  localStorage.setItem("bitshala_token", token);
+  localStorage.setItem('bitshala_token', token);
 };
 
 export const clearToken = (): void => {
-  localStorage.removeItem("bitshala_token");
+  localStorage.removeItem('bitshala_token');
 };
 
 export const getStoredToken = (): string | null => {
-  return localStorage.getItem("bitshala_token");
+  return localStorage.getItem('bitshala_token');
 };
 
 export const redirectToDiscordAuth = (): void => {
-  const SCOPES = encodeURIComponent("identify guilds");
+  const SCOPES = encodeURIComponent('identify guilds');
   const encodedRedirectUri = encodeURIComponent(DISCORD_REDIRECT_URI);
 
   const discordOAuthUrl =
@@ -49,11 +49,11 @@ export const handleDiscordCallback = (
   navigate: (path: string, options?: { state?: { token?: string } }) => void
 ): boolean => {
   const params = new URLSearchParams(location.search);
-  const authSource = params.get("auth");
-  const token = params.get("token");
+  const authSource = params.get('auth');
+  const token = params.get('token');
 
-  if (authSource === "discord" && token === AUTH_TOKEN) {
-    navigate("/select", { state: { token: token ?? undefined } });
+  if (authSource === 'discord' && token === AUTH_TOKEN) {
+    navigate('/select', { state: { token: token ?? undefined } });
     return true;
   }
 
@@ -64,18 +64,18 @@ export const loginWithEmail = async (
   email: string
 ): Promise<{ success: boolean; error?: string; token?: string }> => {
   if (!email) {
-    return { success: false, error: "Please enter your email address" };
+    return { success: false, error: 'Please enter your email address' };
   }
 
   try {
     const response = await fetch(`${API_BASE_URL}/login`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ gmail: email }),
     });
 
     if (!response.ok) {
-      throw new Error("Access denied");
+      throw new Error('Access denied');
     }
 
     const data = await response.json();
@@ -84,10 +84,10 @@ export const loginWithEmail = async (
     if (token === AUTH_TOKEN) {
       return { success: true, token };
     } else {
-      return { success: false, error: "Invalid token returned from server." };
+      return { success: false, error: 'Invalid token returned from server.' };
     }
   } catch (err) {
-    const error = err instanceof Error ? err.message : "Login failed";
+    const error = err instanceof Error ? err.message : 'Login failed';
     return { success: false, error };
   }
 };

@@ -2,5 +2,13 @@
     "rust-analyzer.cargo.target": "./",
     "rust-analyzer.checkOnSave.commands": ["build", "fmt", "clippy"],
     "rust-analyzer.procMacro.enable": true,
-    "rust-analyzer.cargo.features": []
+    "rust-analyzer.cargo.features": [],
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[typescriptreact]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    }
 }
