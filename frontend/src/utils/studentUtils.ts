@@ -1,9 +1,6 @@
-// src/utils/studentUtils.ts
-import type { StudentData } from '../types/student';
+import type { StudentData } from "../types/student";
 
-// Get student name from URL params if not provided as prop
 export const getStudentNameFromUrl = (): string | null => {
-  // Extract from URL path or search params
   const urlParams = new URLSearchParams(window.location.search);
   const fromParams = urlParams.get('student');
   if (fromParams) return fromParams;
@@ -28,10 +25,8 @@ export const exportStudentData = (student: StudentData | null): void => {
   URL.revokeObjectURL(url);
 };
 
-// This could also live here if you want to explicitly separate it from calculations.ts,
-// but getProgressColor seems perfectly fine in calculations.ts too.
 export const getProgressColor = (percentage: number): string => {
     if (percentage >= 80) return 'bg-green-500';
-    if (percentage >= 60) return 'bg-amber-500'; // or yellow-500 as per your calculations.ts
+    if (percentage >= 60) return 'bg-amber-500';
     return 'bg-red-500';
 };

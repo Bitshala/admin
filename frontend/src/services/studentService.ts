@@ -33,8 +33,8 @@ const transformStudentData = (rawData: ApiStudentRecord[]): StudentData | null =
         goodDoc: record.exercise_good_documentation === 'yes'
       },
       total: record.total,
-      group: record.group_id, // Redundant but kept for consistency with original WeeklyData
-      ta: record.ta // Redundant but kept for consistency with original WeeklyData
+      group: record.group_id,
+      ta: record.ta
     }))
   };
   return transformedData;
@@ -92,7 +92,7 @@ export const fetchStudentRepoLink = async (week: number, studentName: string): P
     }
 
     const data = await response.json();
-    return data.url || null; // Assuming the API returns { url: "..." }
+    return data.url || null; 
   } catch (err) {
     console.error("fetchStudentRepoLink error:", err);
     return null;

@@ -1,3 +1,6 @@
+// Sort types
+export type SortType = 'default' | 'total_score_asc' | 'total_score_desc' | 'exercise_score_asc' | 'exercise_score_desc';
+
 // API Response Types
 export interface ApiStudentRecord {
   week: number;
@@ -94,6 +97,3 @@ export interface StudentResult {
   total_score: number;
   exercise_total_score?: number;
 }
-
-// Sort types
-export type SortType = 'default' | 'total_score_asc' | 'total_score_desc' | 'exercise_score_asc' | 'exercise_score_desc';
