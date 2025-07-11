@@ -7,15 +7,15 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Frontend dependencies and build
 node_modules
 dist
 dist-ssr
 *.local
 
 # Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+.vscode/
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
@@ -23,12 +23,23 @@ dist-ssr
 *.sln
 *.sw?
 
-
+# Debug
 .debug
 debug
-/backend/Cargo.lock
-/backend/target/*
 
+# Backend Rust
+/backend/target/
 
-*.csv
+# Database files (runtime generated)
 *.db
+*.sqlite
+*.sqlite3
+
+# Backup directories
+backup/
+backups/
+
+# CSV files (runtime generated, but keep seed data)
+*.csv
+!backend/csv_files/*.csv
+*.env

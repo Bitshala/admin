@@ -1,13 +1,11 @@
 use octocrab::Octocrab;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use std::env;
 use thiserror::Error;
 
-use crate::utils::classroom;
-
 // Represents a GitHub Classroom
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)] // Add this line only
 pub struct Classroom {
     id: u64,
     name: String,

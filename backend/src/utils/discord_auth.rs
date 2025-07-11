@@ -1,4 +1,5 @@
-use actix_web::{HttpResponse, Responder, get, web, Result, error::ErrorInternalServerError};
+use crate::utils::constants::get_auth_token;
+use actix_web::{HttpResponse, Responder, Result, error::ErrorInternalServerError, get, web};
 use reqwest::Client;
 use serde::Deserialize;
 use std::env;
@@ -31,7 +32,7 @@ pub async fn discord_oauth(query: web::Query<OAuthQuery>) -> Result<impl Respond
     let target_guild_id = env::var("TARGET_GUILD_ID").expect("Missing TARGET_GUILD_ID");
     let target_role_id = env::var("TARGET_ROLE_ID").expect("Missing TARGET_ROLE_ID");
     let bot_token = env::var("DISCORD_BOT_TOKEN").expect("Missing DISCORD_BOT_TOKEN");
-    const TOKEN: &str = "token-mpzbqlbbxtjrjyxcwigsexdqadxmgumdizmnpwocfdobjkfdxwhflnhvavplpgyxtsplxisvxalvwgvjwdyvusvalapxeqjdhnsyoyhywcdwucshdoyvefpnobnslqfg";
+    let auth_token = get_auth_token();
     let client = Client::new();
 
     // Step 1: Exchange code for access token
@@ -49,20 +50,24 @@ pub async fn discord_oauth(query: web::Query<OAuthQuery>) -> Result<impl Respond
         .map_err(|_| ErrorInternalServerError("Failed to contact Discord API"))?;
 
     let status = token_resp.status();
-    let text = token_resp.text().await
+    let text = token_resp
+        .text()
+        .await
         .map_err(|_| ErrorInternalServerError("Failed to read Discord response"))?;
-    
+
     println!("token exchange response: {}", text);
-    
+
     if !status.is_success() {
-        return Err(ErrorInternalServerError(format!("Token exchange failed: {}", text)));
+        return Err(ErrorInternalServerError(format!(
+            "Token exchange failed: {}",
+            text
+        )));
     }
 
-    let token_response: TokenResponse = serde_json::from_str(&text)
-        .map_err(|err| {
-            println!("JSON parsing failed: {:?}", err);
-            ErrorInternalServerError(format!("Invalid token JSON: {}", text))
-        })?;
+    let token_response: TokenResponse = serde_json::from_str(&text).map_err(|err| {
+        println!("JSON parsing failed: {:?}", err);
+        ErrorInternalServerError(format!("Invalid token JSON: {}", text))
+    })?;
 
     // Step 2: Get user info to extract user_id
     let user: User = client
@@ -113,7 +118,10 @@ pub async fn discord_oauth(query: web::Query<OAuthQuery>) -> Result<impl Respond
 
     let redirect_url = if has_role {
         // Redirect back to your login page with token or flags
-        format!("https://admin.bitshala.org/select?auth=discord&token={}", TOKEN)
+        format!(
+            "https://admin.bitshala.org/select?auth=discord&token={}",
+            auth_token
+        )
     } else {
         // Unauthorized page
         "https://admin.bitshala.org/unauthorized".to_string()

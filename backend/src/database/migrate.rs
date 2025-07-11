@@ -33,6 +33,7 @@ use std::env;
 use std::error::Error;
 
 // A structure used to get participant information from the table
+#[allow(dead_code)]
 struct ParticipantInfo {
     name: String,
     email: String,
@@ -40,6 +41,7 @@ struct ParticipantInfo {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 enum Cohort {
     BPD,
     PB,
@@ -89,6 +91,7 @@ impl Cohort {
     }
 }
 
+#[allow(dead_code)]
 fn main() -> Result<(), Box<dyn Error>> {
     // Parse command line arguments
     let args: Vec<String> = env::args().collect();
