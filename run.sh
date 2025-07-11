@@ -2,45 +2,39 @@
 
 set -e
 
-echo "Navigating to backend directory..."
-if [ -d "./backend" ]; then
-  cd ./backend
-  echo "Successfully changed to backend directory: $(pwd)"
-else
-  echo "Error: './backend' directory not found. Please check the path."
-  exit 1
-fi
+echo "🚀 Starting Bitshala Admin Development Environment..."
 
-echo "Building backend with Cargo..."
-cargo build
+# Function to kill background processes on script exit
+cleanup() {
+    echo "🛑 Shutting down servers..."
+    kill $BACKEND_PID $FRONTEND_PID 2>/dev/null || true
+    exit
+}
+trap cleanup EXIT
 
-echo "Running backend migrations for LBTCL cohort..."
-cargo run --bin migrate LBTCL
-
-echo "Starting backend server with Cargo..."
+# Start backend
+echo "📊 Starting backend server..."
+cd backend
 cargo run &
 BACKEND_PID=$!
-echo "Backend server started with PID: $BACKEND_PID"
+echo "✅ Backend started (PID: $BACKEND_PID) on http://127.0.0.1:8081"
 
-echo "Navigating back to the parent directory..."
-cd ..
-echo "Successfully changed to parent directory: $(pwd)"
+# Wait a moment for backend to start
+sleep 3
 
-echo "Navigating to frontend directory..."
-if [ -d "./frontend" ]; then
-  cd ./frontend
-  echo "Successfully changed to frontend directory: $(pwd)"
-else
-  echo "Error: './frontend' directory not found. Please check the path."
-  exit 1
-fi
+# Start frontend
+echo "🎨 Starting frontend development server..."
+cd ../frontend
+npm run dev &
+FRONTEND_PID=$!
+echo "✅ Frontend started (PID: $FRONTEND_PID)"
 
-echo "Installing frontend dependencies with npm..."
-npm install
+echo ""
+echo "🎉 Development environment ready!"
+echo "📊 Backend:  http://127.0.0.1:8081"
+echo "🎨 Frontend: http://localhost:5173"
+echo ""
+echo "Press Ctrl+C to stop both servers"
 
-echo "Starting frontend development server with npm..."
-npm run dev
-
-echo "Frontend development server started."
-echo "Backend (PID: $BACKEND_PID) and Frontend are running."
-echo "Press Ctrl+C to stop the frontend server (and potentially the script)."
+# Wait for user to stop
+wait

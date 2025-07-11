@@ -1,44 +1,71 @@
-### Backend Setup
+# Bitshala Admin Panel
 
-1.  **Clone the Admin repository:**
-    ```bash
-    git clone https://github.com/Bitshala/admin.git
-    cd backend
-    ```
+A web-based admin dashboard for managing Bitcoin education cohorts at Bitshala. The system helps track student progress, manage TA assignments, and handle weekly data for various Bitcoin development courses.
 
-2.  **Run database migrations:**
-    This command will set up the necessary database schema using SQLite.
-    ```bash
-    cargo run --bin migrate
-    ```
+## Setup and Running
 
-3.  **Run the backend server:**
-    This command will start the backend application with informational logging.
-    ```bash
-    cargo build
-    cago run
-    ```
-    The backend server will typically be running on a port like `localhost:8081` (or as specified in your backend configuration).
+### Quick Start (Recommended)
 
----
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/Bitshala/admin.git
+   cd admin
+   ```
 
-### Frontend Setup and Run
+2. **Make the run script executable and start everything:**
+   ```bash
+   chmod +x run.sh
+   ./run.sh
+   ```
 
+The script will automatically handle database setup, install dependencies, and start both servers.
 
-1.  **Change directory to frotend:**
-    Open a new terminal window or navigate to a different directory for the frontend.
-    ```bash
-    cd .. 
+### Manual Setup
 
-    ```
+If you prefer to run components separately:
 
-2.  **Install frontend dependencies:**
-    ```bash
-    npm install
-    ```
+#### Backend Setup
 
-3.  **Run the frontend development server:**
-    ```bash
-    npm run dev
-    ```
-    This will usually start a development server, often on a port like `localhost:3000` or `localhost:5173` (Vite default). Check your terminal output for the exact address.
+1. **Navigate to backend directory:**
+   ```bash
+   cd backend
+   ```
+
+2. **Run database migrations:**
+   ```bash
+   cargo run --bin migrate BPD
+   ```
+   > Replace `BPD` with your cohort name (BPD, PB, LBTCL, or MB)
+
+3. **Start the backend server:**
+   ```bash
+   cargo run
+   ```
+   Backend will run on `http://localhost:8081`
+
+#### Frontend Setup
+
+1. **Navigate to frontend directory:**
+   ```bash
+   cd frontend
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Start the development server:**
+   ```bash
+   npm run dev
+   ```
+   Frontend will run on `http://localhost:5173`
+
+## Testing
+
+Run backend tests:
+```bash
+cd backend
+cargo test
+```
+
