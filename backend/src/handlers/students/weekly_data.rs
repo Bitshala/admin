@@ -107,6 +107,8 @@ pub async fn get_weekly_data_or_common(
             }
         }
 
+        let mut data_changed = false;
+
         for (index, mut row) in prev_week_rows.into_iter().enumerate() {
             if row.attendance.as_deref() == Some("no") {
                 row.group_id = format!("Group {}", 6);
@@ -145,6 +147,7 @@ pub async fn get_weekly_data_or_common(
                 row.exercise_good_structure = existing_row.exercise_good_structure.clone();
                 row.total = existing_row.total;
             } else {
+                data_changed = true;
                 row.attendance = Some("no".to_string());
                 row.fa = Some(0);
                 row.fb = Some(0);
@@ -160,6 +163,7 @@ pub async fn get_weekly_data_or_common(
                 row.total = Some(0);
             }
 
+            // Check if assignment data changed
             if let Some(matching_assignment) = name_to_assignment.get(&row.name) {
                 println!(
                     "Found matching assignment for {} in week {}: {:#?}",
@@ -167,13 +171,20 @@ pub async fn get_weekly_data_or_common(
                 );
                 if matching_assignment.get_week_pattern() == Some(week as u32) {
                     println!("hello world");
-                    row.exercise_submitted = Some("yes".to_string());
-                    row.exercise_test_passing =
-                        Some(if matching_assignment.points_awarded == "100" {
-                            "yes".to_string()
-                        } else {
-                            "no".to_string()
-                        });
+                    let new_exercise_submitted = Some("yes".to_string());
+                    let new_exercise_test_passing = Some(if matching_assignment.points_awarded == "100" {
+                        "yes".to_string()
+                    } else {
+                        "no".to_string()
+                    });
+
+                    if row.exercise_submitted != new_exercise_submitted || 
+                       row.exercise_test_passing != new_exercise_test_passing {
+                        data_changed = true;
+                        row.exercise_submitted = new_exercise_submitted;
+                        row.exercise_test_passing = new_exercise_test_passing;
+                        println!("Data has changed for {} in week {}", row.name, week);
+                    }
                 }
             }
 
@@ -181,8 +192,13 @@ pub async fn get_weekly_data_or_common(
             result_rows.push(row);
         }
 
-        write_to_db(&PathBuf::from("classroom.db"), &state_table).unwrap();
-
+        if data_changed {
+            info!("Data changed - writing to database for week {}", week);
+            write_to_db(&PathBuf::from("classroom.db"), &state_table).unwrap();
+        } else {
+            info!("No data changes detected for week {} - skipping database write", week);
+        }
+        
         return HttpResponse::Ok().json(result_rows);
     }
     warn!("something went wrong {}", week);
