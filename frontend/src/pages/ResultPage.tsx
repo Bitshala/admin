@@ -1,5 +1,5 @@
 import { useState, useEffect, type JSX } from 'react';
-
+import { useNavigate } from 'react-router-dom';
 // API Response Types (matching your Rust RowData struct)
 
 // Frontend Display Types
@@ -21,6 +21,8 @@ export const ResultPage: React.FC<ResultPageProps> = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [currentSort, setCurrentSort] = useState<SortType>('default');
+  const navigate = useNavigate();
+
 
   useEffect(() => {
     const fetchResults = async (): Promise<void> => {
@@ -89,6 +91,12 @@ export const ResultPage: React.FC<ResultPageProps> = () => {
     }
   };
 
+
+  const handleStudentClick = (studentName: string) => {
+    navigate(`/student?student=${encodeURIComponent(studentName)}`);
+  };
+
+
   if (loading) {
     return (
       <div className="min-h-screen bg-zinc-900 flex items-center justify-center">
@@ -118,11 +126,11 @@ export const ResultPage: React.FC<ResultPageProps> = () => {
       case 1:
         return 'text-yellow-400 font-bold'; // Gold
       case 2:
-        return 'text-gray-300 font-bold'; // Silver
+        return 'text-gray-200 font-bold'; // Silver
       case 3:
         return 'text-amber-600 font-bold'; // Bronze
       default:
-        return 'text-zinc-300 font-semibold';
+        return 'text-zinc-400 font-semibold';
     }
   };
 
@@ -147,6 +155,8 @@ export const ResultPage: React.FC<ResultPageProps> = () => {
     }
     return null;
   };
+
+
 
   return (
     <div className="min-h-screen bg-zinc-900 flex items-center justify-center p-8">
@@ -204,7 +214,11 @@ export const ResultPage: React.FC<ResultPageProps> = () => {
                     <td className="p-4 font-inter">
                       <span className={getRankStyling(rank)}>#{rank}</span>
                     </td>
-                    <td className="p-4 text-white font-inter truncate" title={student.name}>
+                    <td
+                      className="p-4 text-white font-inter truncate cursor-pointer"
+                      onClick={() => handleStudentClick(student.name)}
+                      title={student.name}
+                    >
                       {student.name}
                     </td>
                     <td className="p-4 text-zinc-400 font-inter truncate" title={student.email}>

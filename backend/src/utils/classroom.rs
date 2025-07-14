@@ -18,8 +18,8 @@ pub struct Assignment {
     pub assignment_name: String,
     pub assignment_url: String,
     pub github_username: String,
-    pub points_available: String, // Consider changing to u32 if it's always numeric
-    pub points_awarded: String,   // Consider changing to Option<u32>
+    pub points_available: String, 
+    pub points_awarded: String,   
     pub roster_identifier: String,
     pub starter_code_url: String,
     pub student_repository_name: String,
@@ -44,6 +44,7 @@ enum WEEK {
     Two,
     Three,
     Four,
+    Five,
 }
 
 impl WEEK {
@@ -53,6 +54,7 @@ impl WEEK {
             2 => Some(WEEK::Two),
             3 => Some(WEEK::Three),
             4 => Some(WEEK::Four),
+            5 => Some(WEEK::Five),
             _ => None,
         }
     }
@@ -63,6 +65,7 @@ impl WEEK {
             WEEK::Two => 814648,
             WEEK::Three => 817211,
             WEEK::Four => 819049,
+            WEEK::Five => 821244,
         }
     }
 }
@@ -114,6 +117,8 @@ impl Assignment {
             Some(3)
         } else if name.contains("week 4") || name.contains("week4") {
             Some(4)
+        } else if name.contains("week 5") || name.contains("week5") {
+            Some(5)    
         } else {
             None
         }

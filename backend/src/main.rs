@@ -33,6 +33,8 @@ use handlers::students::{
     get_weekly_data_or_common,
     remove_student,
     update_student,
+    //register
+    register_user
 };
 use utils::discord_auth::discord_oauth;
 
@@ -89,6 +91,8 @@ async fn main() -> Result<(), std::io::Error> {
             .service(get_student_repo_link)
             .service(get_student_background_data)
             .service(get_individual_student_data)
+            //register
+            .service(register_user)
     })
     .bind("127.0.0.1:8081")?
     .run()
