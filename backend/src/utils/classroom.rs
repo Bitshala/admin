@@ -18,8 +18,8 @@ pub struct Assignment {
     pub assignment_name: String,
     pub assignment_url: String,
     pub github_username: String,
-    pub points_available: String, 
-    pub points_awarded: String,   
+    pub points_available: String,
+    pub points_awarded: String,
     pub roster_identifier: String,
     pub starter_code_url: String,
     pub student_repository_name: String,
@@ -118,7 +118,7 @@ impl Assignment {
         } else if name.contains("week 4") || name.contains("week4") {
             Some(4)
         } else if name.contains("week 5") || name.contains("week5") {
-            Some(5)    
+            Some(5)
         } else {
             None
         }

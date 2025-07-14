@@ -5,12 +5,11 @@ use crate::utils::constants::get_auth_token;
 use crate::utils::types::{RowData, Table};
 use actix_web::{HttpResponse, Responder, Result, get, post, web};
 use log::{info, warn};
+use rusqlite::Connection;
 use std::collections::HashMap;
 use std::path::PathBuf; // Add this import
-
 // Helper function for GitHub to name mapping
 pub fn get_github_to_name_mapping(path: &PathBuf, github_username: &String) -> Option<String> {
-    use rusqlite::Connection;
     let conn = Connection::open(path).ok()?;
     let mut stmt = conn
         .prepare("SELECT Name FROM Participants WHERE Github LIKE ?")
@@ -26,6 +25,28 @@ pub fn get_github_to_name_mapping(path: &PathBuf, github_username: &String) -> O
         Some(name)
     } else {
         None
+    }
+}
+
+pub fn get_github_username(path: &PathBuf, name: &String) -> String {
+    let conn = Connection::open(path).ok().unwrap();
+
+    let mut stmt = conn
+        .prepare("SELECT Github FROM Participants WHERE Name LIKE ?")
+        .ok()
+        .unwrap();
+
+    let pattern = format!("%{}", name);
+    let mut result = stmt
+        .query_map([&pattern], |row| {
+            Ok(row.get::<_, String>(0)?) // Name
+        })
+        .ok()
+        .unwrap();
+    if let Some(Ok(name)) = result.next() {
+        name
+    } else {
+        "".to_string()
     }
 }
 
@@ -172,14 +193,16 @@ pub async fn get_weekly_data_or_common(
                 if matching_assignment.get_week_pattern() == Some(week as u32) {
                     println!("hello world");
                     let new_exercise_submitted = Some("yes".to_string());
-                    let new_exercise_test_passing = Some(if matching_assignment.points_awarded == "100" {
-                        "yes".to_string()
-                    } else {
-                        "no".to_string()
-                    });
+                    let new_exercise_test_passing =
+                        Some(if matching_assignment.points_awarded == "100" {
+                            "yes".to_string()
+                        } else {
+                            "no".to_string()
+                        });
 
-                    if row.exercise_submitted != new_exercise_submitted || 
-                       row.exercise_test_passing != new_exercise_test_passing {
+                    if row.exercise_submitted != new_exercise_submitted
+                        || row.exercise_test_passing != new_exercise_test_passing
+                    {
                         data_changed = true;
                         row.exercise_submitted = new_exercise_submitted;
                         row.exercise_test_passing = new_exercise_test_passing;
@@ -196,9 +219,12 @@ pub async fn get_weekly_data_or_common(
             info!("Data changed - writing to database for week {}", week);
             write_to_db(&PathBuf::from("classroom.db"), &state_table).unwrap();
         } else {
-            info!("No data changes detected for week {} - skipping database write", week);
+            info!(
+                "No data changes detected for week {} - skipping database write",
+                week
+            );
         }
-        
+
         return HttpResponse::Ok().json(result_rows);
     }
     warn!("something went wrong {}", week);

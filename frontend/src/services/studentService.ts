@@ -60,6 +60,8 @@ export const fetchStudentData = async (name: string): Promise<StudentData | null
   }
 };
 
+
+
 export const fetchStudentBackgroundData = async (email: string): Promise<StudentBackground | null> => {
   try {
     const response = await fetch(`${baseUrl}/data/${email}`);
@@ -98,3 +100,25 @@ export const fetchStudentRepoLink = async (week: number, studentName: string): P
     return null;
   }
 };
+
+
+  export const fetchGithubUsername =  async(name:string): Promise<string | null> => {
+    try {
+      // Assuming your backend endpoint looks like /api/student-repo/week/name
+      // Adjust the URL if your actual API endpoint is different
+      const response = await fetch(`${baseUrl}/student/github/${encodeURIComponent(name)}`);
+
+      if (!response.ok) {
+        console.error(`Server Error ${response.status} fetching github for student ${name}`);
+        return null;
+      }
+
+      const data = await response.json();
+      const username = data.split('/').pop();
+      return username || null; 
+    } catch (err) {
+      console.error("fetchStudentRepoLink error:", err);
+      return null;
+    }
+}
+  

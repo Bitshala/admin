@@ -93,15 +93,14 @@ pub struct Member {
     pub joined_at: String,
 }
 
-
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct CohortParticipant {
-    pub id: i32,              
+    pub id: i32,
     pub name: String,
     pub enrolled: bool,
     pub role: String,
     pub email: String,
-    pub describe_yourself: String, 
+    pub describe_yourself: String,
     pub background: String,
     pub github: String,
     pub skills: String,

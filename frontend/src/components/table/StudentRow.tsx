@@ -122,7 +122,7 @@ export const StudentRow: React.FC<StudentRowProps> = ({
   const fetchStudentRepoLink = async (week: number, studentName: string) => {
     try {
       const response = await fetch(
-        `${baseUrl}/${week}/${encodeURIComponent(studentName)}`
+        `${baseUrl}/students/${week}/${encodeURIComponent(studentName)}`
       );
 
       if (!response.ok) {

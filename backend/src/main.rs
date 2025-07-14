@@ -21,6 +21,8 @@ use handlers::students::{
     delete_data,
     get_individual_student_data,
     get_student_background_data,
+    //register
+    get_student_github_username,
     // Individual
     get_student_repo_link,
     // Basic CRUD
@@ -31,10 +33,9 @@ use handlers::students::{
     get_weekly_attendance_count_for_week,
     // Weekly data
     get_weekly_data_or_common,
+    register_user,
     remove_student,
     update_student,
-    //register
-    register_user
 };
 use utils::discord_auth::discord_oauth;
 
@@ -91,6 +92,7 @@ async fn main() -> Result<(), std::io::Error> {
             .service(get_student_repo_link)
             .service(get_student_background_data)
             .service(get_individual_student_data)
+            .service(get_student_github_username)
             //register
             .service(register_user)
     })

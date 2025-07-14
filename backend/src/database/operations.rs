@@ -1,8 +1,8 @@
 use crate::utils::types::{AppError, CohortParticipant, RowData, Table};
+use chrono::Utc;
 use log::info;
 use rusqlite::{Connection, Result, params};
 use std::path::PathBuf;
-use chrono::Utc;
 
 pub fn read_from_db(path: &PathBuf) -> Result<Table, AppError> {
     info!("Reading from DB at path: {:?}", path);
@@ -109,9 +109,10 @@ pub fn write_to_db(path: &PathBuf, table: &Table) -> Result<(), AppError> {
     Ok(())
 }
 
-
-
-pub fn register_cohort_participant(path: &PathBuf, participant:CohortParticipant) -> Result<(), AppError> {
+pub fn register_cohort_participant(
+    path: &PathBuf,
+    participant: CohortParticipant,
+) -> Result<(), AppError> {
     info!("Writing to DB at path: {:?}", path);
     let mut conn = Connection::open(path)?;
     let tx = conn.transaction()?;
@@ -143,13 +144,10 @@ pub fn register_cohort_participant(path: &PathBuf, participant:CohortParticipant
             participant.cohort_name,
             now_str,
             now_str
-        ]
+        ],
     )?;
 
-    info!(
-        "Successfully wrote rows to the database.",
-  
-    );
+    info!("Successfully wrote rows to the database.",);
     tx.commit()?;
     Ok(())
 }
