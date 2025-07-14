@@ -1,6 +1,8 @@
 import React from 'react';
 import { computeTotal } from '../../utils/calculations';
 import type { TableRowData } from '../../types/student';
+const baseUrl = import.meta.env.VITE_API_BASE_URL;
+
 
 interface StudentRowProps {
   person: TableRowData;
@@ -120,7 +122,7 @@ export const StudentRow: React.FC<StudentRowProps> = ({
   const fetchStudentRepoLink = async (week: number, studentName: string) => {
     try {
       const response = await fetch(
-        `https://admin.bitshala.org/students/${week}/${encodeURIComponent(studentName)}`
+        `${baseUrl}/${week}/${encodeURIComponent(studentName)}`
       );
 
       if (!response.ok) {

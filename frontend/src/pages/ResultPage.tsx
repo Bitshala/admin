@@ -22,13 +22,13 @@ export const ResultPage: React.FC<ResultPageProps> = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentSort, setCurrentSort] = useState<SortType>('default');
   const navigate = useNavigate();
-
+  const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
     const fetchResults = async (): Promise<void> => {
       try {
         setLoading(true);
-        const response: Response = await fetch('https://admin.bitshala.org/students/total_scores');
+        const response: Response = await fetch(`${baseUrl}/students/total_scores`);
         
         if (!response.ok) {
           throw new Error('Failed to fetch results');

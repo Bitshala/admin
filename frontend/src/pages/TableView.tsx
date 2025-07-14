@@ -68,10 +68,11 @@ const TableView: React.FC = () => {
     []
   );
   const canEditFields = isEditing && week !== 0;
+  const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
   // --- DATA FETCHING ---
   const fetchWeeklyData = useCallback((selectedWeek: number) => {
-    fetch(`https://admin.bitshala.org/weekly_data/${selectedWeek}`, {
+    fetch(`${baseUrl}/weekly_data/${selectedWeek}`, {
       headers: { Authorization: `${AUTH_TOKEN}` },
     })
       .then(response => {
@@ -137,7 +138,7 @@ const TableView: React.FC = () => {
   }, []);
 
   const getWeeklyData = useCallback((week: number) => {
-    fetch(`https://admin.bitshala.org/attendance/weekly_counts/${week}`)
+    fetch(`${baseUrl}/attendance/weekly_counts/${week}`)
       .then(res => res.json())
       .then(apiData => {
         if (Array.isArray(apiData)) {
@@ -165,7 +166,7 @@ const TableView: React.FC = () => {
   }, [fetchWeeklyData, getWeeklyData, week]);
 
   useEffect(() => {
-    fetch('https://admin.bitshala.org/students/count')
+    fetch(`${baseUrl}/students/count`)
       .then(res => res.json())
       .then(data => setTotalCount(data.count))
       .catch(err => console.error('Error fetching total count:', err));
@@ -277,7 +278,7 @@ const TableView: React.FC = () => {
       total: computeTotal(p),
     }));
 
-    fetch(`https://admin.bitshala.org/weekly_data/${week}`, {
+    fetch(`${baseUrl}/weekly_data/${week}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -322,7 +323,7 @@ const TableView: React.FC = () => {
       total: computeTotal(studentData),
     };
 
-    fetch(`https://admin.bitshala.org/weekly_data/${week}`, {
+    fetch(`${baseUrl}/weekly_data/${week}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify([payload]),
@@ -372,7 +373,7 @@ const TableView: React.FC = () => {
       total: computeTotal(rowToDelete),
     };
 
-    fetch(`https://admin.bitshala.org/del/${week}`, {
+    fetch(`${baseUrl}/del/${week}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
