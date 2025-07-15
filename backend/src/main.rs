@@ -12,6 +12,7 @@ mod utils;
 // Import functions
 use database::operations::read_from_db;
 use utils::backup::start_backup_thread;
+use utils::csv_dump::csv_dump;
 
 // Import all handlers
 use handlers::auth::login; // Remove discord_callback
@@ -47,6 +48,10 @@ async fn main() -> Result<(), std::io::Error> {
     // Initialize logging
     log4rs::init_file("log4rs.yaml", Default::default()).unwrap();
     info!("Starting Bitshala Admin Server...");
+
+    if let Err(e) = csv_dump().await {
+        eprintln!("Error during CSV dump: {:?}", e);
+    }
 
     // Start backup thread
     start_backup_thread();
