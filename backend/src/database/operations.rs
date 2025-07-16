@@ -1,4 +1,5 @@
-use crate::utils::types::{AppError, RowData, Table};
+use crate::utils::types::{AppError, CohortParticipant, RowData, Table};
+use chrono::Utc;
 use log::info;
 use rusqlite::{Connection, Result, params};
 use std::path::PathBuf;
@@ -104,6 +105,49 @@ pub fn write_to_db(path: &PathBuf, table: &Table) -> Result<(), AppError> {
         "Successfully wrote {} rows to the database.",
         table.rows.len()
     );
+    tx.commit()?;
+    Ok(())
+}
+
+pub fn register_cohort_participant(
+    path: &PathBuf,
+    participant: CohortParticipant,
+) -> Result<(), AppError> {
+    info!("Writing to DB at path: {:?}", path);
+    let mut conn = Connection::open(path)?;
+    let tx = conn.transaction()?;
+
+    let now = Utc::now().naive_utc();
+    let now_str = now.to_string();
+
+    tx.execute(
+        "INSERT INTO cohort_participants (
+            name, enrolled, role, email, describe_yourself, background, 
+            github, skills, year, books, why, time, location, version, 
+            cohort_name, created_at, updated_at
+        ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17)",
+        params![
+            participant.name,
+            participant.enrolled,
+            participant.role,
+            participant.email,
+            participant.describe_yourself,
+            participant.background,
+            participant.github,
+            participant.skills,
+            participant.year,
+            participant.books,
+            participant.why,
+            participant.time,
+            participant.location,
+            participant.version,
+            participant.cohort_name,
+            now_str,
+            now_str
+        ],
+    )?;
+
+    info!("Successfully wrote rows to the database.",);
     tx.commit()?;
     Ok(())
 }

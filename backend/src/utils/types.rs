@@ -92,3 +92,25 @@ pub struct Member {
     pub roles: Vec<String>,
     pub joined_at: String,
 }
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct CohortParticipant {
+    pub id: i32,
+    pub name: String,
+    pub enrolled: bool,
+    pub role: String,
+    pub email: String,
+    pub describe_yourself: String,
+    pub background: String,
+    pub github: String,
+    pub skills: String,
+    pub year: String,
+    pub books: String,
+    pub why: String,
+    pub time: String,
+    pub location: String,
+    pub version: i32,
+    pub cohort_name: String,
+    pub created_at: String,
+    pub updated_at: String,
+}

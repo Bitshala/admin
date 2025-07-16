@@ -1,6 +1,6 @@
 // src/services/studentService.ts
 import type { ApiStudentRecord, StudentData, StudentBackground } from '../types/student';
-
+const baseUrl = import.meta.env.VITE_API_BASE_URL;
 // Helper to transform raw API response into a structured StudentData object
 const transformStudentData = (rawData: ApiStudentRecord[]): StudentData | null => {
   if (!rawData || rawData.length === 0) return null;
@@ -43,7 +43,7 @@ const transformStudentData = (rawData: ApiStudentRecord[]): StudentData | null =
 export const fetchStudentData = async (name: string): Promise<StudentData | null> => {
   try {
     const encodedName = encodeURIComponent(name);
-    const response = await fetch(`https://admin.bitshala.org/students/${encodedName}`);
+    const response = await fetch(`${baseUrl}/students/${encodedName}`);
 
     if (!response.ok) {
       if (response.status === 404) {
@@ -60,9 +60,11 @@ export const fetchStudentData = async (name: string): Promise<StudentData | null
   }
 };
 
+
+
 export const fetchStudentBackgroundData = async (email: string): Promise<StudentBackground | null> => {
   try {
-    const response = await fetch(`https://admin.bitshala.org/data/${email}`);
+    const response = await fetch(`${baseUrl}/data/${email}`);
 
     if (!response.ok) {
       if (response.status === 404) {
@@ -84,7 +86,7 @@ export const fetchStudentRepoLink = async (week: number, studentName: string): P
   try {
     // Assuming your backend endpoint looks like /api/student-repo/week/name
     // Adjust the URL if your actual API endpoint is different
-    const response = await fetch(`https://admin.bitshala.org/students/${week}/${encodeURIComponent(studentName)}`);
+    const response = await fetch(`${baseUrl}/students/${week}/${encodeURIComponent(studentName)}`);
 
     if (!response.ok) {
       console.error(`Server Error ${response.status} fetching repo link for week ${week}, student ${studentName}`);
@@ -98,3 +100,25 @@ export const fetchStudentRepoLink = async (week: number, studentName: string): P
     return null;
   }
 };
+
+
+  export const fetchGithubUsername =  async(name:string): Promise<string | null> => {
+    try {
+      // Assuming your backend endpoint looks like /api/student-repo/week/name
+      // Adjust the URL if your actual API endpoint is different
+      const response = await fetch(`${baseUrl}/student/github/${encodeURIComponent(name)}`);
+
+      if (!response.ok) {
+        console.error(`Server Error ${response.status} fetching github for student ${name}`);
+        return null;
+      }
+
+      const data = await response.json();
+      const username = data.split('/').pop();
+      return username || null; 
+    } catch (err) {
+      console.error("fetchStudentRepoLink error:", err);
+      return null;
+    }
+}
+  

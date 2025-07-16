@@ -8,7 +8,7 @@ import { StudentSummary } from '../components/student/StudentSummary';
 import { WeeklyProgressChart } from '../components/student/WeeklyProgressChart';
 import { WeeklyBreakdownCard } from '../components/student/WeeklyBreakdownCard';
 
-import { fetchStudentData, fetchStudentBackgroundData } from '../services/studentService';
+import { fetchGithubUsername, fetchStudentData, fetchStudentBackgroundData } from '../services/studentService';
 import { getStudentNameFromUrl, exportStudentData } from '../utils/studentUtils';
 import { calculateStudentStats } from '../utils/calculations';
 import type { StudentData, StudentBackground as StudentBgType } from '../types/student';
@@ -59,6 +59,12 @@ const StudentDetailPage = () => {
       setLoading(false);
     }
   };
+
+  const getGithubUsername = async (name: string) => {
+    const githubUsername = await fetchGithubUsername(name);
+    console.log("gith",githubUsername);
+    window.open(`https://ghstats.bitcoinsearch.xyz/result?username=${githubUsername}`, '_blank')
+  }
 
   useEffect(() => {
     const name = getStudentName();
@@ -173,7 +179,7 @@ const StudentDetailPage = () => {
                 {student.name.charAt(0)}{(student.name.split(' ')[1]?.charAt(0) || '').toUpperCase()}
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-zinc-100">{student.name}</h1>
+                <h1 className="text-3xl font-bold text-zinc-100" onClick={() => getGithubUsername(student.name)} >{student.name}</h1>
                 <div className="flex items-center space-x-6 text-zinc-400 mt-2">
                   <span>{student.email}</span>
                   <span>Group: {student.group}</span>
