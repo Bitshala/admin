@@ -109,18 +109,13 @@ impl Assignment {
     // Check if assignment was submitted
     pub fn get_week_pattern(&self) -> Option<u32> {
         let name = self.assignment_name.to_lowercase();
-        if name.contains("week 1") || name.contains("week1") {
-            Some(1)
-        } else if name.contains("week 2") || name.contains("week2") {
-            Some(2)
-        } else if name.contains("week 3") || name.contains("week3") {
-            Some(3)
-        } else if name.contains("week 4") || name.contains("week4") {
-            Some(4)
-        } else if name.contains("week 5") || name.contains("week5") {
-            Some(5)
-        } else {
-            None
+        
+        for week in 1..=5 {
+            if name.contains(&format!("week {}", week)) || name.contains(&format!("week{}", week)) {
+                return Some(week);
+            }
         }
+        None
     }
+
 }

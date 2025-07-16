@@ -190,8 +190,7 @@ pub async fn get_weekly_data_or_common(
                     "Found matching assignment for {} in week {}: {:#?}",
                     row.name, week, matching_assignment
                 );
-                if matching_assignment.get_week_pattern() == Some(week as u32) {
-                    println!("hello world");
+                if matching_assignment.get_week_pattern() == Some(week as u32) {     
                     let new_exercise_submitted = Some("yes".to_string());
                     let new_exercise_test_passing =
                         Some(if matching_assignment.points_awarded == "100" {
