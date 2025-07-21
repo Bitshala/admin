@@ -18,6 +18,8 @@ pub async fn csv_dump() -> Result<(), Box<dyn Error>> {
     // Create SQLite DB
     let conn = Connection::open("classroom.db")?;
 
+    conn.execute("drop table if exists responses", [])?;
+
     // Build CREATE TABLE dynamically
     let column_defs = headers
         .iter()

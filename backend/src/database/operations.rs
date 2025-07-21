@@ -152,12 +152,11 @@ pub fn register_cohort_participant(
     Ok(())
 }
 
-pub fn read_all_responses(db_path: &PathBuf, cohort_name: &str) -> Result<Vec<FeedbackResponse>> {
+pub fn read_all_responses(db_path: &PathBuf, _cohort_name: &str) -> Result<Vec<FeedbackResponse>> {
     let conn = Connection::open(db_path)?;
 
     let mut stmt = conn.prepare("SELECT * FROM responses")?;
-    let response_iter =
-        stmt.query_map(params![cohort_name], |row| FeedbackResponse::from_row(row))?;
+    let response_iter = stmt.query_map(params![], |row| FeedbackResponse::from_row(row))?;
 
     let mut responses = Vec::new();
     for response in response_iter {

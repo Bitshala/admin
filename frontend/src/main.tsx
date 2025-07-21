@@ -12,8 +12,9 @@ import StudentDetailPage from './pages/StudentDetailPage.tsx';
 
 
 import 'virtual:uno.css';
+import FeedbackTable from './pages/Feedback.tsx';
 
-// 🧭 Router setup
+
 const router = createBrowserRouter([
   {
     path: '/',
@@ -29,15 +30,19 @@ const router = createBrowserRouter([
   },
   {
     path: '/student',
-    element: <StudentDetailPage />,
+    element: <ProtectedRoute element={<StudentDetailPage />} />,
   },
   {
     path: '/result',
-    element: <ResultPage />,
+    element: <ProtectedRoute element={<ResultPage />} />,
+  },
+    {
+    path: '/feedback',
+    element: <ProtectedRoute element={<FeedbackTable />} />,
   },
 ]);
 
-// 🚀 App bootstrap
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <RouterProvider router={router} />
