@@ -16,7 +16,7 @@ pub async fn csv_dump() -> Result<(), Box<dyn Error>> {
     let headers = rdr.headers()?.clone();
 
     // Create SQLite DB
-    let conn = Connection::open("form_responses.db")?;
+    let conn = Connection::open("classroom.db")?;
 
     // Build CREATE TABLE dynamically
     let column_defs = headers

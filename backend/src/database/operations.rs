@@ -1,4 +1,4 @@
-use crate::utils::types::{AppError, CohortParticipant, RowData, Table};
+use crate::utils::types::{AppError, CohortParticipant, FeedbackResponse, RowData, Table};
 use chrono::Utc;
 use log::info;
 use rusqlite::{Connection, Result, params};
@@ -150,4 +150,19 @@ pub fn register_cohort_participant(
     info!("Successfully wrote rows to the database.",);
     tx.commit()?;
     Ok(())
+}
+
+pub fn read_all_responses(db_path: &PathBuf, cohort_name: &str) -> Result<Vec<FeedbackResponse>> {
+    let conn = Connection::open(db_path)?;
+
+    let mut stmt = conn.prepare("SELECT * FROM responses")?;
+    let response_iter =
+        stmt.query_map(params![cohort_name], |row| FeedbackResponse::from_row(row))?;
+
+    let mut responses = Vec::new();
+    for response in response_iter {
+        responses.push(response?);
+    }
+
+    Ok(responses)
 }

@@ -31,17 +31,21 @@ pub async fn get_weekly_attendance_count_for_week(
     week: web::Path<i32>,
     state: web::Data<Mutex<Table>>,
 ) -> impl Responder {
-    info!("Fetching attendance count for week: {}", week);
-    let count = state
-        .lock()
-        .unwrap()
-        .rows
-        .iter()
-        .filter(|row| row.week == *week && row.attendance == Some("yes".to_string()))
-        .count();
+    let week_num = week.into_inner();
+    info!("Fetching attendance count for week: {}", week_num);
+
+    // Single lock scope for the count operation
+    let count = {
+        let state_table = state.lock().unwrap();
+        state_table
+            .rows
+            .iter()
+            .filter(|row| row.week == week_num && row.attendance == Some("yes".to_string()))
+            .count()
+    }; // Lock released here
 
     HttpResponse::Ok().json(serde_json::json!({
-        "week": week.into_inner(),
+        "week": week_num,
         "attended": count
     }))
 }
