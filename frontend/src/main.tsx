@@ -10,6 +10,8 @@ import { ResultPage } from './pages/ResultPage.tsx';
 import ProtectedRoute from './components/ProtectedRoute.tsx';
 import StudentDetailPage from './pages/StudentDetailPage.tsx';
 
+import StudentDashboard from './pages/Students/Instructions.tsx';
+
 
 import 'virtual:uno.css';
 import FeedbackTable from './pages/Feedback.tsx';
@@ -39,6 +41,10 @@ const router = createBrowserRouter([
     {
     path: '/feedback',
     element: <ProtectedRoute element={<FeedbackTable />} />,
+  },
+     {
+    path: '/instructions',
+    element: <ProtectedRoute element={<StudentDashboard />} />,
   },
 ]);
 

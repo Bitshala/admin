@@ -49,8 +49,7 @@ const DataTable = <T extends TableRow = TableRow>({
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [sortField, setSortField] = useState<string>(columns[0]?.key?.toString() || '');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
-  // Changed from Set<number> to number | null for single row expansion
-  const [expandedRow, setExpandedRow] = useState<number | null>(null);
+  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
   const [currentPage, setCurrentPage] = useState<number>(1);
 
   // Helper function to get nested values from objects with type safety
@@ -90,12 +89,15 @@ const DataTable = <T extends TableRow = TableRow>({
   const startIndex: number = (currentPage - 1) * pageSize;
   const paginatedData: T[] = sortedData.slice(startIndex, startIndex + pageSize);
 
-  // Modified toggle function for single row expansion
   const toggleRowExpansion = (index: number): void => {
     const globalIndex = startIndex + index;
-    // If clicking on the same row that's already expanded, close it
-    // Otherwise, open the new row (automatically closing any previously opened row)
-    setExpandedRow(expandedRow === globalIndex ? null : globalIndex);
+    const newExpandedRows = new Set(expandedRows);
+    if (expandedRows.has(globalIndex)) {
+      newExpandedRows.delete(globalIndex);
+    } else {
+      newExpandedRows.add(globalIndex);
+    }
+    setExpandedRows(newExpandedRows);
   };
 
   const handleSort = (field: string): void => {
@@ -208,8 +210,6 @@ const DataTable = <T extends TableRow = TableRow>({
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     setSearchTerm(e.target.value);
                     setCurrentPage(1);
-                    // Close any expanded row when searching
-                    setExpandedRow(null);
                   }}
                   className="w-full bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-400 rounded-lg px-4 py-3 pl-12 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
                 />
@@ -291,7 +291,7 @@ const DataTable = <T extends TableRow = TableRow>({
                               onClick={() => toggleRowExpansion(index)}
                               className="b-0 bg-orange-600 hover:bg-orange-700 text-white font-medium text-sm px-4 py-2 rounded-lg transition-all duration-200 hover:scale-105"
                             >
-                              {expandedRow === globalIndex ? 'Hide' : 'Info'}
+                              {expandedRows.has(globalIndex) ? 'Hide' : 'Info'}
                             </button>
                           </td>
                         )}
@@ -308,7 +308,7 @@ const DataTable = <T extends TableRow = TableRow>({
                       </tr>
 
                       {/* Expanded Details Row */}
-                      {expandable && expandedRow === globalIndex && expandableColumns.length > 0 && (
+                      {expandable && expandedRows.has(globalIndex) && expandableColumns.length > 0 && (
                         <tr className="bg-zinc-900">
                           <td colSpan={displayColumns.length + 1} className="px-6 py-8">
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -352,11 +352,7 @@ const DataTable = <T extends TableRow = TableRow>({
             
             <div className="flex items-center gap-2">
               <button
-                onClick={() => {
-                  setCurrentPage(Math.max(1, currentPage - 1));
-                  // Close expanded row when changing pages
-                  setExpandedRow(null);
-                }}
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
                 className="bg-zinc-800 hover:bg-zinc-700 disabled:bg-zinc-900 disabled:text-zinc-600 text-white px-4 py-2 rounded-lg transition-all duration-200 disabled:cursor-not-allowed border border-zinc-700"
               >
@@ -379,11 +375,7 @@ const DataTable = <T extends TableRow = TableRow>({
                   return (
                     <button
                       key={page}
-                      onClick={() => {
-                        setCurrentPage(page);
-                        // Close expanded row when changing pages
-                        setExpandedRow(null);
-                      }}
+                      onClick={() => setCurrentPage(page)}
                       className={`w-10 h-10 rounded-lg font-medium text-sm transition-all duration-200 ${
                         currentPage === page
                           ? 'bg-orange-600 text-white shadow-lg shadow-orange-600/20'
@@ -397,11 +389,7 @@ const DataTable = <T extends TableRow = TableRow>({
               </div>
               
               <button
-                onClick={() => {
-                  setCurrentPage(Math.min(totalPages, currentPage + 1));
-                  // Close expanded row when changing pages
-                  setExpandedRow(null);
-                }}
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                 disabled={currentPage === totalPages}
                 className="bg-zinc-800 hover:bg-zinc-700 disabled:bg-zinc-900 disabled:text-zinc-600 text-white px-4 py-2 rounded-lg transition-all duration-200 disabled:cursor-not-allowed border border-zinc-700"
               >
