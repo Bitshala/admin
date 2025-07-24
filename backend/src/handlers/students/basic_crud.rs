@@ -1,4 +1,4 @@
-use crate::database::operations::{read_from_db, write_to_db};
+use crate::database::operations::{read_all_responses, read_from_db, write_to_db};
 use crate::utils::types::RowData;
 use actix_web::{HttpResponse, Responder, delete, get, post, put, web};
 use log::info;
@@ -131,6 +131,25 @@ pub async fn remove_student(path: web::Path<String>) -> impl Responder {
             info!("Error reading database: {:?}", e);
             HttpResponse::InternalServerError().json(serde_json::json!({
                 "error": "Failed to read database"
+            }))
+        }
+    }
+}
+
+#[get("/feedback/{cohort_name}")]
+pub async fn get_cohort_feedback(cohort_name: web::Path<String>) -> impl Responder {
+    let db_path = PathBuf::from("classroom.db");
+    let cohort_name = cohort_name.into_inner();
+
+    match read_all_responses(&db_path, &cohort_name) {
+        Ok(responses) => {
+            info!("Successfully fetched feedback for cohort: {}", cohort_name);
+            HttpResponse::Ok().json(responses)
+        }
+        Err(e) => {
+            info!("Error fetching feedback: {:?}", e);
+            HttpResponse::InternalServerError().json(serde_json::json!({
+                "error": "Failed to fetch feedback"
             }))
         }
     }

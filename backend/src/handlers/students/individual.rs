@@ -124,17 +124,19 @@ pub async fn get_individual_student_data(
     state: web::Data<Mutex<Table>>,
 ) -> impl Responder {
     let student_name = info.into_inner();
-    let state_table = state.lock().unwrap();
 
-    // Collect all weeks' data for the student
-    let mut student_data: Vec<RowData> = state_table
-        .rows
-        .iter()
-        .filter(|row| row.name == student_name)
-        .cloned()
-        .collect();
+    // Single lock scope for data collection
+    let mut student_data: Vec<RowData> = {
+        let state_table = state.lock().unwrap();
+        state_table
+            .rows
+            .iter()
+            .filter(|row| row.name == student_name)
+            .cloned()
+            .collect()
+    }; // Lock released here
 
-    // Optionally, sort by week
+    // Sort by week after releasing the lock
     student_data.sort_by_key(|row| row.week);
 
     HttpResponse::Ok().json(student_data)

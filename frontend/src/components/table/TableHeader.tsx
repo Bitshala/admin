@@ -65,6 +65,12 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
         >
           Result
         </button>
+                <button
+          onClick={() => navigate('/feedback')}
+          className="cursor-pointer bg-orange-400 hover:bg-orange-500 text-white font-light text-xl px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors duration-200"
+        >
+          Feedback
+        </button>
       </div>
 
       {/* Filters */}

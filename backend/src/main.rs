@@ -20,6 +20,7 @@ use handlers::students::{
     add_student,
     add_weekly_data,
     delete_data,
+    get_cohort_feedback,
     get_individual_student_data,
     get_student_background_data,
     //register
@@ -98,6 +99,7 @@ async fn main() -> Result<(), std::io::Error> {
             .service(get_student_background_data)
             .service(get_individual_student_data)
             .service(get_student_github_username)
+            .service(get_cohort_feedback)
             //register
             .service(register_user)
     })
