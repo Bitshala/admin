@@ -96,24 +96,22 @@ pub struct Member {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct CohortParticipant {
-    pub id: i32,
     pub name: String,
     pub enrolled: bool,
     pub role: String,
     pub email: String,
+    #[serde(alias = "describeYourself")]
     pub describe_yourself: String,
     pub background: String,
     pub github: String,
-    pub skills: String,
+    pub skills: Vec<String>,
     pub year: String,
-    pub books: String,
+    pub books: Vec<String>,
     pub why: String,
     pub time: String,
     pub location: String,
-    pub version: i32,
+    #[serde(alias = "cohortName")]
     pub cohort_name: String,
-    pub created_at: String,
-    pub updated_at: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

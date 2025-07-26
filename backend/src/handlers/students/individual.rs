@@ -106,9 +106,11 @@ pub async fn get_student_github_username(info: web::Path<String>) -> impl Respon
 
 #[get("/register")]
 pub async fn register_user(data: web::Json<CohortParticipant>) -> impl Responder {
-    let db_path = PathBuf::from("cohortparticipants.db");
+    let data = data.into_inner();
+    println!("Registering cohort participant: {:?}", data.role);
+    let db_path = PathBuf::from(format!("{}.db", data.role));
 
-    if let Err(e) = register_cohort_participant(&db_path, data.into_inner()) {
+    if let Err(e) = register_cohort_participant(&db_path, data) {
         warn!("Failed to register cohort participant: {e}");
         return HttpResponse::InternalServerError()
             .json(serde_json::json!({ "error": e.to_string() }));

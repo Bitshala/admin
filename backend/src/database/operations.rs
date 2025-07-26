@@ -3,6 +3,7 @@ use chrono::Utc;
 use log::info;
 use rusqlite::{Connection, Result, params};
 use std::path::PathBuf;
+use serde_json;
 
 pub fn read_from_db(path: &PathBuf) -> Result<Table, AppError> {
     info!("Reading from DB at path: {:?}", path);
@@ -117,15 +118,38 @@ pub fn register_cohort_participant(
     let mut conn = Connection::open(path)?;
     let tx = conn.transaction()?;
 
+    // Create table if it doesn't exist
+    tx.execute(
+        "CREATE TABLE IF NOT EXISTS participants (
+            name TEXT NOT NULL ,
+            enrolled BOOLEAN NOT NULL,
+            role TEXT NOT NULL,
+            email TEXT NOT NULL Primary Key,
+            describe_yourself TEXT,
+            background TEXT,
+            github TEXT,
+            skills TEXT,
+            year TEXT,
+            books TEXT,
+            why TEXT,
+            time TEXT,
+            location TEXT,
+            cohort_name TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )",
+        [],
+    )?;
+
     let now = Utc::now().naive_utc();
     let now_str = now.to_string();
 
     tx.execute(
-        "INSERT INTO cohort_participants (
+        "INSERT INTO participants (
             name, enrolled, role, email, describe_yourself, background, 
-            github, skills, year, books, why, time, location, version, 
-            cohort_name, created_at, updated_at
-        ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17)",
+            github, skills, year, books, why, time, location, cohort_name, 
+            created_at, updated_at
+        ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)",
         params![
             participant.name,
             participant.enrolled,
@@ -134,20 +158,19 @@ pub fn register_cohort_participant(
             participant.describe_yourself,
             participant.background,
             participant.github,
-            participant.skills,
+            serde_json::to_string(&participant.skills).unwrap_or_default(),
             participant.year,
-            participant.books,
+            serde_json::to_string(&participant.books).unwrap_or_default(),
             participant.why,
             participant.time,
             participant.location,
-            participant.version,
             participant.cohort_name,
             now_str,
             now_str
         ],
     )?;
 
-    info!("Successfully wrote rows to the database.",);
+    info!("Successfully wrote rows to the database.");
     tx.commit()?;
     Ok(())
 }
