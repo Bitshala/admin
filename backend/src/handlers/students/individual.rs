@@ -2,7 +2,7 @@ use crate::database::operations::register_cohort_participant;
 use crate::handlers::students::weekly_data::{get_github_to_name_mapping, get_github_username};
 use crate::utils::classroom::{Assignment, get_submitted_assignments};
 use crate::utils::types::{CohortParticipant, RowData, Table};
-use actix_web::{HttpResponse, Responder, get, web};
+use actix_web::{HttpResponse, Responder, get, post, web};
 use log::{info, warn};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
@@ -104,10 +104,11 @@ pub async fn get_student_github_username(info: web::Path<String>) -> impl Respon
     HttpResponse::Ok().json(data)
 }
 
-#[get("/register")]
+#[post("/register")]
 pub async fn register_user(data: web::Json<CohortParticipant>) -> impl Responder {
     let data = data.into_inner();
-    println!("Registering cohort participant: {:?}", data.role);
+    info!("Registering cohort participant: {:?}", data.role);
+    
     let db_path = PathBuf::from(format!("{}.db", data.role));
 
     if let Err(e) = register_cohort_participant(&db_path, data) {
@@ -117,6 +118,8 @@ pub async fn register_user(data: web::Json<CohortParticipant>) -> impl Responder
     }
 
     info!("Cohort participant registered successfully.");
+    
+
     HttpResponse::Ok().json(serde_json::json!({ "status": "success" }))
 }
 
