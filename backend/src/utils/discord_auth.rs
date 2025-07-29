@@ -24,7 +24,7 @@ struct Member {
     roles: Vec<String>,
 }
 
-#[get("/discord/callback")]
+#[get("/callback")]
 pub async fn discord_oauth(query: web::Query<OAuthQuery>) -> Result<impl Responder> {
     let client_id = env::var("DISCORD_CLIENT_ID").expect("Missing DISCORD_CLIENT_ID");
     let client_secret = env::var("DISCORD_CLIENT_SECRET").expect("Missing DISCORD_CLIENT_SECRET");
