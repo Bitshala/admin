@@ -62,13 +62,13 @@ pub fn get_background_data(path: &PathBuf, email: &str) -> BackgroundData {
         .unwrap_or_else(BackgroundData::default)
 }
 
-#[get("/students/{week}/{student_name}")]
-pub async fn get_student_repo_link(info: web::Path<(i32, String)>) -> impl Responder {
-    let (week, student_name) = info.into_inner();
+#[get("/students/{week}/{cohort_name}/{student_name}")]
+pub async fn get_student_repo_link(info: web::Path<(i32, String, String)>) -> impl Responder {
+    let (week, cohort_name, student_name) = info.into_inner();
     let assignments = get_submitted_assignments(week).await.unwrap();
     let submitted: Vec<&Assignment> = assignments.iter().filter(|a| a.is_submitted()).collect();
 
-    let db_path = PathBuf::from("classroom.db");
+    let db_path = PathBuf::from(format!("{}_cohort.db", cohort_name));
     let mut student_url = "".to_string();
 
     //for loops conclude to unit type ()
@@ -86,9 +86,9 @@ pub async fn get_student_repo_link(info: web::Path<(i32, String)>) -> impl Respo
 }
 
 #[get("/data/{student_email}")]
-pub async fn get_student_background_data(info: web::Path<String>) -> impl Responder {
-    let student_email = info.into_inner();
-    let db_path = PathBuf::from("classroom.db");
+pub async fn get_student_background_data(info: web::Path<(String, String)>) -> impl Responder {
+    let (cohort_name, student_email) = info.into_inner();
+    let db_path = PathBuf::from(format!("{}_cohort.db", cohort_name));
 
     let data = get_background_data(&db_path, &student_email);
 
@@ -96,9 +96,9 @@ pub async fn get_student_background_data(info: web::Path<String>) -> impl Respon
 }
 
 #[get("/student/github/{name}")]
-pub async fn get_student_github_username(info: web::Path<String>) -> impl Responder {
-    let student_name = info.into_inner();
-    let db_path = PathBuf::from("classroom.db");
+pub async fn get_student_github_username(info: web::Path<(String, String)>) -> impl Responder {
+    let (cohort_name, student_name) = info.into_inner();
+    let db_path = PathBuf::from(format!("{}_cohort.db", cohort_name));
 
     let data = get_github_username(&db_path, &student_name);
 

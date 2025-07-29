@@ -4,9 +4,10 @@ use actix_web::{HttpResponse, Responder, delete, get, post, put, web};
 use log::info;
 use std::path::PathBuf;
 
-#[get("/students")]
-pub async fn get_students() -> impl Responder {
-    let db_path = PathBuf::from("classroom.db");
+#[get("/students/{cohort_name}")]
+pub async fn get_students(path: web::Path<String>) -> impl Responder {
+    let cohort_name = path.into_inner();
+    let db_path = PathBuf::from(format!("{}_cohort.db", cohort_name));
 
     match read_from_db(&db_path) {
         Ok(table) => {
@@ -22,9 +23,10 @@ pub async fn get_students() -> impl Responder {
     }
 }
 
-#[post("/students")]
-pub async fn add_student(student_data: web::Json<RowData>) -> impl Responder {
-    let db_path = PathBuf::from("classroom.db");
+#[post("/students/{cohort_name}")]
+pub async fn add_student(path: web::Path<String>, student_data: web::Json<RowData>) -> impl Responder {
+    let cohort_name = path.into_inner();
+    let db_path = PathBuf::from(format!("{}_cohort.db", cohort_name));
 
     match read_from_db(&db_path) {
         Ok(mut table) => {
@@ -54,13 +56,13 @@ pub async fn add_student(student_data: web::Json<RowData>) -> impl Responder {
     }
 }
 
-#[put("/students/{name}")]
+#[put("/students/{cohort_name}/{name}")]
 pub async fn update_student(
-    path: web::Path<String>,
+    path: web::Path<(String, String)>,
     student_data: web::Json<RowData>,
 ) -> impl Responder {
-    let student_name = path.into_inner();
-    let db_path = PathBuf::from("classroom.db");
+    let (cohort_name, student_name) = path.into_inner();
+    let db_path = PathBuf::from(format!("{}_cohort.db", cohort_name));
 
     match read_from_db(&db_path) {
         Ok(mut table) => {
@@ -96,10 +98,10 @@ pub async fn update_student(
     }
 }
 
-#[delete("/students/{name}")]
-pub async fn remove_student(path: web::Path<String>) -> impl Responder {
-    let student_name = path.into_inner();
-    let db_path = PathBuf::from("classroom.db");
+#[delete("/students/{cohort_name}/{name}")]
+pub async fn remove_student(path: web::Path<(String, String)>) -> impl Responder {
+    let (cohort_name, student_name) = path.into_inner();
+    let db_path = PathBuf::from(format!("{}_cohort.db", cohort_name));
 
     match read_from_db(&db_path) {
         Ok(mut table) => {
@@ -138,8 +140,9 @@ pub async fn remove_student(path: web::Path<String>) -> impl Responder {
 
 #[get("/feedback/{cohort_name}")]
 pub async fn get_cohort_feedback(cohort_name: web::Path<String>) -> impl Responder {
-    let db_path = PathBuf::from("classroom.db");
     let cohort_name = cohort_name.into_inner();
+    let db_path = PathBuf::from(format!("{}_cohort.db", cohort_name));
+
 
     match read_all_responses(&db_path, &cohort_name) {
         Ok(responses) => {
