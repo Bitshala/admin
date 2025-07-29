@@ -5,6 +5,7 @@ use crate::utils::types::{CohortParticipant, RowData, Table};
 use actix_web::{HttpResponse, Responder, get, post, web};
 use log::{info, warn};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Mutex;
 
@@ -108,8 +109,10 @@ pub async fn get_student_github_username(info: web::Path<String>) -> impl Respon
 pub async fn register_user(data: web::Json<CohortParticipant>) -> impl Responder {
     let data = data.into_inner();
     info!("Registering cohort participant: {:?}", data.role);
-    
-    let db_path = PathBuf::from(format!("{}.db", data.role));
+
+    let db_path = PathBuf::from(format!("{}.db", data.role.clone()));
+
+    let participant_data = data.clone();
 
     if let Err(e) = register_cohort_participant(&db_path, data) {
         warn!("Failed to register cohort participant: {e}");
@@ -118,7 +121,24 @@ pub async fn register_user(data: web::Json<CohortParticipant>) -> impl Responder
     }
 
     info!("Cohort participant registered successfully.");
-    
+
+    // if participant is registered successfully, send data to external API
+
+    let api_data = HashMap::from([
+        ("name", participant_data.name),
+        ("email", participant_data.email),
+        ("role", participant_data.role),
+    ]);
+
+    let client = reqwest::Client::new();
+    client
+        .post("http://localhost:8080/bot/invite")
+        .header("Content-Type", "application/json")
+        .json(&api_data)
+        .send()
+        .await
+        .map_err(|_| HttpResponse::InternalServerError().finish())
+        .unwrap();
 
     HttpResponse::Ok().json(serde_json::json!({ "status": "success" }))
 }

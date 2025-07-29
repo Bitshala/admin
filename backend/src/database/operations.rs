@@ -2,8 +2,8 @@ use crate::utils::types::{AppError, CohortParticipant, FeedbackResponse, RowData
 use chrono::Utc;
 use log::info;
 use rusqlite::{Connection, Result, params};
-use std::path::PathBuf;
 use serde_json;
+use std::path::PathBuf;
 
 pub fn read_from_db(path: &PathBuf) -> Result<Table, AppError> {
     info!("Reading from DB at path: {:?}", path);
