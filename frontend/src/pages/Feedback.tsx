@@ -1,24 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import DataTable from '../components/DataTable.tsx';
 
 const FeedbackTable = () => {
-  const [feedbacks, setFeedbacks] = useState([]);
+  const [feedbacks, setFeedbacks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Define columns configuration
   const columns = [
     {
       key: 'timestamp',
       label: 'Timestamp',
-      type: 'date',
+      type: 'date' as const,
       sortable: true,
     },
     {
       key: 'discord_name',
       label: 'Discord Name',
       sortable: true,
-      render: (value) => (
+      render: (value: any) => (
         <span className="font-medium text-blue-600">{value}</span>
       )
     },
@@ -30,13 +30,13 @@ const FeedbackTable = () => {
     {
       key: 'academic_background',
       label: 'Academic Background',
-      type: 'truncate',
+      type: 'truncate' as const,
       sortable: true,
     },
     {
       key: 'skills',
       label: 'Skills',
-      type: 'truncate',
+      type: 'truncate' as const,
     },
     // Expandable columns (shown in detail view)
     {
@@ -137,7 +137,7 @@ const FeedbackTable = () => {
         setFeedbacks(data);
         setLoading(false);
       } catch (err) {
-        setError(err.message);
+        setError(err instanceof Error ? err.message : 'An unknown error occurred');
         setLoading(false);
       }
     };
@@ -148,7 +148,7 @@ const FeedbackTable = () => {
   return (
     <DataTable
       data={feedbacks}
-      columns={columns}
+      columns={columns as any}
       title="Feedback Responses"
       loading={loading}
       error={error}
