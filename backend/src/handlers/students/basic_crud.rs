@@ -24,7 +24,10 @@ pub async fn get_students(path: web::Path<String>) -> impl Responder {
 }
 
 #[post("/students/{cohort_name}")]
-pub async fn add_student(path: web::Path<String>, student_data: web::Json<RowData>) -> impl Responder {
+pub async fn add_student(
+    path: web::Path<String>,
+    student_data: web::Json<RowData>,
+) -> impl Responder {
     let cohort_name = path.into_inner();
     let db_path = PathBuf::from(format!("{}_cohort.db", cohort_name));
 
@@ -142,7 +145,6 @@ pub async fn remove_student(path: web::Path<(String, String)>) -> impl Responder
 pub async fn get_cohort_feedback(cohort_name: web::Path<String>) -> impl Responder {
     let cohort_name = cohort_name.into_inner();
     let db_path = PathBuf::from(format!("{}_cohort.db", cohort_name));
-
 
     match read_all_responses(&db_path, &cohort_name) {
         Ok(responses) => {

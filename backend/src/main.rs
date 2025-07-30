@@ -3,7 +3,6 @@ use actix_web::{App, HttpServer, http::header, middleware::Logger, web};
 use log::info;
 use std::path::PathBuf;
 use std::sync::Mutex;
-
 // Import our modules
 mod database;
 mod handlers;
@@ -39,6 +38,7 @@ use handlers::students::{
     remove_student,
     update_student,
 };
+use handlers::universal::switch_cohort_api;
 use utils::discord_auth::discord_oauth;
 
 #[actix_web::main]
@@ -57,9 +57,9 @@ async fn main() -> Result<(), std::io::Error> {
     // Start backup thread
     start_backup_thread();
 
-    // Initialize database state
-    let table = read_from_db(&PathBuf::from("classroom.db"))?;
-    let state = web::Data::new(Mutex::new(table));
+    // Initialize database state as empty - will be populated via switch_cohort_api
+    let empty_table = crate::utils::types::Table { rows: Vec::new() };
+    let state = web::Data::new(Mutex::new(empty_table));
 
     // Start HTTP server
     HttpServer::new(move || {
@@ -81,7 +81,9 @@ async fn main() -> Result<(), std::io::Error> {
             .wrap(Logger::default())
             // Auth routes
             .service(login)
-            .service(discord_oauth) // This is the actual discord handler
+            .service(discord_oauth)
+            // Universal routes
+            .service(switch_cohort_api)
             // Student CRUD routes
             .service(get_students)
             .service(add_student)

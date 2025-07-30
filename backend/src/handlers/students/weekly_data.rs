@@ -244,7 +244,11 @@ pub async fn get_weekly_data_or_common(
 
             if data_changed {
                 info!("Data changed - writing to database for week {}", week);
-                write_to_db(&PathBuf::from(format!("{}_cohort.db", cohort_name)), &state_table).unwrap();
+                write_to_db(
+                    &PathBuf::from(format!("{}_cohort.db", cohort_name)),
+                    &state_table,
+                )
+                .unwrap();
             } else {
                 info!(
                     "No data changes detected for week {} - skipping database write",
