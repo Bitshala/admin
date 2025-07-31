@@ -8,6 +8,7 @@ interface StudentRowProps {
   person: TableRowData;
   week: number;
   canEditFields: boolean;
+  canEditAttendance: boolean;
   onStudentClick: (studentName: string) => void;
   onDataUpdate: (data: TableRowData[]) => void;
   onEditedRowsUpdate: (rows: TableRowData[]) => void;
@@ -29,6 +30,7 @@ export const StudentRow: React.FC<StudentRowProps> = ({
   onEditedRowsUpdate,
   onContextMenu,
   allData,
+  canEditAttendance,
 }) => {
   const scoreOptions = [0, 1, 2, 3, 4, 5];
 
@@ -179,7 +181,7 @@ export const StudentRow: React.FC<StudentRowProps> = ({
         <input
           type="checkbox"
           checked={person.attendance}
-          disabled={!canEditFields}
+          disabled={!canEditAttendance}
           onChange={handleAttendanceChange}
           className="h-4 w-4 text-orange-600 border-zinc-300 rounded focus:ring-orange-500 disabled:cursor-not-allowed"
         />

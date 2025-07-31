@@ -23,13 +23,14 @@ export const ResultPage: React.FC<ResultPageProps> = () => {
   const [currentSort, setCurrentSort] = useState<SortType>('default');
   const navigate = useNavigate();
   const baseUrl = import.meta.env.VITE_API_BASE_URL;
-
+  const cohort_name = localStorage.getItem('selected_cohort_db_path') || 'lbtcl_cohort.db';
+  
   useEffect(() => {
     const fetchResults = async (): Promise<void> => {
       try {
         setLoading(true);
-        const response: Response = await fetch(`${baseUrl}/students/total_scores`);
-        
+        const response: Response = await fetch(`${baseUrl}/students/${cohort_name}/total_scores`);
+
         if (!response.ok) {
           throw new Error('Failed to fetch results');
         }

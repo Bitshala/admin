@@ -10,7 +10,7 @@ interface WeeklyBreakdownCardProps {
 
 export const WeeklyBreakdownCard = ({ week, studentName }: WeeklyBreakdownCardProps) => {
   const handleRepoLink = async () => {
-    const url = await fetchStudentRepoLink(week.week, studentName);
+    const url = await fetchStudentRepoLink(week.week, studentName, week.cohort_name);
     if (url) {
       window.open(url, '_blank');
     }

@@ -31,7 +31,7 @@ fn backup(db_name: &str) -> Result<(), DbError> {
         let now = Local::now();
         let day_of_week = now.format("%A");
         let date_time = now.format("%Y-%m-%d");
-        let backup_file = backup_dir.join(format!("{}_{}_{}.db", db_name, day_of_week, date_time));
+        let backup_file = backup_dir.join(format!("{}_{}_{}", db_name, day_of_week, date_time));
         fs::copy(&db_path, &backup_file).unwrap();
 
         cleanup_old_backups(db_name, 35);

@@ -6,6 +6,7 @@ interface StudentTableGridProps {
   data: TableRowData[];
   week: number;
   canEditFields: boolean;
+  canEditAttendance: boolean;
   sortConfig: {
     key: keyof TableRowData | null;
     direction: 'ascending' | 'descending';
@@ -27,6 +28,7 @@ export const StudentTableGrid: React.FC<StudentTableGridProps> = ({
   onDataUpdate,
   onEditedRowsUpdate,
   onContextMenu,
+  canEditAttendance,
 }) => {
   const requestSort = (key: keyof TableRowData) => {
     let direction: 'ascending' | 'descending' = 'ascending';
@@ -162,6 +164,7 @@ export const StudentTableGrid: React.FC<StudentTableGridProps> = ({
                 person={person}
                 week={week}
                 canEditFields={canEditFields}
+                canEditAttendance={canEditAttendance}
                 onStudentClick={onStudentClick}
                 onDataUpdate={onDataUpdate}
                 onEditedRowsUpdate={onEditedRowsUpdate}
