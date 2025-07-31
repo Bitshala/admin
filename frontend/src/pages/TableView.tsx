@@ -74,6 +74,7 @@ const TableView: React.FC = () => {
     []
   );
   const canEditFields = isEditing && week !== 0;
+  const canEditAttendance = isEditing;
   const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
   // --- DATA FETCHING ---
@@ -495,6 +496,7 @@ const TableView: React.FC = () => {
           data={processedData}
           week={week}
           canEditFields={canEditFields}
+          canEditAttendance={canEditAttendance}
           sortConfig={sortConfig}
           onSort={setSortConfig}
           onStudentClick={handleStudentClick}
