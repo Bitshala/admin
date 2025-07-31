@@ -291,13 +291,23 @@ const TableView: React.FC = () => {
       body: JSON.stringify(payload),
     })
       .then(r => {
-        if (!r.ok) throw new Error(r.statusText);
+        if (!r.ok) {
+          return r.text().then(text => {
+            throw new Error(text || r.statusText);
+          });
+        }
         setIsEditing(false);
         setEditedRows([]);
         getWeeklyData(week);
         return r.json();
       })
-      .catch(e => console.error('Save failed', e));
+      .catch(e => {
+        console.error('Save failed', e);
+        if (e.message && e.message.includes('No student data provided')) {
+          console.log('No changes to save.');
+          setIsEditing(false);
+        }
+      });
   };
 
   const handleAddStudent = (
