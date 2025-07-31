@@ -11,6 +11,9 @@ import type { TableRowData } from '../types/student';
 
 const AUTH_TOKEN = import.meta.env.VITE_AUTH_TOKEN;
 
+// Function to get cohort name from database path
+
+
 // API interface for the table view
 interface ApiStudentEntry {
   name: string;
@@ -39,6 +42,9 @@ const TableView: React.FC = () => {
   const [editedRows, setEditedRows] = useState<TableRowData[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [week, setWeek] = useState(0);
+  
+  // Get cohort name from localStorage
+  const cohort_name = localStorage.getItem('selected_cohort_db_path') || 'lbtcl_cohort.db';
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [sortConfig, setSortConfig] = useState<{
     key: keyof TableRowData | null;
@@ -72,7 +78,7 @@ const TableView: React.FC = () => {
 
   // --- DATA FETCHING ---
   const fetchWeeklyData = useCallback((selectedWeek: number) => {
-    fetch(`${baseUrl}/weekly_data/${selectedWeek}`, {
+    fetch(`${baseUrl}/weekly_data/${cohort_name}/${selectedWeek}`, {
       headers: { Authorization: `${AUTH_TOKEN}` },
     })
       .then(response => {
@@ -166,11 +172,11 @@ const TableView: React.FC = () => {
   }, [fetchWeeklyData, getWeeklyData, week]);
 
   useEffect(() => {
-    fetch(`${baseUrl}/students/count`)
+    fetch(`${baseUrl}/count/students`)
       .then(res => res.json())
       .then(data => setTotalCount(data.count))
       .catch(err => console.error('Error fetching total count:', err));
-  }, []);
+  }, [baseUrl]);
 
   // --- COMPUTED DATA ---
   const taOptions = useMemo(() => {
@@ -278,7 +284,7 @@ const TableView: React.FC = () => {
       total: computeTotal(p),
     }));
 
-    fetch(`${baseUrl}/weekly_data/${week}`, {
+    fetch(`${baseUrl}/weekly_data/${cohort_name}/${week}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -323,10 +329,10 @@ const TableView: React.FC = () => {
       total: computeTotal(studentData),
     };
 
-    fetch(`${baseUrl}/weekly_data/${week}`, {
+    fetch(`${baseUrl}/students/${cohort_name}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify([payload]),
+      body: JSON.stringify(payload),
     })
       .then(r => {
         if (!r.ok) throw new Error(r.statusText);
@@ -373,7 +379,7 @@ const TableView: React.FC = () => {
       total: computeTotal(rowToDelete),
     };
 
-    fetch(`${baseUrl}/del/${week}`, {
+    fetch(`${baseUrl}/del/${cohort_name}/${week}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),

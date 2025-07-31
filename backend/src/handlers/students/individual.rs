@@ -143,7 +143,7 @@ pub async fn register_user(data: web::Json<CohortParticipant>) -> impl Responder
     HttpResponse::Ok().json(serde_json::json!({ "status": "success" }))
 }
 
-#[get("/students/{student_name}")]
+#[get("/individual_data/{student_name}")]
 pub async fn get_individual_student_data(
     info: web::Path<String>,
     state: web::Data<Mutex<Table>>,

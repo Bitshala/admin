@@ -94,7 +94,7 @@ pub async fn get_weekly_data_or_common(
         let submitted: Vec<&Assignment> = assignments.iter().filter(|a| a.is_submitted()).collect();
 
         let mut name_to_assignment: HashMap<String, &Assignment> = HashMap::new();
-        let db_path = PathBuf::from(format!("{}_cohort.db", cohort_name));
+        let db_path = PathBuf::from(format!("{}", cohort_name));
 
         for assignment in &submitted {
             if let Some(participant_name) =
@@ -245,7 +245,7 @@ pub async fn get_weekly_data_or_common(
             if data_changed {
                 info!("Data changed - writing to database for week {}", week);
                 write_to_db(
-                    &PathBuf::from(format!("{}_cohort.db", cohort_name)),
+                    &PathBuf::from(format!("{}", cohort_name)),
                     &state_table,
                 )
                 .unwrap();
@@ -267,7 +267,7 @@ pub async fn get_weekly_data_or_common(
     }))
 }
 
-#[post("/weekly_data?{cohort_name}/{week}")]
+#[post("/weekly_data/{cohort_name}/{week}")]
 pub async fn add_weekly_data(
     info: web::Path<(String, i32)>,
     student_data: web::Json<Vec<RowData>>,
@@ -282,7 +282,7 @@ pub async fn add_weekly_data(
 
     let (cohort_name, week) = info.into_inner();
 
-    let db_path = PathBuf::from(format!("{}_cohort.db", cohort_name));
+    let db_path = PathBuf::from(format!("{}", cohort_name));
     let week_num = week;
     let first_student_name = student_data[0].name.clone(); // Clone for logging
 
@@ -313,7 +313,7 @@ pub async fn delete_data(
     state: web::Data<std::sync::Mutex<Table>>,
 ) -> Result<HttpResponse, actix_web::Error> {
     let (cohort_name, week) = info.into_inner();
-    let db_path = PathBuf::from(format!("{}_cohort.db", cohort_name));
+    let db_path = PathBuf::from(format!("{}", cohort_name));
 
     // Extract data for logging before acquiring lock
     let student_name = row_to_delete.name.clone();
