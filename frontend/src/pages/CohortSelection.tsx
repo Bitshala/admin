@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CohortCard from '../components/CohortCard';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 export const CohortSelection = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -50,7 +52,7 @@ export const CohortSelection = () => {
   const switchCohort = async (dbPath: string, cohortTitle: string) => {
     try {
       setLoading(true);
-      const response = await fetch('http://127.0.0.1:8081/switch_cohort', {
+      const response = await fetch(`${API_BASE_URL}/switch_cohort`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
