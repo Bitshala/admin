@@ -1,11 +1,35 @@
 import { useState, useEffect } from 'react';
 import DataTable from '../components/DataTable.tsx';
 
+interface FeedbackResponse {
+  timestamp: string;
+  discord_name: string;
+  name_on_certificate: string;
+  academic_background: string;
+  skills: string;
+  session_instructions: string;
+  study_material: string;
+  group_discussions: string;
+  lounge_discussions: string;
+  deputy: string;
+  teaching_assistants: string;
+  bitshala_clubs: string;
+  bitdev_meetups: string;
+  bitspace: string;
+  fellowships: string;
+  expectations: string;
+  improvement_ideas: string;
+  bitcoin_opportunities: string;
+  fellowship_projects: string;
+  ideal_project: string;
+  testimonial: string;
+}
+
 const FeedbackTable = () => {
-  const [feedbacks, setFeedbacks] = useState<any[]>([]);
+  const [feedbacks, setFeedbacks] = useState<FeedbackResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+  const cohort_name = localStorage.getItem('selected_cohort_db_path') || 'lbtcl_cohort.db';
   // Define columns configuration
   const columns = [
     {
@@ -18,7 +42,7 @@ const FeedbackTable = () => {
       key: 'discord_name',
       label: 'Discord Name',
       sortable: true,
-      render: (value: any) => (
+      render: (value: string) => (
         <span className="font-medium text-blue-600">{value}</span>
       )
     },
@@ -129,8 +153,13 @@ const FeedbackTable = () => {
         // Replace with your actual API call
         console.log('Fetching feedbacks from API...');
         const baseUrl = import.meta.env.VITE_API_BASE_URL;
-        const response = await fetch(`${baseUrl}/feedback/lbtcl`);
-        
+        const response = await fetch(`${baseUrl}/feedback/${cohort_name}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
         const data = await response.json();
 
     
@@ -143,12 +172,12 @@ const FeedbackTable = () => {
     };
 
     fetchFeedbacks();
-  }, []);
+  }, [cohort_name]);
 
   return (
     <DataTable
       data={feedbacks}
-      columns={columns as any}
+      columns={columns}
       title="Feedback Responses"
       loading={loading}
       error={error}

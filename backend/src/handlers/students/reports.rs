@@ -13,7 +13,7 @@ struct StudentScoreResponse {
     exercise_total_score: u8,
 }
 
-#[get("/students/count")]
+#[get("count/students")]
 pub async fn get_total_student_count(state: web::Data<Mutex<Table>>) -> impl Responder {
     info!("Fetching total student count");
     let count = state
@@ -50,8 +50,11 @@ pub async fn get_weekly_attendance_count_for_week(
     }))
 }
 
-#[get("/students/total_scores")]
-pub async fn get_students_by_total_score(state: web::Data<Mutex<Table>>) -> impl Responder {
+#[get("/students/{cohort_name}/total_scores")]
+pub async fn get_students_by_total_score(
+    _cohort_name: web::Path<String>,
+    state: web::Data<Mutex<Table>>,
+) -> impl Responder {
     info!("Fetching students ordered by total score (desc)");
     let state_table = state.lock().unwrap();
 

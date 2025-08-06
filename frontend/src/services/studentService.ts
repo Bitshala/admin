@@ -43,7 +43,7 @@ const transformStudentData = (rawData: ApiStudentRecord[]): StudentData | null =
 export const fetchStudentData = async (name: string): Promise<StudentData | null> => {
   try {
     const encodedName = encodeURIComponent(name);
-    const response = await fetch(`${baseUrl}/students/${encodedName}`);
+    const response = await fetch(`${baseUrl}/individual_data/${encodedName}`);
 
     if (!response.ok) {
       if (response.status === 404) {
