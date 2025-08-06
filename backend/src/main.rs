@@ -1,7 +1,6 @@
 use actix_cors::Cors;
 use actix_web::{App, HttpServer, http::header, middleware::Logger, web};
 use log::info;
-use std::path::PathBuf;
 use std::sync::Mutex;
 // Import our modules
 mod database;
@@ -9,7 +8,6 @@ mod handlers;
 mod utils;
 
 // Import functions
-use database::operations::read_from_db;
 use utils::backup::start_backup_thread;
 use utils::csv_dump::csv_dump;
 
@@ -64,6 +62,7 @@ async fn main() -> Result<(), std::io::Error> {
     // Start HTTP server
     HttpServer::new(move || {
         let cors = Cors::default()
+            .allowed_origin("http://localhost:4321")
             .allow_any_origin()
             .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
             .allowed_headers(vec![

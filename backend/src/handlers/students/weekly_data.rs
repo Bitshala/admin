@@ -312,7 +312,7 @@ pub async fn delete_data(
     row_to_delete: web::Json<RowData>,
     state: web::Data<std::sync::Mutex<Table>>,
 ) -> Result<HttpResponse, actix_web::Error> {
-    let (cohort_name, week) = info.into_inner();
+    let (cohort_name, _week) = info.into_inner();
     let db_path = PathBuf::from(format!("{}", cohort_name));
 
     // Extract data for logging before acquiring lock
