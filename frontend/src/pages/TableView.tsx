@@ -259,7 +259,15 @@ const TableView: React.FC = () => {
   };
 
   const handleEditedRowsUpdate = (updatedRows: TableRowData[]) => {
-    setEditedRows(updatedRows);
+    setEditedRows(prevEditedRows => {
+      const existingIds = new Set(prevEditedRows.map(row => row.id));
+      const newRows = updatedRows.filter(row => !existingIds.has(row.id));
+      const updatedExistingRows = prevEditedRows.map(existingRow => {
+        const updatedRow = updatedRows.find(row => row.id === existingRow.id);
+        return updatedRow || existingRow;
+      });
+      return [...updatedExistingRows, ...newRows];
+    });
     setIsEditing(true);
   };
 

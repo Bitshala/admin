@@ -129,13 +129,22 @@ pub async fn get_weekly_data_or_common(
 
             prev_week_rows
         }; // Lock released here
-
+        println!("this cohort name is {}", cohort_name);
+        let tas: Vec<TA>;
+        if cohort_name == "pb_cohort.db" {
+            tas = TA::all_variants()
+                .iter()
+                .cloned()
+                .filter(|ta| *ta != TA::Setu && *ta != TA::Delcin && *ta != TA::Raj)
+                .collect();
+        } else {
+            tas = TA::all_variants()
+                .iter()
+                .cloned()
+                .filter(|ta| *ta != TA::Setu)
+                .collect();
+        }
         // Step 3: Process data (no locks needed)
-        let tas: Vec<TA> = TA::all_variants()
-            .iter()
-            .cloned()
-            .filter(|ta| *ta != TA::Setu)
-            .collect();
 
         let mut result_rows: Vec<RowData> = Vec::new();
         let mut group_id: isize = -1;
@@ -146,17 +155,34 @@ pub async fn get_weekly_data_or_common(
 
         for (index, mut row) in prev_week_rows.into_iter().enumerate() {
             if row.attendance.as_deref() == Some("no") {
-                row.group_id = format!("Group {}", 6);
-                row.ta = Some("Setu".to_string());
+                if cohort_name == "pb_cohort.db" {
+                    row.group_id = format!("Group {}", 4);
+                    row.ta = Some("Raj".to_string());
+                } else {
+                    row.group_id = format!("Group {}", 6);
+                    row.ta = Some("Setu".to_string());
+                }
             } else if row.attendance.as_deref() == Some("yes") {
-                if index < 30 {
-                    if index % 6 == 0 {
+                if cohort_name == "pb_cohort.db" {
+                    if index < 24 {
+                        if index % 8 == 0 {
+                            group_id += 1;
+                        }
+                    } else {
                         group_id += 1;
                     }
                 } else {
-                    group_id += 1;
+                    if index < 30 {
+                        if index % 6 == 0 {
+                            group_id += 1;
+                        }
+                    } else {
+                        group_id += 1;
+                    }
                 }
+
                 let index = (group_id as usize) % tas.len();
+
                 let assigned_ta = &tas[(index + week as usize - 1) % tas.len()];
                 row.group_id = format!("Group {}", index + 1);
                 row.ta = Some(format!("{:?}", assigned_ta));
@@ -244,11 +270,7 @@ pub async fn get_weekly_data_or_common(
 
             if data_changed {
                 info!("Data changed - writing to database for week {}", week);
-                write_to_db(
-                    &PathBuf::from(format!("{}", cohort_name)),
-                    &state_table,
-                )
-                .unwrap();
+                write_to_db(&PathBuf::from(format!("{}", cohort_name)), &state_table).unwrap();
             } else {
                 info!(
                     "No data changes detected for week {} - skipping database write",
@@ -284,7 +306,7 @@ pub async fn add_weekly_data(
 
     let db_path = PathBuf::from(format!("{}", cohort_name));
     let week_num = week;
-    let first_student_name = student_data[0].name.clone(); // Clone for logging
+    let student_count = student_data.len();
 
     // Single lock scope for all operations
     {
@@ -301,7 +323,10 @@ pub async fn add_weekly_data(
     } // Lock released here
 
     // Log after releasing the lock
-    info!("added data for {} in week {}", first_student_name, week_num);
+    info!(
+        "added data for {} students in week {}",
+        student_count, week_num
+    );
 
     Ok(HttpResponse::Ok().body("Weekly data inserted/updated successfully"))
 }
