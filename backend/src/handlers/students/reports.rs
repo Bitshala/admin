@@ -13,7 +13,7 @@ struct StudentScoreResponse {
     exercise_total_score: u8,
 }
 
-#[get("count/students")]
+#[get("/count/students")]
 pub async fn get_total_student_count(state: web::Data<Mutex<Table>>) -> impl Responder {
     info!("Fetching total student count");
     let count = state
