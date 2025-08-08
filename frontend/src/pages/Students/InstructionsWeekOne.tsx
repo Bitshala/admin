@@ -1,5 +1,3 @@
-import React from 'react';
-
 export default function InstructionsWeekOne() {
   return (
     <div className="max-w-6xl mx-auto p-4 space-y-6">
@@ -136,7 +134,7 @@ export default function InstructionsWeekOne() {
           <div className="bg-yellow-50 p-4 rounded-lg">
             <h4 className="font-semibold mb-2">Week 1 assignment</h4>
             <p className="text-sm mb-2">
-              Assignment link: <a href="https://classroom.github.com/a/ppiMSaBz" className="text-blue-600 hover:underline">https://classroom.github.com/a/ppiMSaBz</a>
+              Assignment link: <a href="https://classroom.github.com/a/XKBJqZMI" className="text-blue-600 hover:underline">https://classroom.github.com/a/XKBJqZMI</a>
             </p>
             <p className="text-sm mb-2">
               To get started with all the exercises, check for the respective chapters in the PB book. Head to the Programming Bitcoin book and look for the respective Chapter's code.
