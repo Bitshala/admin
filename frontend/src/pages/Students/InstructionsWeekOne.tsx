@@ -3,6 +3,16 @@ import React from 'react';
 export default function InstructionsWeekOne() {
   return (
     <div className="max-w-6xl mx-auto p-4 space-y-6">
+      {/* Navigation Back */}
+      <div className="mb-4">
+        <a 
+          href="/instructions" 
+          className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 hover:underline"
+        >
+          ← Back to General Instructions
+        </a>
+      </div>
+
       {/* Header */}
       <div className="text-center space-y-3">
         <h2 className="text-3xl font-semibold text-gray-800">Week 1 Instructions</h2>

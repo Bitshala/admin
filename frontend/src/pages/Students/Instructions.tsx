@@ -397,6 +397,28 @@ export default function Instructions() {
           </p>
         </div>
       </div>
+
+      {/* Navigation to Week Instructions */}
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-gray-200 rounded-lg shadow-sm">
+        <div className="px-4 py-3 border-b border-gray-200">
+          <h3 className="text-xl font-semibold flex items-center gap-2">
+            📅 Weekly Instructions
+          </h3>
+        </div>
+        <div className="p-4">
+          <p className="text-sm text-gray-600 mb-4">
+            Access specific weekly instructions and assignments:
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <a 
+              href="/instructions/1" 
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              📚 Week 1 Instructions
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
