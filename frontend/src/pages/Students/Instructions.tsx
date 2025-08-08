@@ -1,5 +1,3 @@
-import React from 'react';
-
 export default function Instructions() {
   return (
     <div className="max-w-6xl mx-auto p-4 space-y-6">

@@ -8,9 +8,11 @@ interface WeeklyBreakdownCardProps {
   studentName: string;
 }
 
+
+const cohort_name = localStorage.getItem('selected_cohort_db_path') || 'lbtcl_cohort.db';
 export const WeeklyBreakdownCard = ({ week, studentName }: WeeklyBreakdownCardProps) => {
   const handleRepoLink = async () => {
-    const url = await fetchStudentRepoLink(week.week, studentName, week.cohort_name);
+    const url = await fetchStudentRepoLink(week.week, studentName, cohort_name);
     if (url) {
       window.open(url, '_blank');
     }

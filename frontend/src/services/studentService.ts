@@ -82,11 +82,11 @@ export const fetchStudentBackgroundData = async (email: string): Promise<Student
   }
 };
 
-export const fetchStudentRepoLink = async (week: number, studentName: string): Promise<string | null> => {
+export const fetchStudentRepoLink = async (week: number, studentName: string, cohort_name: string): Promise<string | null> => {
   try {
     // Assuming your backend endpoint looks like /api/student-repo/week/name
     // Adjust the URL if your actual API endpoint is different
-    const response = await fetch(`${baseUrl}/students/${week}/${encodeURIComponent(studentName)}`);
+    const response = await fetch(`${baseUrl}/students/${week}/${encodeURIComponent(studentName)}/${encodeURIComponent(cohort_name)}/`);
 
     if (!response.ok) {
       console.error(`Server Error ${response.status} fetching repo link for week ${week}, student ${studentName}`);
