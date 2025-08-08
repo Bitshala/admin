@@ -15,6 +15,7 @@ import Instructions from './pages/Students/Instructions.tsx';
 
 import 'virtual:uno.css';
 import FeedbackTable from './pages/Feedback.tsx';
+import InstructionsWeekOne from './pages/Students/InstructionsWeekOne.tsx';
 
 
 const router = createBrowserRouter([
@@ -45,6 +46,10 @@ const router = createBrowserRouter([
      {
     path: '/instructions',
     element: <Instructions />,
+  },
+       {
+    path: '/instructions/1',
+    element: <InstructionsWeekOne />,
   },
 ]);
 
