@@ -2,15 +2,9 @@ import React from 'react';
 
 export default function Instructions() {
   return (
-    <div className="max-w-6xl mx-auto p-6 space-y-8">
+    <div className="max-w-6xl mx-auto p-4 space-y-6">
       {/* Header */}
-      <div className="text-center space-y-4">
-        <div className="flex justify-center items-center gap-4">
-          <div className="h-16 w-16 bg-gray-200 rounded-full flex items-center justify-center">
-            <span className="text-2xl font-bold">B</span>
-          </div>
-          <h1 className="text-4xl font-bold">Bitshala</h1>
-        </div>
+      <div className="text-center space-y-3">
         <h2 className="text-3xl font-semibold text-gray-800">Programming Bitcoin Cohort General Instructions</h2>
         <p className="text-lg text-gray-600 max-w-3xl mx-auto">
           Welcome to the <a href="#" className="text-blue-600 hover:underline">Programming Bitcoin</a> Study Cohort. 
@@ -20,12 +14,12 @@ export default function Instructions() {
 
       {/* Program Overview */}
       <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
-        <div className="px-6 py-4 border-b border-gray-200">
+        <div className="px-4 py-3 border-b border-gray-200">
           <h3 className="text-xl font-semibold flex items-center gap-2">
             📖 Program Overview
           </h3>
         </div>
-        <div className="p-6 space-y-4">
+        <div className="p-4 space-y-3">
           <div className="bg-blue-50 p-4 rounded-lg">
             <p className="font-semibold">Introductory Session</p>
             <p className="text-sm text-gray-700">Friday, May 30th, at 8:00 PM IST (2:30 PM UTC)</p>
@@ -56,11 +50,11 @@ export default function Instructions() {
                 </div>
                 <div className="p-4 space-y-2">
                   <div className="text-sm space-y-1">
-                    <p>• Each Friday, join assigned Discord voice channels</p>
-                    <p>• Groups of 4-6 participants</p>
-                    <p>• Questions assigned via flywheel app</p>
-                    <p>• 60 minutes discussion</p>
-                    <p>• 30 minutes collective exercises discussion</p>
+                    <p>Each Friday, join assigned Discord voice channels</p>
+                    <p>Groups of 4-6 participants</p>
+                    <p>Questions assigned via flywheel app</p>
+                    <p>60 minutes discussion</p>
+                    <p>30 minutes collective exercises discussion</p>
                   </div>
                 </div>
               </div>
@@ -82,21 +76,21 @@ export default function Instructions() {
 
       {/* Scoring System */}
       <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
-        <div className="px-6 py-4 border-b border-gray-200">
+        <div className="px-4 py-3 border-b border-gray-200">
           <h3 className="text-xl font-semibold flex items-center gap-2">
             ⭐ Scoring System
           </h3>
         </div>
-        <div className="p-6">
+        <div className="p-4">
           <div className="grid md:grid-cols-3 gap-6">
             <div className="space-y-3">
               <h4 className="font-semibold text-lg">1. Group Discussion (GD)</h4>
               <span className="inline-block px-2 py-1 bg-gray-200 text-gray-800 text-xs rounded">Max 100 points/week</span>
               <ul className="text-sm space-y-1">
-                <li>• Communication: up to 30 points</li>
-                <li>• Depth of Answer: up to 30 points</li>
-                <li>• Technical Bitcoin Fluency: up to 20 points</li>
-                <li>• Engagement: up to 20 points</li>
+                <li>Communication: up to 30 points</li>
+                <li>Depth of Answer: up to 30 points</li>
+                <li>Technical Bitcoin Fluency: up to 20 points</li>
+                <li>Engagement: up to 20 points</li>
               </ul>
             </div>
 
@@ -104,9 +98,9 @@ export default function Instructions() {
               <h4 className="font-semibold text-lg">2. Bonus Questions</h4>
               <span className="inline-block px-2 py-1 bg-gray-200 text-gray-800 text-xs rounded">Max 50 points/question</span>
               <ul className="text-sm space-y-1">
-                <li>• Attempted the question: 30 points</li>
-                <li>• Elaborate explanation: 10 points</li>
-                <li>• Additional relevant questions: 10 points</li>
+                <li>Attempted the question: 30 points</li>
+                <li>Elaborate explanation: 10 points</li>
+                <li>Additional relevant questions: 10 points</li>
               </ul>
             </div>
 
@@ -114,11 +108,11 @@ export default function Instructions() {
               <h4 className="font-semibold text-lg">3. Weekly Exercises</h4>
               <span className="inline-block px-2 py-1 bg-gray-200 text-gray-800 text-xs rounded">Max 100 points/exercise</span>
               <ul className="text-sm space-y-1">
-                <li>• Solution commit: 25 points</li>
-                <li>• All tests passing: 25 points</li>
-                <li>• Well-documented code: 25 points</li>
-                <li>• Readable code: 25 points</li>
-                <li className="text-red-600 font-medium">• Plagiarized code: -100 points ❌</li>
+                <li>Solution commit: 25 points</li>
+                <li>All tests passing: 25 points</li>
+                <li>Well-documented code: 25 points</li>
+                <li>Readable code: 25 points</li>
+                <li className="text-red-600 font-medium">Plagiarized code: -100 points ❌</li>
               </ul>
             </div>
           </div>
@@ -127,12 +121,12 @@ export default function Instructions() {
 
       {/* Certificates */}
       <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
-        <div className="px-6 py-4 border-b border-gray-200">
+        <div className="px-4 py-3 border-b border-gray-200">
           <h3 className="text-xl font-semibold flex items-center gap-2">
             🏆 Certificates
           </h3>
         </div>
-        <div className="p-6">
+        <div className="p-4">
           <div className="grid md:grid-cols-2 gap-4">
             <div className="bg-yellow-50 p-4 rounded-lg">
               <h4 className="font-semibold">Certificate of Participation</h4>
@@ -153,12 +147,12 @@ export default function Instructions() {
 
       {/* Communication and Participation */}
       <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
-        <div className="px-6 py-4 border-b border-gray-200">
+        <div className="px-4 py-3 border-b border-gray-200">
           <h3 className="text-xl font-semibold flex items-center gap-2">
             💬 Cohort Communication and Participation
           </h3>
         </div>
-        <div className="p-6 space-y-4">
+        <div className="p-4 space-y-3">
           <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-3">
               <h4 className="font-semibold">Communication Platform</h4>
@@ -189,32 +183,24 @@ export default function Instructions() {
 
       {/* Session Breakdown */}
       <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
-        <div className="px-6 py-4 border-b border-gray-200">
+        <div className="px-4 py-3 border-b border-gray-200">
           <h3 className="text-xl font-semibold flex items-center gap-2">
             ⏰ Weekly Session Breakdown
           </h3>
         </div>
-        <div className="p-6">
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <h4 className="font-semibold">First 60 minutes</h4>
-              <p className="text-sm">Group discussion in assigned groups</p>
-            </div>
-            <div className="bg-green-50 p-4 rounded-lg">
-              <h4 className="font-semibold">Final 30 minutes</h4>
-              <p className="text-sm">Common room discussion on weekly exercises</p>
-            </div>
-          </div>
+        <div className="p-4 py-2">
+          <p className="text-sm">60 minutes of group discussion</p>
         </div>
       </div>
 
       {/* Tools and TA Responsibilities */}
-      <div className="grid md:grid-cols-2 gap-6">
+      
+      <div className="grid md:grid-cols-2 gap-4">
         <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
-          <div className="px-6 py-4 border-b border-gray-200">
+          <div className="px-4 py-3 border-b border-gray-200">
             <h3 className="text-xl font-semibold">Tools</h3>
           </div>
-          <div className="p-6 space-y-3">
+          <div className="p-4 space-y-2">
             <div>
               <h4 className="font-semibold">Flywheel App</h4>
               <p className="text-sm text-gray-600">Used for randomly assigning GD questions</p>
@@ -227,15 +213,15 @@ export default function Instructions() {
         </div>
 
         <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
-          <div className="px-6 py-4 border-b border-gray-200">
+          <div className="px-4 py-3 border-b border-gray-200">
             <h3 className="text-xl font-semibold">Bitshala TA Responsibilities</h3>
           </div>
-          <div className="p-6">
+          <div className="p-4">
             <ul className="text-sm space-y-1">
-              <li>• Coordinate GDs and assign questions</li>
-              <li>• Clarify questions when needed</li>
-              <li>• Conduct brief recaps and evaluations</li>
-              <li>• Grade exercises and provide feedback</li>
+              <li>Coordinate GDs and assign questions</li>
+              <li>Clarify questions when needed</li>
+              <li>Conduct brief recaps and evaluations</li>
+              <li>Grade exercises and provide feedback</li>
             </ul>
           </div>
         </div>
@@ -243,12 +229,12 @@ export default function Instructions() {
 
       {/* Schedule */}
       <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
-        <div className="px-6 py-4 border-b border-gray-200">
+        <div className="px-4 py-3 border-b border-gray-200">
           <h3 className="text-xl font-semibold flex items-center gap-2">
             📅 Schedule
           </h3>
         </div>
-        <div className="p-6">
+        <div className="p-4">
           <div className="grid gap-3">
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <span className="font-medium">Week 1:</span>
@@ -312,10 +298,10 @@ export default function Instructions() {
 
       {/* Sample Group Discussion */}
       <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
-        <div className="px-6 py-4 border-b border-gray-200">
+        <div className="px-4 py-3 border-b border-gray-200">
           <h3 className="text-xl font-semibold">Sample Group Discussion Sessions</h3>
         </div>
-        <div className="p-6 space-y-4">
+        <div className="p-4 space-y-3">
           <p className="text-sm text-gray-600">
             All participants will be assigned in groups. Here's an example of how group discussions work with 2 groups (A and B) each with 2 participants:
           </p>
@@ -402,10 +388,10 @@ export default function Instructions() {
 
       {/* Student Feedback */}
       <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
-        <div className="px-6 py-4 border-b border-gray-200">
+        <div className="px-4 py-3 border-b border-gray-200">
           <h3 className="text-xl font-semibold">Student Feedback</h3>
         </div>
-        <div className="p-6">
+        <div className="p-4">
           <p className="text-sm">
             A feedback form will be shared halfway through the cohort to continuously improve our learning structure.
           </p>
