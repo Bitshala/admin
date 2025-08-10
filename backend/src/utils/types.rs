@@ -166,3 +166,24 @@ impl FeedbackResponse {
         })
     }
 }
+
+impl CohortParticipant {
+    pub fn from_row(row: &Row) -> Result<Self, rusqlite::Error> {
+        Ok(CohortParticipant {
+            name: row.get("Name")?,
+            enrolled: row.get::<_, i32>("Enrolled")? != 0,
+            role: row.get("Role")?,
+            email: row.get("Email")?,
+            describe_yourself: row.get("Describe Yourself")?,
+            background: row.get("Background")?,
+            github: row.get("GitHub")?,
+            skills: serde_json::from_str(&row.get::<_, String>("Skills").unwrap_or_default()).unwrap_or_default(),
+            year: row.get("Year")?,
+            books: serde_json::from_str(&row.get::<_, String>("Books").unwrap_or_default()).unwrap_or_default(),
+            why: row.get("Why")?,
+            time: row.get("Time")?,
+            location: row.get("Location")?,
+            cohort_name: row.get("Cohort Name")?,
+        })
+    }
+}

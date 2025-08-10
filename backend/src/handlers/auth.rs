@@ -49,7 +49,7 @@ pub async fn login(item: web::Json<TaLogin>) -> impl Responder {
     if let Some(_ta) = TA::from_email(&item.gmail) {
         info!("TA login success.");
         HttpResponse::Ok().json(serde_json::json!({
-        "token": get_auth_token()
+        "token": get_auth_token("ta")
         }))
     } else {
         info!("TA login failed: not authorized.");

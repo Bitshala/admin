@@ -1,7 +1,6 @@
 use crate::database::operations::write_to_db;
 use crate::handlers::auth::TA;
 use crate::utils::classroom::{Assignment, get_submitted_assignments};
-use crate::utils::constants::get_auth_token;
 use crate::utils::types::{RowData, Table};
 use actix_web::{HttpResponse, Responder, Result, get, post, web};
 use log::{info, warn};
@@ -56,19 +55,7 @@ pub async fn get_weekly_data_or_common(
     state: web::Data<std::sync::Mutex<Table>>,
     req: actix_web::HttpRequest,
 ) -> impl Responder {
-    let auth_token = get_auth_token();
 
-    let auth_header = req
-        .headers()
-        .get(actix_web::http::header::AUTHORIZATION)
-        .and_then(|h| h.to_str().ok());
-
-    if auth_header != Some(auth_token.as_str()) {
-        return HttpResponse::Unauthorized().json(serde_json::json!({
-            "status": "error",
-            "message": "Unauthorized: missing or invalid token"
-        }));
-    }
 
     let (cohort_name, week) = info.into_inner();
     info!("Getting and updating weekly data for week: {}", week);

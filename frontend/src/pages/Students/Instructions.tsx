@@ -1,9 +1,41 @@
+import { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { handleDiscordCallback } from '../../services/auth';
+
 export default function Instructions() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
+
+  // Handle Discord callback
+  useEffect(() => {
+    // Check if this is a Discord auth callback
+    const params = new URLSearchParams(location.search);
+    if (params.get('auth') === 'discord') {
+      handleDiscordCallback(location, navigate);
+    }
+    
+    // Extract email and username from location state or URL params
+    const email = location.state?.email || params.get('email');
+    const name = location.state?.username || params.get('username');
+    
+    if (email) setUserEmail(email);
+    if (name) setUsername(name);
+  }, [location, navigate]);
   return (
     <div className="max-w-6xl mx-auto p-4 space-y-6">
       {/* Header */}
       <div className="text-center space-y-3">
         <h2 className="text-3xl font-semibold text-gray-800">Programming Bitcoin Cohort General Instructions</h2>
+        {userEmail && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-3 max-w-md mx-auto">
+            <p className="text-sm text-green-800">
+              Welcome, <span className="font-semibold">{username || 'Participant'}</span>!
+            </p>
+            <p className="text-xs text-green-600">Email: {userEmail}</p>
+          </div>
+        )}
         <p className="text-lg text-gray-600 max-w-3xl mx-auto">
           Welcome to the <a href="#" className="text-blue-600 hover:underline">Programming Bitcoin</a> Study Cohort. 
           This general instruction sheet is aimed at helping you make the most out of the program.

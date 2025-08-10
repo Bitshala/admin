@@ -1,10 +1,30 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const AUTH_TOKEN = import.meta.env.VITE_AUTH_TOKEN;
+const AUTH_TOKEN_TA = import.meta.env.VITE_AUTH_TOKEN_TA;
+const AUTH_TOKEN_PARTICIPANT = import.meta.env.VITE_AUTH_TOKEN_PARTICIPANT;
 const DISCORD_CLIENT_ID = import.meta.env.VITE_DISCORD_CLIENT_ID;
-const DISCORD_REDIRECT_URI = import.meta.env.VITE_DISCORD_REDIRECT_URI;
+const DISCORD_TA_REDIRECT_URI = import.meta.env.VITE_DISCORD_TA_REDIRECT_URI;
 
-export const isAuthenticated = (token?: string): boolean => {
-  return token === AUTH_TOKEN;
+console.log('Discord TA Redirect URI:', DISCORD_TA_REDIRECT_URI);
+const DISCORD_PARTICIPANT_REDIRECT_URI = import.meta.env.VITE_DISCORD_PARTICIPANT_REDIRECT_URI;
+
+export const isTaAuthenticated = (token?: string): boolean => {
+  const isValidToken = token === AUTH_TOKEN_TA 
+  return isValidToken;
+};
+
+export const isParticipantAuthenticated = (token?: string, role?: string): boolean => {
+  const isValidToken = token === AUTH_TOKEN_PARTICIPANT;
+  console.log('Checking authentication:', { 
+    token, 
+    AUTH_TOKEN_PARTICIPANT, 
+    role, 
+    isValid: isValidToken,
+    tokenLength: token?.length,
+    expectedLength: AUTH_TOKEN_PARTICIPANT?.length,
+    tokenType: typeof token,
+    expectedType: typeof AUTH_TOKEN_PARTICIPANT
+  });
+  return isValidToken;
 };
 
 export const getTokenFromLocation = (location: {
@@ -14,6 +34,14 @@ export const getTokenFromLocation = (location: {
   const queryToken = new URLSearchParams(location.search).get('token');
   const stateToken = location.state?.token;
   const storedToken = localStorage.getItem('bitshala_token');
+
+  console.log('Getting token from location:', { 
+    search: location.search, 
+    queryToken, 
+    stateToken, 
+    storedToken,
+    finalToken: stateToken || queryToken || storedToken || undefined
+  });
 
   return stateToken || queryToken || storedToken || undefined;
 };
@@ -30,9 +58,16 @@ export const getStoredToken = (): string | null => {
   return localStorage.getItem('bitshala_token');
 };
 
-export const redirectToDiscordAuth = (): void => {
-  const SCOPES = encodeURIComponent('identify guilds');
-  const encodedRedirectUri = encodeURIComponent(DISCORD_REDIRECT_URI);
+export const redirectToDiscordAuth = (role: string): void => {
+  const SCOPES = encodeURIComponent('identify guilds email guilds.join');
+  let encodedRedirectUri;
+
+  if ( role === 'ta' ) {
+    encodedRedirectUri = encodeURIComponent(DISCORD_TA_REDIRECT_URI);
+  }
+  else if ( role === 'participant' ) {
+    encodedRedirectUri = encodeURIComponent(DISCORD_PARTICIPANT_REDIRECT_URI);
+  }
 
   const discordOAuthUrl =
     `https://discord.com/oauth2/authorize?` +
@@ -44,16 +79,32 @@ export const redirectToDiscordAuth = (): void => {
   window.location.href = discordOAuthUrl;
 };
 
+
+
 export const handleDiscordCallback = (
   location: { search: string },
-  navigate: (path: string, options?: { state?: { token?: string } }) => void
+  navigate: (path: string, options?: { state?: { token?: string; role?: string; email?: string; username?: string } }) => void
 ): boolean => {
   const params = new URLSearchParams(location.search);
   const authSource = params.get('auth');
   const token = params.get('token');
+  const role = params.get('role');
+  const email = params.get('email');
+  const username = params.get('username');
 
-  if (authSource === 'discord' && token === AUTH_TOKEN) {
-    navigate('/select', { state: { token: token ?? undefined } });
+  const expectedToken = role === 'participant' ? AUTH_TOKEN_PARTICIPANT : AUTH_TOKEN_TA;
+  
+  if (authSource === 'discord' && token === expectedToken) {
+    // Redirect TAs to select page, participants to instructions
+    const redirectPath = getRedirectPathForToken(token!);
+    navigate(redirectPath, { 
+      state: { 
+        token: token ?? undefined, 
+        role: role ?? undefined,
+        email: email ?? undefined,
+        username: username ?? undefined
+      } 
+    });
     return true;
   }
 
@@ -81,7 +132,7 @@ export const loginWithEmail = async (
     const data = await response.json();
     const token = data.token;
 
-    if (token === AUTH_TOKEN) {
+    if (token === AUTH_TOKEN_TA) {
       return { success: true, token };
     } else {
       return { success: false, error: 'Invalid token returned from server.' };
@@ -92,18 +143,15 @@ export const loginWithEmail = async (
   }
 };
 
-export const checkAuthentication = (location: {
-  search: string;
-  state?: { token?: string };
-}): boolean => {
-  const token = getTokenFromLocation(location);
-  return isAuthenticated(token);
-};
 
-export const getAuthToken = (): string => {
-  return AUTH_TOKEN;
+export const getAuthToken = (role?: string): string => {
+  return role === 'participant' ? AUTH_TOKEN_PARTICIPANT : AUTH_TOKEN_TA;
 };
 
 export const getApiBaseUrl = (): string => {
   return API_BASE_URL;
+};
+
+export const getRedirectPathForToken = (token: string): string => {
+  return token === AUTH_TOKEN_TA ? '/select' : '/instructions';
 };

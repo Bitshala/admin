@@ -2,7 +2,7 @@ import { type JSX } from 'react';
 import { useLocation, Navigate } from 'react-router-dom';
 import {
   getTokenFromLocation,
-  isAuthenticated,
+  isTaAuthenticated,
   storeToken,
 } from '../services/auth';
 
@@ -18,7 +18,7 @@ const ProtectedRoute = ({ element }: ProtectedRouteProps) => {
     storeToken(token);
   }
 
-  return isAuthenticated(token) ? element : <Navigate to="/" replace />;
+  return isTaAuthenticated(token) ? element : <Navigate to="/" replace />;
 };
 
 export default ProtectedRoute;

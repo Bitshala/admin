@@ -8,6 +8,7 @@ import { CohortSelection } from './pages/CohortSelection.tsx';
 import { ResultPage } from './pages/ResultPage.tsx';
 // import StudentDetailPage from './StudentsPage.tsx';
 import ProtectedRoute from './components/ProtectedRoute.tsx';
+import ParticipantProtectedRoute from './components/ParticipantProtectedRoute.tsx';
 import StudentDetailPage from './pages/StudentDetailPage.tsx';
 
 import Instructions from './pages/Students/Instructions.tsx';
@@ -17,6 +18,7 @@ import 'virtual:uno.css';
 import FeedbackTable from './pages/Feedback.tsx';
 import InstructionsWeekOne from './pages/Students/InstructionsWeekOne.tsx';
 
+import CohortParticipantLogin from './pages/Students/studentLogin.tsx';
 
 const router = createBrowserRouter([
   {
@@ -45,12 +47,16 @@ const router = createBrowserRouter([
   },
      {
     path: '/instructions',
-    element: <Instructions />,
+    element: <ParticipantProtectedRoute element={<Instructions />} />,
   },
        {
     path: '/instructions/1',
-    element: <InstructionsWeekOne />,
+    element: <ParticipantProtectedRoute element={<InstructionsWeekOne />} />,
   },
+  {
+    path: '/participants',
+    element: <CohortParticipantLogin />,
+  }
 ]);
 
 
