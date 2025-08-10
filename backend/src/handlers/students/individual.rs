@@ -166,3 +166,29 @@ pub async fn get_individual_student_data(
 
     HttpResponse::Ok().json(student_data)
 }
+
+
+#[get("/individual_data_email/{student_email}")]
+pub async fn get_individual_student_data_by_mail(
+    info: web::Path<String>,
+    state: web::Data<Mutex<Table>>,
+) -> impl Responder {
+    let student_email = info.into_inner();
+
+    // Single lock scope for data collection
+    let mut student_data: Vec<RowData> = {
+        let state_table = state.lock().unwrap();
+        state_table
+            .rows
+            .iter()
+            .filter(|row| row.mail == student_email)
+            .cloned()
+            .collect()
+    }; // Lock released here
+
+    // Sort by week after releasing the lock
+    student_data.sort_by_key(|row| row.week);
+
+    println!("Student data for {}: {:?}", student_email, student_data);
+    HttpResponse::Ok().json(student_data)
+}

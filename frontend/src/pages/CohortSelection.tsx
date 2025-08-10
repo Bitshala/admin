@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import CohortCard from '../components/CohortCard';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const AUTH_TOKEN = import.meta.env.VITE_AUTH_TOKEN_TA;
 
 export const CohortSelection = () => {
   const navigate = useNavigate();
@@ -56,6 +57,7 @@ export const CohortSelection = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `${AUTH_TOKEN}`,
         },
         body: JSON.stringify({ db_path: dbPath }),
       });

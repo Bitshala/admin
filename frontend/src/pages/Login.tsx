@@ -1,14 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   redirectToDiscordAuth,
-  loginWithEmail,
   handleDiscordCallback,
 } from '../services/auth';
 
 function Login() {
-  const [email, setEmail] = useState('');
-  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -17,14 +14,7 @@ function Login() {
     handleDiscordCallback(location, navigate);
   }, [location, navigate]);
 
-  const handleEmailLogin = async () => {
-    const result = await loginWithEmail(email);
-    if (result.success && result.token) {
-      navigate('/select', { state: { token: result.token } });
-    } else {
-      setError(result.error || 'Login failed');
-    }
-  };
+
 
   return (
     <div className="min-h-screen bg-zinc-900 flex items-center justify-center font-mono">
@@ -39,7 +29,7 @@ function Login() {
         <div className="p-8 space-y-3">
           {/* Discord OAuth Button */}
           <button
-            onClick={redirectToDiscordAuth}
+            onClick={() => redirectToDiscordAuth('ta')}
             className="b-0 w-full py-4 text-base font-semibold bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-all duration-200 shadow-lg hover:shadow-indigo-500/20 flex items-center justify-center space-x-3"
           >
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -47,78 +37,7 @@ function Login() {
             </svg>
             <span>Sign in with Discord</span>
           </button>
-
-          {/* Divider */}
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-zinc-600"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-zinc-800 text-zinc-400">or</span>
-            </div>
-          </div>
-
-          {/* Email input */}
-          <div className="relative">
-            <input
-              className=" b-0 w-88 text-base p-4 bg-zinc-700 border border-zinc-600 font-mono rounded-lg text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200"
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="Enter your email address"
-              onKeyPress={e => {
-                if (e.key === 'Enter') {
-                  handleEmailLogin();
-                }
-              }}
-            />
-            <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
-              <span className="text-zinc-500 text-lg">@</span>
-            </div>
-          </div>
-
-          {/* Email Sign In Button */}
-          <button
-            className="b-0 w-full py-4 text-base font-semibold bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-all duration-200 shadow-lg hover:shadow-orange-500/20 flex items-center justify-center space-x-3"
-            onClick={handleEmailLogin}
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-              />
-            </svg>
-            <span>Sign In with Email</span>
-          </button>
-
-          {/* Error message */}
-          {error && (
-            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 animate-pulse">
-              <div className="flex items-center space-x-2 text-red-400">
-                <svg
-                  className="w-5 h-5 flex-shrink-0"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                <span className="text-sm font-medium">{error}</span>
-              </div>
-            </div>
-          )}
+       
         </div>
       </div>
     </div>

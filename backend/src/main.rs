@@ -19,6 +19,7 @@ use handlers::students::{
     delete_data,
     get_cohort_feedback,
     get_individual_student_data,
+    get_individual_student_data_by_mail,
     get_student_background_data,
     //register
     get_student_github_username,
@@ -37,7 +38,8 @@ use handlers::students::{
     update_student,
 };
 use handlers::universal::switch_cohort_api;
-use utils::discord_auth::discord_oauth;
+use utils::discord_ta_auth::discord_ta_oauth;
+use utils::discord_participant_auth::discord_participant_oauth;
 
 #[actix_web::main]
 async fn main() -> Result<(), std::io::Error> {
@@ -79,7 +81,8 @@ async fn main() -> Result<(), std::io::Error> {
             .wrap(Logger::default())
             // Auth routes
             .service(login)
-            .service(discord_oauth)
+            .service(discord_ta_oauth)
+            .service(discord_participant_oauth)
             // Universal routes
             .service(switch_cohort_api)
             // Student CRUD routes
@@ -99,6 +102,7 @@ async fn main() -> Result<(), std::io::Error> {
             .service(get_student_repo_link)
             .service(get_student_background_data)
             .service(get_individual_student_data)
+            .service(get_individual_student_data_by_mail)
             .service(get_student_github_username)
             .service(get_cohort_feedback)
             //register
