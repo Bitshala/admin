@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { handleDiscordCallback, getApiBaseUrl } from '../../services/auth';
+import { getApiBaseUrl } from '../../services/auth';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const AUTH_TOKEN = import.meta.env.VITE_AUTH_TOKEN_TA;
@@ -27,7 +27,7 @@ export default function InstructionsWeekOne() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [username, setUsername] = useState<string | null>(null);
   const [studentData, setStudentData] = useState<StudentData[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
 
   console.log('🏁 InstructionsWeekOne component loaded!');
   console.log('🔧 API_BASE_URL:', API_BASE_URL);
