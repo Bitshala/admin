@@ -3,7 +3,8 @@ use std::env;
 pub fn get_auth_token(role: &str) -> String {
     match role {
         "ta" => env::var("AUTH_TOKEN_TA").unwrap_or_else(|_| "default-token-ta".to_string()),
-        "participant" => env::var("AUTH_TOKEN_PARTICIPANT").unwrap_or_else(|_| "default-token-participant".to_string()),
+        "participant" => env::var("AUTH_TOKEN_PARTICIPANT")
+            .unwrap_or_else(|_| "default-token-participant".to_string()),
         _ => "default-token".to_string(),
     }
 }

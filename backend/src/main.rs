@@ -38,8 +38,8 @@ use handlers::students::{
     update_student,
 };
 use handlers::universal::switch_cohort_api;
-use utils::discord_ta_auth::discord_ta_oauth;
 use utils::discord_participant_auth::discord_participant_oauth;
+use utils::discord_ta_auth::discord_ta_oauth;
 
 #[actix_web::main]
 async fn main() -> Result<(), std::io::Error> {
