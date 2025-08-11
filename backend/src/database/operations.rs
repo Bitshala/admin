@@ -189,17 +189,21 @@ pub fn read_all_responses(db_path: &PathBuf, _cohort_name: &str) -> Result<Vec<F
     Ok(responses)
 }
 
-
-pub fn match_discord_username(path: &PathBuf, discord: &str) -> Result<CohortParticipant, AppError> {
+pub fn match_discord_username(
+    path: &PathBuf,
+    discord: &str,
+) -> Result<CohortParticipant, AppError> {
     let conn = Connection::open(path)?;
     let mut stmt = conn.prepare("SELECT * FROM participants WHERE \"Name\" = ?1")?;
 
-    let participant = stmt.query_row(params![discord], |row| {
-        CohortParticipant::from_row(row)
-    }).map_err(|e| match e {
-        rusqlite::Error::QueryReturnedNoRows => AppError::Database(rusqlite::Error::QueryReturnedNoRows),
-        _ => AppError::Database(e),
-    })?;
+    let participant = stmt
+        .query_row(params![discord], |row| CohortParticipant::from_row(row))
+        .map_err(|e| match e {
+            rusqlite::Error::QueryReturnedNoRows => {
+                AppError::Database(rusqlite::Error::QueryReturnedNoRows)
+            }
+            _ => AppError::Database(e),
+        })?;
 
     Ok(participant)
 }

@@ -55,8 +55,6 @@ pub async fn get_weekly_data_or_common(
     state: web::Data<std::sync::Mutex<Table>>,
     req: actix_web::HttpRequest,
 ) -> impl Responder {
-
-
     let (cohort_name, week) = info.into_inner();
     info!("Getting and updating weekly data for week: {}", week);
 

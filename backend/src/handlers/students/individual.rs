@@ -167,7 +167,6 @@ pub async fn get_individual_student_data(
     HttpResponse::Ok().json(student_data)
 }
 
-
 #[get("/individual_data_email/{student_email}")]
 pub async fn get_individual_student_data_by_mail(
     info: web::Path<String>,

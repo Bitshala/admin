@@ -177,9 +177,11 @@ impl CohortParticipant {
             describe_yourself: row.get("Describe Yourself")?,
             background: row.get("Background")?,
             github: row.get("GitHub")?,
-            skills: serde_json::from_str(&row.get::<_, String>("Skills").unwrap_or_default()).unwrap_or_default(),
+            skills: serde_json::from_str(&row.get::<_, String>("Skills").unwrap_or_default())
+                .unwrap_or_default(),
             year: row.get("Year")?,
-            books: serde_json::from_str(&row.get::<_, String>("Books").unwrap_or_default()).unwrap_or_default(),
+            books: serde_json::from_str(&row.get::<_, String>("Books").unwrap_or_default())
+                .unwrap_or_default(),
             why: row.get("Why")?,
             time: row.get("Time")?,
             location: row.get("Location")?,

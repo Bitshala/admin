@@ -211,6 +211,27 @@ export default function InstructionsWeekOne() {
                   <div className="bg-white p-4 rounded-lg border border-blue-100">
                     <div className="text-sm text-blue-600 font-medium">Group</div>
                     <div className="text-lg font-semibold text-blue-800">{week1Data.group_id}</div>
+                      {
+                        week1Data.group_id === "Group 1" && (
+                          <a href="https://discord.gg/KGbaDB5r">discord link</a>
+                        )
+                      }
+                      {
+                        week1Data.group_id === "Group 2" && (
+                          <a href="https://discord.gg/tMFCMxKB">discord link</a>
+                        )
+                      }
+                      {
+                        week1Data.group_id === "Group 3" && (
+                          <a href="https://discord.gg/vCyCvcqvr">discord link</a>
+                        )
+                      }
+                      {
+                        week1Data.group_id === "Group 4" && (
+                          <a href="https://discord.gg/mYeXh2N5">discord link</a>
+                        )
+                      }
+                    
                   </div>
                   <div className="bg-white p-4 rounded-lg border border-blue-100">
                     <div className="text-sm text-blue-600 font-medium">Teaching Assistant</div>

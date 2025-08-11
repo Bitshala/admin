@@ -1,10 +1,8 @@
-
 use crate::utils::constants::get_auth_token;
 use actix_web::{HttpResponse, Responder, Result, error::ErrorInternalServerError, get, web};
 use reqwest::Client;
 use serde::Deserialize;
 use std::env;
-
 
 #[derive(Deserialize)]
 pub struct OAuthQuery {
@@ -38,7 +36,7 @@ pub async fn discord_ta_oauth(query: web::Query<OAuthQuery>) -> Result<impl Resp
     let ta_role_id = env::var("TA_ROLE_ID").expect("Missing TA_ROLE_ID");
     let bot_token = env::var("DISCORD_BOT_TOKEN").expect("Missing DISCORD_BOT_TOKEN");
     let auth_token = get_auth_token("ta");
-    
+
     let client = Client::new();
 
     // Step 1: Exchange code for access token
@@ -90,20 +88,28 @@ pub async fn discord_ta_oauth(query: web::Query<OAuthQuery>) -> Result<impl Resp
 
     println!("Discord user response: {}", user_text);
 
-    let user: User = serde_json::from_str(&user_text)
-        .map_err(|err| {
-            println!("User JSON parsing failed: {:?}", err);
-            ErrorInternalServerError("User info JSON error")
-        })?;
+    let user: User = serde_json::from_str(&user_text).map_err(|err| {
+        println!("User JSON parsing failed: {:?}", err);
+        ErrorInternalServerError("User info JSON error")
+    })?;
 
     let user_id = user.id;
     println!("Discord Login - User ID: {}", user_id);
     println!("Discord Login - Username: {}", user.username);
-    println!("Discord Login - Display Name: {}", user.global_name.as_deref().unwrap_or("None"));
-    println!("Discord Login - Email: {}", user.email.as_deref().unwrap_or("None"));
+    println!(
+        "Discord Login - Display Name: {}",
+        user.global_name.as_deref().unwrap_or("None")
+    );
+    println!(
+        "Discord Login - Email: {}",
+        user.email.as_deref().unwrap_or("None")
+    );
 
     // Step 3: Use bot token to fetch member info in guild
-    println!("Fetching member info for user {} in guild {}", user_id, target_guild_id);
+    println!(
+        "Fetching member info for user {} in guild {}",
+        user_id, target_guild_id
+    );
     let member_resp = client
         .get(format!(
             "https://discord.com/api/guilds/{}/members/{}",
@@ -137,9 +143,12 @@ pub async fn discord_ta_oauth(query: web::Query<OAuthQuery>) -> Result<impl Resp
                     .append_header(("Location", redirect_url))
                     .finish());
             }
-        },
+        }
         Err(e) => {
-            println!("Failed to contact Discord API for guild member info: {:?}", e);
+            println!(
+                "Failed to contact Discord API for guild member info: {:?}",
+                e
+            );
             let redirect_url = "https://admin.bitshala.org/unauthorized".to_string();
             return Ok(HttpResponse::Found()
                 .append_header(("Location", redirect_url))
@@ -152,21 +161,24 @@ pub async fn discord_ta_oauth(query: web::Query<OAuthQuery>) -> Result<impl Resp
     println!("TA role ID: {}", ta_role_id);
     println!("Has TA role: {}", has_ta_role);
 
-
     let redirect_url = if has_ta_role {
         // Redirect back to your login page with token or flags
         let encoded_token = urlencoding::encode(&auth_token);
         format!(
-            "http://localhost:5173/select?auth=discord&token={}",
+            "https://admin.bitshala.org/select?auth=discord&token={}",
             encoded_token
         )
     } else {
         // Unauthorized page - either no TA role or not in database
-        let reason = if !has_ta_role { "missing TA role" } else { "not in database" };
+        let reason = if !has_ta_role {
+            "missing TA role"
+        } else {
+            "not in database"
+        };
         println!("Access denied - {}", reason);
-        "http://localhost:5173/unauthorized".to_string()
+        "https://admin.bitshala.org/unauthorized".to_string()
     };
-    
+
     println!("Redirecting to: {}", redirect_url);
 
     Ok(HttpResponse::Found()
