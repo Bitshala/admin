@@ -19,6 +19,8 @@ import FeedbackTable from './pages/Feedback.tsx';
 import InstructionsWeekOne from './pages/Students/InstructionsWeekOne.tsx';
 
 import CohortParticipantLogin from './pages/Students/studentLogin.tsx';
+import WeekSelector from './pages/Students/weekSelector.tsx';
+import StudentCohortSelector from './pages/Students/studentCohortSelector.tsx';
 
 const router = createBrowserRouter([
   {
@@ -51,12 +53,20 @@ const router = createBrowserRouter([
   },
        {
     path: '/instructions/1',
-    element: <ParticipantProtectedRoute element={<InstructionsWeekOne />} />,
+    element: <InstructionsWeekOne />,
   },
   {
     path: '/participants',
     element: <CohortParticipantLogin />,
-  }
+  },
+    {
+      path: '/weekSelector',
+      element: <WeekSelector />,
+    },
+        {
+      path: '/cohortSelector',
+      element: <StudentCohortSelector />,
+    }
 ]);
 
 
