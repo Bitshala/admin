@@ -36,7 +36,7 @@ const router = createBrowserRouter([
     element: <ProtectedRoute element={<TableView />} />,
   },
   {
-    path: '/student',
+    path: '/detailPage',
     element: <ParticipantProtectedRoute element={<StudentDetailPage />} />,
   },
   {

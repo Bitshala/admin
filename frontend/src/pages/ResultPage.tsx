@@ -94,7 +94,7 @@ export const ResultPage: React.FC<ResultPageProps> = () => {
 
 
   const handleStudentClick = (studentName: string) => {
-    navigate(`/student?student=${encodeURIComponent(studentName)}`);
+    navigate(`/detailPage?student=${encodeURIComponent(studentName)}`);
   };
 
 

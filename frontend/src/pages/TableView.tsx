@@ -251,7 +251,7 @@ const TableView: React.FC = () => {
   };
 
   const handleStudentClick = (studentName: string) => {
-    navigate(`/student?student=${encodeURIComponent(studentName)}`);
+    navigate(`/detailPage?student=${encodeURIComponent(studentName)}`);
   };
 
   const handleDataUpdate = (updatedData: TableRowData[]) => {

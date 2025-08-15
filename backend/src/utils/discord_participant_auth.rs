@@ -33,8 +33,7 @@ struct Member {
 pub async fn discord_participant_oauth(query: web::Query<OAuthQuery>) -> Result<impl Responder> {
     let client_id = env::var("DISCORD_CLIENT_ID").expect("Missing DISCORD_CLIENT_ID");
     let client_secret = env::var("DISCORD_CLIENT_SECRET").expect("Missing DISCORD_CLIENT_SECRET");
-    let redirect_uri =
-        env::var("DISCORD_PARTICIPANT_URI").expect("Missing DISCORD_PARTICIPANT_REDIRECT_URI");
+    let redirect_uri =env::var("DISCORD_PARTICIPANT_URI").expect("Missing DISCORD_PARTICIPANT_REDIRECT_URI");
     let target_guild_id = env::var("TARGET_GUILD_ID").expect("Missing TARGET_GUILD_ID");
     let pb_role_id = env::var("PB_ROLE_ID").expect("Missing PB_ROLE_ID");
     let bot_token = env::var("DISCORD_BOT_TOKEN").expect("Missing DISCORD_BOT_TOKEN");
@@ -188,7 +187,7 @@ pub async fn discord_participant_oauth(query: web::Query<OAuthQuery>) -> Result<
         let encoded_username = urlencoding::encode(&user.username);
         let participant_token = get_auth_token("participant");
         format!(
-            "{}/student?student={}&auth=discord&email={}&username={}&token={}&role=participant",
+            "{}/detailPage?student={}&auth=discord&email={}&username={}&token={}&role=participant",
             student_url, encoded_username, encoded_email, encoded_username, participant_token
         )
     } else {
