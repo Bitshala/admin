@@ -187,7 +187,7 @@ pub async fn discord_participant_oauth(query: web::Query<OAuthQuery>) -> Result<
         let encoded_username = urlencoding::encode(&user.username);
         let participant_token = get_auth_token("participant");
         format!(
-            "{}/detailPage?student={}&auth=discord&email={}&username={}&token={}&role=participant",
+            "{}/cohortSelector?student={}&auth=discord&email={}&username={}&token={}&role=participant",
             student_url, encoded_username, encoded_email, encoded_username, participant_token
         )
     } else {

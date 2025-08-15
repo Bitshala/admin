@@ -120,7 +120,7 @@ export default function StudentCohortSelector() {
         localStorage.setItem('selected_cohort_name', cohort.name);
         
         // Navigate to cohort-specific page or instructions
-        navigate(`/student?student=${username}`);
+        navigate(`/detailPage?student=${username}`);
       } else {
         console.error(`❌ Failed to switch to ${cohort.name}:`, result.message);
         alert(`Failed to switch cohort: ${result.message}`);
