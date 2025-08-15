@@ -167,7 +167,7 @@ pub async fn discord_participant_oauth(query: web::Query<OAuthQuery>) -> Result<
     let db_path = PathBuf::from("pb_cohort.db");
     println!("Looking for database at: {:?}", db_path.canonicalize());
     println!("Current working directory: {:?}", std::env::current_dir());
-    let user_in_db = match match_discord_username(&db_path, &user.username) {
+    let user_in_db = match match_discord_username(&db_path, &user.email) {
         Ok(participant) => {
             println!("User found in pb_cohort database: {}", participant.name);
             true
