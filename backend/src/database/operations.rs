@@ -194,7 +194,7 @@ pub fn match_discord_username(
     discord: &str,
 ) -> Result<CohortParticipant, AppError> {
     let conn = Connection::open(path)?;
-    let mut stmt = conn.prepare("SELECT * FROM participants WHERE \"Name\" = ?1")?;
+    let mut stmt = conn.prepare("SELECT * FROM participants WHERE \"Email\" = ?1")?;
 
     let participant = stmt
         .query_row(params![discord], |row| CohortParticipant::from_row(row))
