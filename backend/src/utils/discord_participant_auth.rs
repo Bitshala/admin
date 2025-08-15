@@ -38,7 +38,8 @@ pub async fn discord_participant_oauth(query: web::Query<OAuthQuery>) -> Result<
     let target_guild_id = env::var("TARGET_GUILD_ID").expect("Missing TARGET_GUILD_ID");
     let pb_role_id = env::var("PB_ROLE_ID").expect("Missing PB_ROLE_ID");
     let bot_token = env::var("DISCORD_BOT_TOKEN").expect("Missing DISCORD_BOT_TOKEN");
-    let auth_token = get_auth_token("participant");
+    let student_url = env::var("STUDENT_URL").expect("Missing STUDENT_URL");
+
     let client = Client::new();
 
     // Step 1: Exchange code for access token
@@ -132,7 +133,7 @@ pub async fn discord_participant_oauth(query: web::Query<OAuthQuery>) -> Result<
                     Ok(json) => json,
                     Err(e) => {
                         println!("Failed to parse member JSON: {:?}", e);
-                        let redirect_url = "https://admin.bitshala.org/unauthorized".to_string();
+                        let redirect_url = format!("{}/unauthorized", student_url);
                         return Ok(HttpResponse::Found()
                             .append_header(("Location", redirect_url))
                             .finish());
@@ -140,7 +141,7 @@ pub async fn discord_participant_oauth(query: web::Query<OAuthQuery>) -> Result<
                 }
             } else {
                 println!("Guild member API failed with status: {}", status);
-                let redirect_url = "https://admin.bitshala.org/unauthorized".to_string();
+                let redirect_url = format!("{}/unauthorized", student_url);
                 return Ok(HttpResponse::Found()
                     .append_header(("Location", redirect_url))
                     .finish());
@@ -151,7 +152,7 @@ pub async fn discord_participant_oauth(query: web::Query<OAuthQuery>) -> Result<
                 "Failed to contact Discord API for guild member info: {:?}",
                 e
             );
-            let redirect_url = "https://admin.bitshala.org/unauthorized".to_string();
+            let redirect_url = format!("{}/unauthorized", student_url);
             return Ok(HttpResponse::Found()
                 .append_header(("Location", redirect_url))
                 .finish());
@@ -167,7 +168,7 @@ pub async fn discord_participant_oauth(query: web::Query<OAuthQuery>) -> Result<
     let db_path = PathBuf::from("pb_cohort.db");
     println!("Looking for database at: {:?}", db_path.canonicalize());
     println!("Current working directory: {:?}", std::env::current_dir());
-    let user_in_db = match match_discord_username(&db_path, &user.email) {
+    let user_in_db = match match_discord_username(&db_path, user.email.as_deref().unwrap_or("")) {
         Ok(participant) => {
             println!("User found in pb_cohort database: {}", participant.name);
             true
@@ -183,12 +184,11 @@ pub async fn discord_participant_oauth(query: web::Query<OAuthQuery>) -> Result<
 
     let redirect_url = if has_pb_role && user_in_db {
         // Redirect back to your login page with token and email
-        let encoded_token = urlencoding::encode(&auth_token);
         let encoded_email = urlencoding::encode(user.email.as_deref().unwrap_or(""));
         let encoded_username = urlencoding::encode(&user.username);
         format!(
-            "https://admin.bitshala.org/instructions/1?auth=discord&token={}&email={}&username={}",
-            encoded_token, encoded_email, encoded_username
+            "{}/student?student={}/?auth=discord&email={}&username={}",
+            student_url, encoded_username, encoded_email, encoded_username
         )
     } else {
         // Unauthorized page - either no PB role or not in database
@@ -198,7 +198,7 @@ pub async fn discord_participant_oauth(query: web::Query<OAuthQuery>) -> Result<
             "not in database"
         };
         println!("Access denied - {}", reason);
-        "https://admin.bitshala.org/unauthorized".to_string()
+        format!("{}/unauthorized", student_url)
     };
 
     println!("Redirecting to: {}", redirect_url);

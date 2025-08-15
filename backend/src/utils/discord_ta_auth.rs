@@ -35,6 +35,7 @@ pub async fn discord_ta_oauth(query: web::Query<OAuthQuery>) -> Result<impl Resp
     let target_guild_id = env::var("TARGET_GUILD_ID").expect("Missing TARGET_GUILD_ID");
     let ta_role_id = env::var("TA_ROLE_ID").expect("Missing TA_ROLE_ID");
     let bot_token = env::var("DISCORD_BOT_TOKEN").expect("Missing DISCORD_BOT_TOKEN");
+    let ta_url = env::var("TA_URL").expect("Missing TA_URL");
     let auth_token = get_auth_token("ta");
 
     let client = Client::new();
@@ -130,7 +131,7 @@ pub async fn discord_ta_oauth(query: web::Query<OAuthQuery>) -> Result<impl Resp
                     Ok(json) => json,
                     Err(e) => {
                         println!("Failed to parse member JSON: {:?}", e);
-                        let redirect_url = "https://admin.bitshala.org/unauthorized".to_string();
+                        let redirect_url = format!("{}/unauthorized", ta_url);
                         return Ok(HttpResponse::Found()
                             .append_header(("Location", redirect_url))
                             .finish());
@@ -138,7 +139,7 @@ pub async fn discord_ta_oauth(query: web::Query<OAuthQuery>) -> Result<impl Resp
                 }
             } else {
                 println!("Guild member API failed with status: {}", status);
-                let redirect_url = "https://admin.bitshala.org/unauthorized".to_string();
+                let redirect_url = format!("{}/unauthorized", ta_url);
                 return Ok(HttpResponse::Found()
                     .append_header(("Location", redirect_url))
                     .finish());
@@ -149,7 +150,7 @@ pub async fn discord_ta_oauth(query: web::Query<OAuthQuery>) -> Result<impl Resp
                 "Failed to contact Discord API for guild member info: {:?}",
                 e
             );
-            let redirect_url = "https://admin.bitshala.org/unauthorized".to_string();
+            let redirect_url = format!("{}/unauthorized", ta_url);
             return Ok(HttpResponse::Found()
                 .append_header(("Location", redirect_url))
                 .finish());
@@ -165,8 +166,8 @@ pub async fn discord_ta_oauth(query: web::Query<OAuthQuery>) -> Result<impl Resp
         // Redirect back to your login page with token or flags
         let encoded_token = urlencoding::encode(&auth_token);
         format!(
-            "https://admin.bitshala.org/select?auth=discord&token={}",
-            encoded_token
+            "{}/select?auth=discord&token={}",
+            ta_url, encoded_token
         )
     } else {
         // Unauthorized page - either no TA role or not in database
@@ -176,7 +177,7 @@ pub async fn discord_ta_oauth(query: web::Query<OAuthQuery>) -> Result<impl Resp
             "not in database"
         };
         println!("Access denied - {}", reason);
-        "https://admin.bitshala.org/unauthorized".to_string()
+        format!("{}/unauthorized", ta_url)
     };
 
     println!("Redirecting to: {}", redirect_url);

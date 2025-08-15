@@ -37,7 +37,7 @@ const router = createBrowserRouter([
   },
   {
     path: '/student',
-    element: <ProtectedRoute element={<StudentDetailPage />} />,
+    element: <StudentDetailPage /> ,
   },
   {
     path: '/result',
