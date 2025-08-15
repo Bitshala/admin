@@ -37,7 +37,7 @@ const router = createBrowserRouter([
   },
   {
     path: '/detailPage',
-    element: <ParticipantProtectedRoute element={<StudentDetailPage />} />,
+    element: <StudentDetailPage />,
   },
   {
     path: '/result',
