@@ -183,11 +183,11 @@ pub async fn discord_participant_oauth(query: web::Query<OAuthQuery>) -> Result<
     };
 
     let redirect_url = if has_pb_role && user_in_db {
-        // Redirect back to your login page with token and email
+        // Redirect to StudentDetailPage with student parameter
         let encoded_email = urlencoding::encode(user.email.as_deref().unwrap_or(""));
         let encoded_username = urlencoding::encode(&user.username);
         format!(
-            "{}/student?student={}/?auth=discord&email={}&username={}",
+            "{}/student?student={}&auth=discord&email={}&username={}",
             student_url, encoded_username, encoded_email, encoded_username
         )
     } else {
