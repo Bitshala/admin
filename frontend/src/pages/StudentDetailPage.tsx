@@ -149,16 +149,31 @@ const StudentDetailPage = () => {
   const validWeeks = student.weeklyData.filter(week => week.week > 0);
 
   return (
-    <div className="min-h-screen bg-zinc-900 text-zinc-100">
-      {/* Header */}
-      <div className="bg-zinc-800 border-b border-zinc-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="py-6">
+    <div className="min-h-screen bg-zinc-800 text-zinc-100">
+      {/* Header Terminal Window */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="bg-zinc-900 border border-orange-300 shadow-2xl font-mono rounded-lg overflow-hidden">
+          {/* Terminal Window Header */}
+          <div className="bg-zinc-700 px-4 py-3 flex items-center space-x-2 border-b border-orange-300">
+            <div className="flex space-x-2">
+              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+              <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+            </div>
+            <div className="flex-1 text-center">
+              <span className="text-gray-300 text-sm">Terminal — student_profile.sh</span>
+            </div>
+          </div>
+
+          {/* Terminal Content */}
+          <div className="p-6 bg-zinc-900">
+            {/* Terminal command header */} 
+
             {/* Navigation and Actions */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-6">
               <button 
                 onClick={handleGoBack}
-                className="flex items-center space-x-2 text-zinc-400 hover:text-zinc-200 transition-colors"
+                className="b-0 rounded-md flex items-center space-x-2 bg-zinc-700 text-orange-300 hover:bg-zinc-600 border border-orange-300 hover:border-orange-400 p-2 transition-colors"
               >
                 <ArrowLeft className="h-5 w-5" />
                 <span>Back to Students</span>
@@ -166,7 +181,7 @@ const StudentDetailPage = () => {
               
               <button 
                 onClick={handleExport}
-                className="flex items-center space-x-2 px-4 py-2 bg-amber-500 text-white rounded-md hover:bg-amber-600 transition-colors"
+                className="b-0 rounded-md flex items-center space-x-2 px-4 py-2 bg-orange-400 text-zinc-900 hover:bg-orange-500 border border-orange-300 transition-colors"
               >
                 <Download className="h-4 w-4" />
                 <span>Export Data</span>
@@ -174,34 +189,37 @@ const StudentDetailPage = () => {
             </div>
             
             {/* Student Info */}
-            <div className="mt-6 flex items-center space-x-6">
-              <div className="h-20 w-20 rounded-full bg-amber-500 text-white flex items-center justify-center text-2xl font-medium">
-                {student.name.charAt(0)}{(student.name.split(' ')[1]?.charAt(0) || '').toUpperCase()}
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-zinc-100" onClick={() => getGithubUsername(student.name)} >{student.name}</h1>
-                <div className="flex items-center space-x-6 text-zinc-400 mt-2">
-                  <span>{student.email}</span>
-                  <span>Group: {student.group}</span>
-                  <span>TA: {student.ta}</span>
+            <div className="mb-6 pb-4 border-b border-orange-400">
+              <div className="flex items-center space-x-6">
+                <div>
+                  <h1 className="text-3xl font-bold text-orange-300 cursor-pointer hover:text-orange-400 transition-colors" onClick={() => getGithubUsername(student.name)}>{student.name}</h1>
+                  <div className="flex items-center space-x-6 text-orange-200 mt-2">
+                    <span className="text-orange-400">[EMAIL]</span>
+                    <span>{student.email}</span>
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Student Background */}
             {studentBackground && (
-              <StudentBackground background={studentBackground} />
+              <div className="mb-6">
+                <StudentBackground background={studentBackground} />
+              </div>
             )}
+
+            {/* Summary Stats */}
+            <div className="mb-6">
+              <StudentSummary stats={stats} />
+            </div>
+            
+            {/* Progress Chart */}
+            <WeeklyProgressChart weeklyData={validWeeks} />
           </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Summary Stats */}
-        <StudentSummary stats={stats} />
-        
-        {/* Progress Chart */}
-        <WeeklyProgressChart weeklyData={validWeeks} />
         
         {/* Weekly Breakdown */}
         <div>

@@ -1,5 +1,6 @@
-import { ExternalLink } from 'lucide-react';
-import { getScoreColor, computeGdTotal, computeBonusTotal, computeExerciseTotal } from '../../utils/calculations';
+import { ExternalLink, BookOpen } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { computeGdTotal, computeBonusTotal, computeExerciseTotal } from '../../utils/calculations';
 import { fetchStudentRepoLink } from '../../services/studentService';
 import type { WeeklyData } from '../../types/student';
 
@@ -8,9 +9,18 @@ interface WeeklyBreakdownCardProps {
   studentName: string;
 }
 
+const groupInvite: Record<number, string> = {
+  1: "https://discord.gg/KGbaDB5r",
+  2: "https://discord.gg/tMFCMxKB",
+  3: "https://discord.gg/vCyCvcqv",
+  4: "https://discord.gg/mYeXh2N5"
+};
+
 
 const cohort_name = localStorage.getItem('selected_cohort_db_path') || 'lbtcl_cohort.db';
 export const WeeklyBreakdownCard = ({ week, studentName }: WeeklyBreakdownCardProps) => {
+  const navigate = useNavigate();
+  
   const handleRepoLink = async () => {
     const url = await fetchStudentRepoLink(week.week, studentName, cohort_name);
     if (url) {
@@ -18,52 +28,87 @@ export const WeeklyBreakdownCard = ({ week, studentName }: WeeklyBreakdownCardPr
     }
   };
 
-  const renderScoreBar = (value: number, max: number, color: string) => (
+  const handleInstructionsClick = () => {
+    navigate(`/instructions/${week.week}`);
+  };
+
+  const handleDiscordClick = (weekNumber: number) => {
+    const discordLink = groupInvite[weekNumber];
+    if (discordLink) {
+      window.open(discordLink, '_blank');
+    }
+  };
+
+  const renderScoreBar = (value: number, max: number) => (
     <div className="flex items-center space-x-2">
-      <div className="w-20 bg-zinc-700 rounded-full h-2">
+      <div className="w-20 bg-zinc-700 border border-orange-400 h-2">
         <div 
-          className={`${color} h-2 rounded-full transition-all`}
+          className={`bg-orange-400 h-2 transition-all`}
           style={{ width: `${(value / max) * 100}%` }}
         />
       </div>
-      <span className="text-sm font-medium w-8 text-zinc-200">{value}/{max}</span>
+      <span className="text-sm font-medium w-8 text-orange-300">{value}/{max}</span>
     </div>
   );
 
   const renderBooleanScore = (isTrue: boolean, points: number) => (
-    <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
-      isTrue ? 'bg-green-900 text-green-200' : 'bg-red-900 text-red-200'
+    <span className={`inline-flex px-2 py-1 border text-xs font-medium ${
+      isTrue ? 'bg-zinc-700 text-orange-300 border-orange-400' : 'bg-zinc-800 text-orange-200 border-orange-600'
     }`}>
       {isTrue ? `✓ ${points} pts` : `✗ 0 pts`}
     </span>
   );
 
   return (
-    <div className="bg-zinc-800 border border-zinc-700 rounded-lg p-6">
-      {/* Week Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-4">
-          <div className="h-12 w-12 bg-zinc-700 rounded-lg flex items-center justify-center">
-            <span className="text-lg font-bold text-zinc-200">{week.week}</span>
+    <div className="bg-zinc-900 border border-orange-300 shadow-2xl font-mono rounded-lg overflow-hidden">
+      {/* Terminal Window Header */}
+      <div className="bg-zinc-700 px-4 py-3 flex items-center space-x-2 border-b border-orange-300">
+        <div className="flex space-x-2">
+          <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+          <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+        </div>
+        <div className="flex-1 text-center">
+          <span className="text-gray-300 text-sm">Terminal — week_{week.week}_details.sh</span>
+        </div>
+      </div>
+
+      {/* Terminal Content */}
+      <div className="p-6 bg-zinc-900">
+        {/* Terminal command header */}
+        <div className="mb-4 pb-3 border-b border-orange-300">
+          <div className="text-orange-300">
+            <span className="text-orange-400">user@{studentName}:~$</span> week_{week.week}_details.sh
           </div>
+          <div className="text-orange-200 text-sm mt-1">
+            Displaying detailed breakdown for Week {week.week}
+          </div>
+        </div>
+
+      {/* Week Header */}
+      <div className="flex items-center justify-between mb-6 border-b border-orange-300 pb-4">
+        <div className="flex items-center space-x-4">
           <div>
-            <h3 className="text-xl font-semibold text-zinc-100">Week {week.week}</h3>
+            <h3 className="text-xl font-semibold text-orange-300">
+              <span className="text-orange-400">[{week.week.toString().padStart(2, '0')}]</span> Week {week.week}
+            </h3>
             <div className="flex items-center space-x-4 mt-1">
-              <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
-                week.attendance ? 'bg-green-900 text-green-200' : 'bg-red-900 text-red-200'
+
+              <span className={`inline-flex px-2 py-1 border text-xs font-medium ${
+                week.attendance ? 'bg-zinc-800 text-orange-300 border-orange-400' : 'bg-zinc-800 text-orange-200 border-orange-600'
               }`}>
                 {week.attendance ? 'Present' : 'Absent'}
               </span>
-              <span className="text-sm text-zinc-400">Group: {week.group}</span>
-              <span className="text-sm text-zinc-400">TA: {week.ta}</span>
+              <span className="text-sm text-orange-200">{week.group}</span>
+              <span className="text-sm text-orange-200">TA: {week.ta}</span>
             </div>
           </div>
         </div>
         
         <div className="text-right">
-          <div className="text-sm text-zinc-400">Total Score</div>
-          <div className={`text-2xl font-bold ${getScoreColor(week.total, 200)}`}>
-            {week.total}<span className="text-lg text-zinc-500">/200</span>
+          <div className="text-sm text-orange-400">Total Score</div>
+          <div className="text-2xl font-bold text-orange-300">
+            {week.total}<span className="text-lg text-orange-200">/200</span>
           </div>
         </div>
       </div>
@@ -72,29 +117,29 @@ export const WeeklyBreakdownCard = ({ week, studentName }: WeeklyBreakdownCardPr
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* GD Scores */}
         <div className="space-y-4">
-          <h4 className="text-sm font-semibold text-zinc-300 uppercase tracking-wider">GD Scores</h4>
+          <h4 className="text-sm font-semibold text-orange-400 uppercase tracking-wider border-b border-orange-400 pb-1">GD Scores</h4>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-zinc-400">Communication (FA)</span>
-              {renderScoreBar(week.gdScore.fa, 5, 'bg-amber-500')}
+              <span className="text-sm text-orange-200">Communication (FA)</span>
+              {renderScoreBar(week.gdScore.fa, 5)}
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-zinc-400">Depth of Answer (FB)</span>
-              {renderScoreBar(week.gdScore.fb, 5, 'bg-amber-500')}
+              <span className="text-sm text-orange-200">Depth of Answer (FB)</span>
+              {renderScoreBar(week.gdScore.fb, 5)}
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-zinc-400">Technical Fluency (FC)</span>
-              {renderScoreBar(week.gdScore.fc, 5, 'bg-amber-500')}
+              <span className="text-sm text-orange-200">Technical Fluency (FC)</span>
+              {renderScoreBar(week.gdScore.fc, 5)}
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-zinc-400">Engagement (FD)</span>
-              {renderScoreBar(week.gdScore.fd, 5, 'bg-amber-500')}
+              <span className="text-sm text-orange-200">Engagement (FD)</span>
+              {renderScoreBar(week.gdScore.fd, 5)}
             </div>
-            <div className="pt-2 border-t border-zinc-700">
+            <div className="pt-2 border-t border-orange-400">
               <div className="flex justify-between items-center">
-                <span className="text-sm font-semibold text-zinc-300">GD Total</span>
-                <span className="text-lg font-bold text-zinc-100">
-                  {computeGdTotal(week.gdScore).toFixed(0)}<span className="text-sm text-zinc-500">/100</span>
+                <span className="text-sm font-semibold text-orange-300">GD Total</span>
+                <span className="text-lg font-bold text-orange-300">
+                  {computeGdTotal(week.gdScore).toFixed(0)}<span className="text-sm text-orange-200">/100</span>
                 </span>
               </div>
             </div>
@@ -103,25 +148,25 @@ export const WeeklyBreakdownCard = ({ week, studentName }: WeeklyBreakdownCardPr
 
         {/* Bonus Scores */}
         <div className="space-y-4">
-          <h4 className="text-sm font-semibold text-zinc-300 uppercase tracking-wider">Bonus Scores</h4>
+          <h4 className="text-sm font-semibold text-orange-400 uppercase tracking-wider border-b border-orange-400 pb-1">Bonus Scores</h4>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-zinc-400">Attempt</span>
-              {renderScoreBar(week.bonusScore.attempt, 5, 'bg-green-500')}
+              <span className="text-sm text-orange-200">Attempt</span>
+              {renderScoreBar(week.bonusScore.attempt, 5)}
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-zinc-400">Quality</span>
-              {renderScoreBar(week.bonusScore.good, 5, 'bg-green-500')}
+              <span className="text-sm text-orange-200">Quality</span>
+              {renderScoreBar(week.bonusScore.good, 5)}
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-zinc-400">Follow Up</span>
-              {renderScoreBar(week.bonusScore.followUp, 5, 'bg-green-500')}
+              <span className="text-sm text-orange-200">Follow Up</span>
+              {renderScoreBar(week.bonusScore.followUp, 5)}
             </div>
-            <div className="pt-2 border-t border-zinc-700">
+            <div className="pt-2 border-t border-orange-400">
               <div className="flex justify-between items-center">
-                <span className="text-sm font-semibold text-zinc-300">Bonus Total</span>
-                <span className="text-lg font-bold text-zinc-100">
-                  {computeBonusTotal(week.bonusScore)}<span className="text-sm text-zinc-500">/30</span>
+                <span className="text-sm font-semibold text-orange-300">Bonus Total</span>
+                <span className="text-lg font-bold text-orange-300">
+                  {computeBonusTotal(week.bonusScore)}<span className="text-sm text-orange-200">/30</span>
                 </span>
               </div>
             </div>
@@ -130,29 +175,29 @@ export const WeeklyBreakdownCard = ({ week, studentName }: WeeklyBreakdownCardPr
 
         {/* Exercise Scores */}
         <div className="space-y-4">
-          <h4 className="text-sm font-semibold text-zinc-300 uppercase tracking-wider">Exercise Scores</h4>
+          <h4 className="text-sm font-semibold text-orange-400 uppercase tracking-wider border-b border-orange-400 pb-1">Exercise Scores</h4>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-zinc-400">Submitted</span>
+              <span className="text-sm text-orange-200">Submitted</span>
               {renderBooleanScore(week.exerciseScore.Submitted, 10)}
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-zinc-400">Tests Pass</span>
+              <span className="text-sm text-orange-200">Tests Pass</span>
               {renderBooleanScore(week.exerciseScore.privateTest, 50)}
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-zinc-400">Good Structure</span>
+              <span className="text-sm text-orange-200">Good Structure</span>
               {renderBooleanScore(week.exerciseScore.goodStructure, 20)}
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-zinc-400">Good Documentation</span>
+              <span className="text-sm text-orange-200">Good Documentation</span>
               {renderBooleanScore(week.exerciseScore.goodDoc, 20)}
             </div>
-            <div className="pt-2 border-t border-zinc-700">
+            <div className="pt-2 border-t border-orange-400">
               <div className="flex justify-between items-center">
-                <span className="text-sm font-semibold text-zinc-300">Exercise Total</span>
-                <span className="text-lg font-bold text-zinc-100">
-                  {computeExerciseTotal(week.exerciseScore)}<span className="text-sm text-zinc-500">/100</span>
+                <span className="text-sm font-semibold text-orange-300">Exercise Total</span>
+                <span className="text-lg font-bold text-orange-300">
+                  {computeExerciseTotal(week.exerciseScore)}<span className="text-sm text-orange-200">/100</span>
                 </span>
               </div>
             </div>
@@ -160,18 +205,37 @@ export const WeeklyBreakdownCard = ({ week, studentName }: WeeklyBreakdownCardPr
         </div>
       </div>
 
-      {/* GitHub Link */}
-      {week.exerciseScore.Submitted && (
-        <div className="mt-6 pt-6 border-t border-zinc-700">
+      {/* Action Buttons */}
+      <div className="mt-6 pt-6 border-t border-orange-300 space-y-3">
+        {/* Instructions Button */}
+        <button 
+          onClick={handleInstructionsClick}
+          className="b-0 bg-orange-300 flex items-center space-x-2 hover:bg-orange-400 rounded-md border border-orange-300 hover:border-orange-400 p-3 transition-colors w-full justify-center"
+        >
+          <BookOpen className="h-4 w-4" />
+          <span>Go to Week {week.week} Instructions</span>
+        </button>
+
+         
+        <button 
+          onClick={handleDiscordClick.bind(null, week.week)}
+          className="b-0 bg-orange-300 flex items-center space-x-2 hover:bg-orange-400 rounded-md border border-orange-300 hover:border-orange-400 p-3 transition-colors w-full justify-center"
+        >
+          <span>Go to assigned discord channel</span>
+        </button>
+
+        {/* GitHub Link */}
+        {week.exerciseScore.Submitted && (
           <button 
             onClick={handleRepoLink}
-            className="flex items-center space-x-2 text-amber-400 hover:text-amber-300 transition-colors"
+            className="flex items-center space-x-2 bg-zinc-700 text-orange-300 hover:bg-zinc-600 border border-orange-300 hover:border-orange-400 p-3 transition-colors w-full justify-center"
           >
             <ExternalLink className="h-4 w-4" />
-            <span>View GitHub Submission for Week {week.week}</span>
+            <span>→ View GitHub Submission for Week {week.week}</span>
           </button>
-        </div>
-      )}
+        )}
+      </div>
+      </div>
     </div>
   );
 };
