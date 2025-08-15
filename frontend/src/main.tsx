@@ -37,7 +37,7 @@ const router = createBrowserRouter([
   },
   {
     path: '/student',
-    element: <StudentDetailPage /> ,
+    element: <ParticipantProtectedRoute element={<StudentDetailPage />} />,
   },
   {
     path: '/result',
@@ -66,6 +66,15 @@ const router = createBrowserRouter([
         {
       path: '/cohortSelector',
       element: <StudentCohortSelector />,
+    },
+    {
+      path: '/unauthorized',
+      element: <div className="min-h-screen bg-zinc-900 text-zinc-100 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <h1 className="text-2xl font-bold text-red-400">Unauthorized</h1>
+          <p className="text-zinc-400">You don't have permission to access this resource.</p>
+        </div>
+      </div>,
     }
 ]);
 

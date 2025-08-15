@@ -183,12 +183,13 @@ pub async fn discord_participant_oauth(query: web::Query<OAuthQuery>) -> Result<
     };
 
     let redirect_url = if has_pb_role && user_in_db {
-        // Redirect to StudentDetailPage with student parameter
+        // Redirect to StudentDetailPage with student parameter and participant token
         let encoded_email = urlencoding::encode(user.email.as_deref().unwrap_or(""));
         let encoded_username = urlencoding::encode(&user.username);
+        let participant_token = get_auth_token("participant");
         format!(
-            "{}/student?student={}&auth=discord&email={}&username={}",
-            student_url, encoded_username, encoded_email, encoded_username
+            "{}/student?student={}&auth=discord&email={}&username={}&token={}&role=participant",
+            student_url, encoded_username, encoded_email, encoded_username, participant_token
         )
     } else {
         // Unauthorized page - either no PB role or not in database
