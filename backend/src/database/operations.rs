@@ -191,13 +191,14 @@ pub fn read_all_responses(db_path: &PathBuf, _cohort_name: &str) -> Result<Vec<F
 
 pub fn match_discord_username(
     path: &PathBuf,
-    discord: &str,
+    name: &str,
+    email: Option<String>,
 ) -> Result<CohortParticipant, AppError> {
     let conn = Connection::open(path)?;
-    let mut stmt = conn.prepare("SELECT * FROM participants WHERE \"Email\" = ?1")?;
+    let mut stmt = conn.prepare("SELECT * FROM participants WHERE name = ?1 OR email = ?2")?;
 
     let participant = stmt
-        .query_row(params![discord], |row| CohortParticipant::from_row(row))
+        .query_row(params![name, email], |row| CohortParticipant::from_row(row))
         .map_err(|e| match e {
             rusqlite::Error::QueryReturnedNoRows => {
                 AppError::Database(rusqlite::Error::QueryReturnedNoRows)

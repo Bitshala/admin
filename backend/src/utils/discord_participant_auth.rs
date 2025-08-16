@@ -33,7 +33,8 @@ struct Member {
 pub async fn discord_participant_oauth(query: web::Query<OAuthQuery>) -> Result<impl Responder> {
     let client_id = env::var("DISCORD_CLIENT_ID").expect("Missing DISCORD_CLIENT_ID");
     let client_secret = env::var("DISCORD_CLIENT_SECRET").expect("Missing DISCORD_CLIENT_SECRET");
-    let redirect_uri =env::var("DISCORD_PARTICIPANT_URI").expect("Missing DISCORD_PARTICIPANT_REDIRECT_URI");
+    let redirect_uri =
+        env::var("DISCORD_PARTICIPANT_URI").expect("Missing DISCORD_PARTICIPANT_REDIRECT_URI");
     let target_guild_id = env::var("TARGET_GUILD_ID").expect("Missing TARGET_GUILD_ID");
     let pb_role_id = env::var("PB_ROLE_ID").expect("Missing PB_ROLE_ID");
     let bot_token = env::var("DISCORD_BOT_TOKEN").expect("Missing DISCORD_BOT_TOKEN");
@@ -167,7 +168,7 @@ pub async fn discord_participant_oauth(query: web::Query<OAuthQuery>) -> Result<
     let db_path = PathBuf::from("pb_cohort.db");
     println!("Looking for database at: {:?}", db_path.canonicalize());
     println!("Current working directory: {:?}", std::env::current_dir());
-    let user_in_db = match match_discord_username(&db_path, user.email.as_deref().unwrap_or("")) {
+    let user_in_db = match match_discord_username(&db_path, &user.username, user.email.clone()) {
         Ok(participant) => {
             println!("User found in pb_cohort database: {}", participant.name);
             true

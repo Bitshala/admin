@@ -165,10 +165,7 @@ pub async fn discord_ta_oauth(query: web::Query<OAuthQuery>) -> Result<impl Resp
     let redirect_url = if has_ta_role {
         // Redirect back to your login page with token or flags
         let encoded_token = urlencoding::encode(&auth_token);
-        format!(
-            "{}/select?auth=discord&token={}",
-            ta_url, encoded_token
-        )
+        format!("{}/select?auth=discord&token={}", ta_url, encoded_token)
     } else {
         // Unauthorized page - either no TA role or not in database
         let reason = if !has_ta_role {
