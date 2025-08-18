@@ -251,6 +251,7 @@ const TableView: React.FC = () => {
   };
 
   const handleStudentClick = (studentName: string) => {
+    localStorage.setItem('user_username', studentName);
     navigate(`/detailPage?student=${encodeURIComponent(studentName)}`);
   };
 
