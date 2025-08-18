@@ -11,6 +11,7 @@ import { WeeklyBreakdownCard } from '../components/student/WeeklyBreakdownCard';
 import { fetchGithubUsername, fetchStudentData, fetchStudentBackgroundData } from '../services/studentService';
 import { getStudentNameFromUrl, exportStudentData } from '../utils/studentUtils';
 import { calculateStudentStats } from '../utils/calculations';
+import { decodeUsername, validateUserAccess } from '../utils/tokenUtils';
 import type { StudentData, StudentBackground as StudentBgType } from '../types/student';
 
 const StudentDetailPage = () => {
@@ -22,13 +23,34 @@ const StudentDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Get student name from URL params or search params
-
+  // Get student name from URL params, search params, or secure token
   const getStudentName = useCallback((): string | null => {
+    // Try to get from URL params first (legacy support)
     if (paramStudentName) return decodeURIComponent(paramStudentName);
 
+    // Check for secure token parameter
+    const token = searchParams.get('token');
+    if (token) {
+      const decodedUsername = decodeUsername(token);
+      if (decodedUsername && validateUserAccess(decodedUsername)) {
+        return decodedUsername;
+      } else {
+        // Token validation failed
+        setError('Access denied: Invalid or expired session token');
+        return null;
+      }
+    }
+
+    // Fallback to legacy student parameter
     const fromParams = searchParams.get('student');
-    if (fromParams) return fromParams;
+    if (fromParams) {
+      // Validate against authenticated user for legacy URLs
+      if (!validateUserAccess(fromParams)) {
+        setError('Access denied: Unauthorized user access attempt');
+        return null;
+      }
+      return fromParams;
+    }
 
     return getStudentNameFromUrl();
   }, [paramStudentName, searchParams]);
@@ -98,28 +120,39 @@ const StudentDetailPage = () => {
 
   // Error state
   if (error) {
+    const isSecurityError = error.includes('Access denied');
+    
     return (
       <div className="min-h-screen bg-zinc-900 text-zinc-100 flex items-center justify-center">
         <div className="text-center space-y-4">
           <AlertCircle className="h-16 w-16 text-red-400 mx-auto" />
-          <h2 className="text-2xl font-bold text-red-400">Error Loading Student Data</h2>
+          <h2 className="text-2xl font-bold text-red-400">
+            {isSecurityError ? 'Access Denied' : 'Error Loading Student Data'}
+          </h2>
           <p className="text-zinc-400">{error}</p>
+          {isSecurityError && (
+            <p className="text-yellow-400 text-sm">
+              Please log in again or select a cohort from the main page.
+            </p>
+          )}
           <div className="space-x-4">
             <button 
-              onClick={handleGoBack}
-              className="bg-zinc-800 hover:bg-zinc-700 px-4 py-2 rounded-md transition-colors"
+              onClick={() => navigate('/cohortSelector')}
+              className="bg-orange-500 hover:bg-orange-600 px-4 py-2 rounded-md transition-colors"
             >
-              Go Back
+              {isSecurityError ? 'Go to Login' : 'Select Cohort'}
             </button>
-            <button 
-              onClick={() => {
-                const name = getStudentName();
-                if (name) loadStudentData(name);
-              }}
-              className="bg-amber-500 hover:bg-amber-600 px-4 py-2 rounded-md transition-colors"
-            >
-              Try Again
-            </button>
+            {!isSecurityError && (
+              <button 
+                onClick={() => {
+                  const name = getStudentName();
+                  if (name) loadStudentData(name);
+                }}
+                className="bg-amber-500 hover:bg-amber-600 px-4 py-2 rounded-md transition-colors"
+              >
+                Try Again
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -228,7 +261,7 @@ const StudentDetailPage = () => {
             Detailed Weekly Breakdown
           </h2>
           <div className="space-y-6">
-            {validWeeks.map((week) => (
+            {validWeeks.slice(0, 2).map((week) => (
               <WeeklyBreakdownCard 
                 key={week.week} 
                 week={week} 

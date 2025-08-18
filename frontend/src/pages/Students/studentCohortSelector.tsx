@@ -1,9 +1,11 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { encodeUsername } from '../../utils/tokenUtils';
 
 export default function StudentCohortSelector() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [showLbtclPopup, setShowLbtclPopup] = useState(false);
 
 
   const cohorts = [
@@ -91,6 +93,12 @@ export default function StudentCohortSelector() {
   }, [location.search, navigate]);
 
   const handleCohortClick = async (cohortId: string) => {
+    // Show popup for LBTCL cohort
+    if (cohortId === 'lbcl_cohort') {
+      setShowLbtclPopup(true);
+      return;
+    }
+
     const cohort = cohorts.find(c => c.id === cohortId);
     if (!cohort) return;
 
@@ -119,8 +127,9 @@ export default function StudentCohortSelector() {
         localStorage.setItem('selected_cohort_db_path', cohort.dbPath);
         localStorage.setItem('selected_cohort_name', cohort.name);
         
-        // Navigate to cohort-specific page or instructions
-        navigate(`/detailPage?student=${username}`);
+        // Navigate to cohort-specific page with encoded token
+        const encodedToken = encodeUsername(username);
+        navigate(`/detailPage?token=${encodedToken}`);
       } else {
         console.error(`❌ Failed to switch to ${cohort.name}:`, result.message);
         alert(`Failed to switch cohort: ${result.message}`);
@@ -198,6 +207,24 @@ export default function StudentCohortSelector() {
           </div>
         </div>
       </div>
+
+      {/* LBTCL Popup */}
+      {showLbtclPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-zinc-900 border border-orange-300 rounded-lg p-6 max-w-md mx-4">
+            <div className="text-orange-300 text-center mb-4">
+              <h3 className="text-lg font-bold mb-2">LBTCL Cohort</h3>
+              <p className="text-orange-200">Cohort data not available at the moment</p>
+            </div>
+            <button
+              onClick={() => setShowLbtclPopup(false)}
+              className="w-full bg-zinc-800 border border-orange-300 text-orange-300 py-2 px-4 rounded hover:bg-zinc-700 transition-colors duration-200"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
