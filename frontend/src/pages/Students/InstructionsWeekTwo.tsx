@@ -260,7 +260,7 @@ export default function InstructionsWeekTwo() {
                   <h3 className="text-orange-300 font-semibold mb-4">Week 2: Chapter 3 – Elliptic Curve Cryptography</h3>
                   <div className="space-y-2 text-sm">
                     <div>
-                      <a href="https://raw.githubusercontent.com/jimmysong/programmingbitcoin/master/ch03.asciidoc" 
+                      <a href="https://github.com/jimmysong/programmingbitcoin/blob/master/ch03.asciidoc" 
                          className="text-orange-200 hover:text-orange-300 underline">
                         → Chapter 3: Elliptic Curve Cryptography
                       </a>
@@ -330,7 +330,7 @@ export default function InstructionsWeekTwo() {
               <div className="p-6">
                 <div className="bg-zinc-700 border border-orange-400 p-4 mb-4">
                   <div className="text-orange-300 font-semibold mb-2">Assignment Repository</div>
-                  <a href="#" 
+                  <a href="https://classroom.github.com/a/UStbdHCH" 
                      className="text-orange-200 hover:text-orange-300 underline">
                     https://classroom.github.com/a/UStbdHCH
                   </a>
