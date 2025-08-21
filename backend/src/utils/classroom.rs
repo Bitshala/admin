@@ -2,6 +2,7 @@ use octocrab::Octocrab;
 use serde::{Deserialize, Serialize};
 use std::env;
 use thiserror::Error;
+use serde_json::Value;
 
 // Represents a GitHub Classroom
 #[derive(Debug, Deserialize)]
@@ -61,11 +62,11 @@ impl WEEK {
 
     pub fn to_assign_id(&self) -> u32 {
         match self {
-            WEEK::One => 812582,
-            WEEK::Two => 814648,
-            WEEK::Three => 817211,
-            WEEK::Four => 819049,
-            WEEK::Five => 821244,
+            WEEK::One => 829989,
+            WEEK::Two => 831654,
+            WEEK::Three => 831655,
+            WEEK::Four => 831656,
+            WEEK::Five => 831658,
         }
     }
 }
@@ -76,7 +77,7 @@ impl WEEK {
 //     println!("GitHub token: {}", token);
 //     let octocrab = Octocrab::builder().personal_token(token).build()?;
 
-//     let classroom = octocrab.get("/classrooms/234007/assignments", None::<&()>).await?;
+//     let classroom = octocrab.get("/classrooms/274924/assignments", None::<&()>).await?;
 
 //     Ok(classroom)
 // }
