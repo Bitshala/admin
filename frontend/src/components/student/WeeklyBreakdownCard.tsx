@@ -166,7 +166,7 @@ export const WeeklyBreakdownCard = ({ week, studentName }: WeeklyBreakdownCardPr
               <div className="flex justify-between items-center">
                 <span className="text-sm font-semibold text-orange-300">Bonus Total</span>
                 <span className="text-lg font-bold text-orange-300">
-                  {computeBonusTotal(week.bonusScore)}<span className="text-sm text-orange-200">/30</span>
+                  {computeBonusTotal(week.bonusScore)}<span className="text-sm text-orange-200">/150</span>
                 </span>
               </div>
             </div>
