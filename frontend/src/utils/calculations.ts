@@ -38,9 +38,9 @@ export const computeTotal = (scores: {
 
 export const getMaxScores = () => ({
   gd: 100,
-  bonus: 30,
+  bonus: 150,
   exercise: 100,
-  total: 230,
+  total: 350,
 });
 
 export const calculatePercentage = (

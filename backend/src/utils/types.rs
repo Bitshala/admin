@@ -53,7 +53,7 @@ pub struct RowData {
     pub week: i32,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Table {
     pub rows: Vec<RowData>,
 }
