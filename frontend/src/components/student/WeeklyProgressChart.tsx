@@ -28,7 +28,7 @@ export const WeeklyProgressChart = ({ weeklyData }: WeeklyProgressChartProps) =>
               />
               <div className="absolute inset-0 flex items-center justify-center">
                 <span className="text-xs font-medium text-orange-300">
-                  {week.total}/200
+                  {week.total}
                 </span>
               </div>
             </div>

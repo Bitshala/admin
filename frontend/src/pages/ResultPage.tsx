@@ -164,7 +164,7 @@ export const ResultPage: React.FC<ResultPageProps> = () => {
       <div className="w-full max-w-4xl">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2 font-inter">Cohort Result</h1>
+          <h1 className="text-4xl font-bold text-white mb-2 font-inter">Cohort Leaderboard</h1>
           <p className="text-zinc-400 font-inter">Scores for this cohort</p>
         </div>
         

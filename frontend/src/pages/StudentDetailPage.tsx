@@ -212,13 +212,31 @@ const StudentDetailPage = () => {
                 <span>Back to Students</span>
               </button>
               
-              <button 
-                onClick={handleExport}
-                className="b-0 rounded-md flex items-center space-x-2 px-4 py-2 bg-orange-400 text-zinc-900 hover:bg-orange-500 border border-orange-300 transition-colors"
-              >
-                <Download className="h-4 w-4" />
-                <span>Export Data</span>
-              </button>
+              <div className="flex items-center space-x-4">
+                <button 
+                  onClick={() => navigate('/instructions')}
+                  className="b-0 rounded-md flex items-center space-x-2 px-4 py-2 bg-zinc-700 text-orange-300 hover:bg-zinc-600 border border-orange-400 transition-colors font-mono"
+                >
+                  <span className="text-orange-400">►</span>
+                  <span>General Instructions</span>
+                </button>
+                
+                <button 
+                  onClick={() => navigate('/result')}
+                  className="b-0 rounded-md flex items-center space-x-2 px-4 py-2 bg-zinc-700 text-orange-300 hover:bg-zinc-600 border border-orange-400 transition-colors font-mono"
+                >
+                  <span className="text-orange-400">►</span>
+                  <span>View Leaderboard</span>
+                </button>
+                
+                <button 
+                  onClick={handleExport}
+                  className="b-0 rounded-md flex items-center space-x-2 px-4 py-2 bg-orange-400 text-zinc-900 hover:bg-orange-500 border border-orange-300 transition-colors"
+                >
+                  <Download className="h-4 w-4" />
+                  <span>Export Data</span>
+                </button>
+              </div>
             </div>
             
             {/* Student Info */}

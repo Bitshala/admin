@@ -47,7 +47,7 @@ export const WeeklyBreakdownCard = ({ week, studentName }: WeeklyBreakdownCardPr
           style={{ width: `${(value / max) * 100}%` }}
         />
       </div>
-      <span className="text-sm font-medium w-8 text-orange-300">{value}/{max}</span>
+      <span className="text-sm font-medium w-8 text-orange-300">{value}</span>
     </div>
   );
 
@@ -99,8 +99,12 @@ export const WeeklyBreakdownCard = ({ week, studentName }: WeeklyBreakdownCardPr
               }`}>
                 {week.attendance ? 'Present' : 'Absent'}
               </span>
-              <span className="text-sm text-orange-200">{week.group}</span>
-              <span className="text-sm text-orange-200">TA: {week.ta}</span>
+              <span className="inline-flex px-3 py-1 bg-orange-400 text-zinc-900 font-bold text-sm border border-orange-300 rounded">
+                GROUP: {week.group}
+              </span>
+              <span className="inline-flex px-3 py-1 bg-zinc-700 text-orange-300 font-semibold text-sm border border-orange-400 rounded">
+                TA: {week.ta}
+              </span>
             </div>
           </div>
         </div>
@@ -108,7 +112,7 @@ export const WeeklyBreakdownCard = ({ week, studentName }: WeeklyBreakdownCardPr
         <div className="text-right">
           <div className="text-sm text-orange-400">Total Score</div>
           <div className="text-2xl font-bold text-orange-300">
-            {week.total}<span className="text-lg text-orange-200">/200</span>
+            {week.total}
           </div>
         </div>
       </div>
@@ -139,7 +143,7 @@ export const WeeklyBreakdownCard = ({ week, studentName }: WeeklyBreakdownCardPr
               <div className="flex justify-between items-center">
                 <span className="text-sm font-semibold text-orange-300">GD Total</span>
                 <span className="text-lg font-bold text-orange-300">
-                  {computeGdTotal(week.gdScore).toFixed(0)}<span className="text-sm text-orange-200">/100</span>
+                  {computeGdTotal(week.gdScore).toFixed(0)}
                 </span>
               </div>
             </div>
@@ -166,7 +170,7 @@ export const WeeklyBreakdownCard = ({ week, studentName }: WeeklyBreakdownCardPr
               <div className="flex justify-between items-center">
                 <span className="text-sm font-semibold text-orange-300">Bonus Total</span>
                 <span className="text-lg font-bold text-orange-300">
-                  {computeBonusTotal(week.bonusScore)}<span className="text-sm text-orange-200">/30</span>
+                  {computeBonusTotal(week.bonusScore)}
                 </span>
               </div>
             </div>
@@ -197,7 +201,7 @@ export const WeeklyBreakdownCard = ({ week, studentName }: WeeklyBreakdownCardPr
               <div className="flex justify-between items-center">
                 <span className="text-sm font-semibold text-orange-300">Exercise Total</span>
                 <span className="text-lg font-bold text-orange-300">
-                  {computeExerciseTotal(week.exerciseScore)}<span className="text-sm text-orange-200">/100</span>
+                  {computeExerciseTotal(week.exerciseScore)}
                 </span>
               </div>
             </div>
@@ -219,9 +223,11 @@ export const WeeklyBreakdownCard = ({ week, studentName }: WeeklyBreakdownCardPr
          
         <button 
           onClick={handleDiscordClick.bind(null, week.week)}
-          className="b-0 bg-orange-300 flex items-center space-x-2 hover:bg-orange-400 rounded-md border border-orange-300 hover:border-orange-400 p-3 transition-colors w-full justify-center"
+          className="bg-zinc-800 text-orange-300 font-bold text-base flex items-center space-x-3 border-2 border-orange-400 hover:bg-zinc-700 hover:border-orange-300 hover:text-orange-200 p-4 transition-colors w-full justify-center font-mono"
         >
-          <span>Go to assigned discord channel</span>
+          <span className="text-orange-400">►</span>
+          <span>JOIN DISCORD GROUP [{week.group}]</span>
+          <span className="text-orange-400">◄</span>
         </button>
 
         {/* GitHub Link */}
