@@ -8,7 +8,6 @@ import { CohortSelection } from './pages/CohortSelection.tsx';
 import { ResultPage } from './pages/ResultPage.tsx';
 // import StudentDetailPage from './StudentsPage.tsx';
 import ProtectedRoute from './components/ProtectedRoute.tsx';
-import ParticipantProtectedRoute from './components/ParticipantProtectedRoute.tsx';
 import StudentDetailPage from './pages/StudentDetailPage.tsx';
 
 import Instructions from './pages/Students/Instructions.tsx';
@@ -22,6 +21,7 @@ import CohortParticipantLogin from './pages/Students/studentLogin.tsx';
 import WeekSelector from './pages/Students/weekSelector.tsx';
 import StudentCohortSelector from './pages/Students/studentCohortSelector.tsx';
 import InstructionsWeekTwo from './pages/Students/InstructionsWeekTwo.tsx';
+import InstructionsWeekThree from './pages/Students/InstructionsWeekThree.tsx';
 
 const router = createBrowserRouter([
   {
@@ -50,7 +50,7 @@ const router = createBrowserRouter([
   },
      {
     path: '/instructions',
-    element: <ParticipantProtectedRoute element={<Instructions />} />,
+    element: <Instructions/>,
   },
        {
     path: '/instructions/1',
@@ -59,6 +59,10 @@ const router = createBrowserRouter([
        {
     path: '/instructions/2',
     element: <InstructionsWeekTwo />,
+  },
+         {
+    path: '/instructions/3',
+    element: <InstructionsWeekThree />,
   },
   
   {
