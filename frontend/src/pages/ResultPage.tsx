@@ -8,6 +8,7 @@ interface StudentResult {
   email: string;
   total_score: number;
   exercise_total_score?: number;
+  github: string;
 }
 
 // Sort types
@@ -30,12 +31,13 @@ export const ResultPage: React.FC<ResultPageProps> = () => {
       try {
         setLoading(true);
         const response: Response = await fetch(`${baseUrl}/students/${cohort_name}/total_scores`);
-
+   
         if (!response.ok) {
           throw new Error('Failed to fetch results');
         }
         
         const data: StudentResult[] = await response.json();
+        console.log(data);
         const cappedData = data.filter((item) => item.total_score > 0);
         setResults(cappedData);
 
@@ -135,16 +137,43 @@ export const ResultPage: React.FC<ResultPageProps> = () => {
     }
   };
 
-  // Helper function to mask email
-  const maskEmail = (email: string): string => {
-    const [localPart, domain] = email.split('@');
-    if (!domain) return email;
+  // Helper function to format GitHub username
+  const formatGithub = (github: string): string => {
+    if (!github || github.trim() === '') {
+      return 'No GitHub available';
+    }
     
-    const maskedLocal = localPart.length > 2 
-      ? localPart.substring(0, 2) + '****' + localPart.substring(localPart.length - 1)
-      : '****';
+    // Extract username from GitHub URL or return as is if it's already a username
+    if (github.includes('github.com/')) {
+      const parts = github.split('github.com/');
+      if (parts.length > 1) {
+        const username = parts[1].split('/')[0];
+        return username || 'No GitHub available';
+      }
+    }
     
-    return `${maskedLocal}@${domain}`;
+    return github;
+  };
+
+  // Helper function to get GitHub URL
+  const getGithubUrl = (github: string): string => {
+    if (!github || github.trim() === '') {
+      return '';
+    }
+    
+    if (github.includes('github.com/')) {
+      return github;
+    }
+    
+    return `https://github.com/${github}`;
+  };
+
+  // Handle GitHub click
+  const handleGithubClick = (github: string) => {
+    const url = getGithubUrl(github);
+    if (url) {
+      window.open(url, '_blank');
+    }
   };
 
   // Helper function to get sort indicator for total score
@@ -193,7 +222,7 @@ export const ResultPage: React.FC<ResultPageProps> = () => {
               <tr className="bg-zinc-700/50 border-b border-zinc-600/50">
                 <th className="text-left p-4 text-sm font-semibold text-zinc-300 font-inter">Rank</th>
                 <th className="text-left p-4 text-sm font-semibold text-zinc-300 font-inter">Name</th>
-                <th className="text-left p-4 text-sm font-semibold text-zinc-300 font-inter">Email</th>
+                <th className="text-left p-4 text-sm font-semibold text-zinc-300 font-inter">GitHub</th>
                 <th 
                   className="text-left p-4 text-sm font-semibold text-zinc-300 font-inter cursor-pointer hover:text-white transition-colors duration-200 select-none"
                   onClick={handleExerciseScoreSort}
@@ -234,8 +263,17 @@ export const ResultPage: React.FC<ResultPageProps> = () => {
                     >
                       {student.name}
                     </td>
-                    <td className="p-4 text-zinc-400 font-inter truncate" title={student.email}>
-                      {maskEmail(student.email)}
+                    <td className="p-4 font-inter truncate" title={student.github}>
+                      <span 
+                        className={`${
+                          formatGithub(student.github) === 'No GitHub available' 
+                            ? 'text-red-400' 
+                            : 'text-zinc-400 hover:text-white cursor-pointer transition-colors duration-200'
+                        }`}
+                        onClick={() => formatGithub(student.github) !== 'No GitHub available' && handleGithubClick(student.github)}
+                      >
+                        {formatGithub(student.github)}
+                      </span>
                     </td>
                     <td className="p-4 font-inter">
                       <span className={`font-semibold ${getScoreColorClass(student.exercise_total_score ?? 0)}`}>

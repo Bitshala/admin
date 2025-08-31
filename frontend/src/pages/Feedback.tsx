@@ -160,10 +160,15 @@ const FeedbackTable = () => {
           },
         });
 
-        const data = await response.json();
+        if (!response.ok) {
+          throw new Error('Failed to fetch feedback data');
+        }
 
-    
-        setFeedbacks(data);
+        const data = await response.json();
+        
+        // Ensure data is an array
+        const feedbackArray = Array.isArray(data) ? data : [];
+        setFeedbacks(feedbackArray);
         setLoading(false);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An unknown error occurred');
@@ -173,6 +178,18 @@ const FeedbackTable = () => {
 
     fetchFeedbacks();
   }, [cohort_name]);
+
+  // Show custom message for no feedback
+  if (!loading && !error && feedbacks.length === 0) {
+    return (
+      <div className="min-h-screen bg-zinc-900 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-white mb-4 font-inter">No Feedback Available</h1>
+          <p className="text-zinc-400 font-inter">No feedback available for this cohort</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <DataTable
