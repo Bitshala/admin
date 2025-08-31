@@ -135,6 +135,18 @@ export const ResultPage: React.FC<ResultPageProps> = () => {
     }
   };
 
+  // Helper function to mask email
+  const maskEmail = (email: string): string => {
+    const [localPart, domain] = email.split('@');
+    if (!domain) return email;
+    
+    const maskedLocal = localPart.length > 2 
+      ? localPart.substring(0, 2) + '****' + localPart.substring(localPart.length - 1)
+      : '****';
+    
+    return `${maskedLocal}@${domain}`;
+  };
+
   // Helper function to get sort indicator for total score
   const getTotalScoreSortIndicator = (): JSX.Element | null => {
     if (currentSort === 'total_score_desc') {
@@ -223,7 +235,7 @@ export const ResultPage: React.FC<ResultPageProps> = () => {
                       {student.name}
                     </td>
                     <td className="p-4 text-zinc-400 font-inter truncate" title={student.email}>
-                      {student.email}
+                      {maskEmail(student.email)}
                     </td>
                     <td className="p-4 font-inter">
                       <span className={`font-semibold ${getScoreColorClass(student.exercise_total_score ?? 0)}`}>
