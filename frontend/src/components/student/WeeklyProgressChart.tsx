@@ -23,11 +23,11 @@ export const WeeklyProgressChart = ({ weeklyData }: WeeklyProgressChartProps) =>
             
             <div className="flex-1 bg-zinc-700 border border-orange-400 h-6 relative">
               <div 
-                className="h-6 bg-orange-400 transition-all duration-300"
-                style={{ width: `${Math.min((week.total / 200) * 100, 100)}%` }}
+                className="h-6 text-white bg-orange-400 transition-all duration-300"
+                style={{ width: `${Math.min((week.total ) * 100, 100)}%` }}
               />
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-xs font-medium text-orange-300">
+                <span className="text-md font-medium text-orange-300 text-white ">
                   {week.total}
                 </span>
               </div>

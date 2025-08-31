@@ -279,7 +279,7 @@ const StudentDetailPage = () => {
             Detailed Weekly Breakdown
           </h2>
           <div className="space-y-6">
-            {validWeeks.slice(0, 3).map((week) => (
+            {validWeeks.slice(0, 4).map((week) => (
               <WeeklyBreakdownCard 
                 key={week.week} 
                 week={week} 

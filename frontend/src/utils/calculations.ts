@@ -40,7 +40,7 @@ export const getMaxScores = () => ({
   gd: 100,
   bonus: 30,
   exercise: 100,
-  total: 230,
+  total: 310,
 });
 
 export const calculatePercentage = (
@@ -66,7 +66,6 @@ export const calculateStudentStats = (
     total: number;
   }>
 ): {
-  totalWeeks: number;
   attendedWeeks: number;
   totalScore: number;
   avgScore: number;
@@ -76,17 +75,15 @@ export const calculateStudentStats = (
 } => {
   // Filter out week 0 (usually setup/baseline week)
   const validWeeks = weeklyData.filter(w => w.week > 0);
-  const totalWeeks = validWeeks.length;
   const attendedWeeks = validWeeks.filter(w => w.attendance).length;
   const totalScore = validWeeks.reduce((sum, w) => sum + w.total, 0);
-  const avgScore = totalWeeks > 0 ? totalScore / totalWeeks : 0;
-  const maxPossibleScore = totalWeeks * getMaxScores().total;
+  const avgScore = attendedWeeks > 0 ? totalScore / attendedWeeks : 0;
+  const maxPossibleScore = attendedWeeks * getMaxScores().total;
   const attendanceRate =
-    totalWeeks > 0 ? (attendedWeeks / totalWeeks) * 100 : 0;
+    validWeeks.length > 0 ? (attendedWeeks / validWeeks.length) * 100 : 0;
   const overallPercentage = calculatePercentage(totalScore, maxPossibleScore);
 
   return {
-    totalWeeks,
     attendedWeeks,
     totalScore,
     avgScore,
