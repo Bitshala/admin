@@ -1,6 +1,6 @@
 import { ExternalLink, BookOpen } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { computeGdTotal, computeBonusTotal, computeExerciseTotal } from '../../utils/calculations';
+import { computeGdTotal, computeBonusTotal, computeExerciseTotal, computeTotal } from '../../utils/calculations';
 import { fetchStudentRepoLink } from '../../services/studentService';
 import type { WeeklyData } from '../../types/student';
 
@@ -112,7 +112,7 @@ export const WeeklyBreakdownCard = ({ week, studentName }: WeeklyBreakdownCardPr
         <div className="text-right">
           <div className="text-sm text-orange-400">Total Score</div>
           <div className="text-2xl font-bold text-orange-300">
-            {week.total}
+            {computeTotal({ gdScore: week.gdScore, bonusScore: week.bonusScore, exerciseScore: week.exerciseScore })}
           </div>
         </div>
       </div>
