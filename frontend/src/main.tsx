@@ -23,6 +23,7 @@ import StudentCohortSelector from './pages/Students/studentCohortSelector.tsx';
 import InstructionsWeekTwo from './pages/Students/InstructionsWeekTwo.tsx';
 import InstructionsWeekThree from './pages/Students/InstructionsWeekThree.tsx';
 import InstructionsWeekFour from './pages/Students/InstructionsWeekFour.tsx';
+import InstructionsWeekFive from './pages/Students/InstructionsWeekFive.tsx';
 
 const router = createBrowserRouter([
   {
@@ -68,6 +69,10 @@ const router = createBrowserRouter([
   {
     path: '/instructions/4',
     element: <InstructionsWeekFour />,
+  },
+  {
+    path: '/instructions/5',
+    element: <InstructionsWeekFive />,
   },
   
   {

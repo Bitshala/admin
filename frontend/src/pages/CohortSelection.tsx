@@ -12,29 +12,25 @@ export const CohortSelection = () => {
   const cohorts = [
     {
       title: 'LBTCL',
-      students: 24,
-      startDate: 'March 15, 2025',
-      status: 'Active',
+      students: 90,
+      status: 'Inactive',
       dbPath: 'lbtcl_cohort.db',
     },
     {
       title: 'Programming Bitcoin',
-      students: 18,
-      startDate: 'June 1, 2025',
-      status: 'Upcoming',
+      students: 97,
+      status: 'Active',
       dbPath: 'pb_cohort.db',
     },
     {
       title: 'BPD',
-      students: 12,
-      startDate: 'January 10, 2025',
-      status: 'Active',
+      students: NaN,
+      status: 'Inactive',
       dbPath: 'bpd_cohort.db',
     },
     {
       title: 'MB',
-      students: 20,
-      startDate: 'April 5, 2025',
+      students: NaN,
       status: 'Upcoming',
       dbPath: 'mb_cohort.db',
     },
@@ -98,9 +94,9 @@ export const CohortSelection = () => {
         {cohorts.map(cohort => (
           <CohortCard
             key={cohort.title}
+            status={cohort.status}
             title={cohort.title}
             students={cohort.students}
-            startDate={cohort.startDate}
             onClick={() => handleCohortClick(cohort.dbPath, cohort.title)}
           />
         ))}

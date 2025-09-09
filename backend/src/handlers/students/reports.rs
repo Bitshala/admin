@@ -1,3 +1,4 @@
+use crate::handlers::students::get_github_username;
 use crate::utils::types::{RowData, Table};
 use actix_web::{HttpResponse, Responder, get, web};
 use log::info;
@@ -9,6 +10,7 @@ use std::sync::Mutex;
 struct StudentScoreResponse {
     name: String,
     email: String,
+    github: String,
     total_score: u64,
     exercise_total_score: u8,
 }
@@ -52,12 +54,12 @@ pub async fn get_weekly_attendance_count_for_week(
 
 #[get("/students/{cohort_name}/total_scores")]
 pub async fn get_students_by_total_score(
-    _cohort_name: web::Path<String>,
+    cohort_name: web::Path<String>,
     state: web::Data<Mutex<Table>>,
 ) -> impl Responder {
     info!("Fetching students ordered by total score (desc)");
     let state_table = state.lock().unwrap();
-
+    let db_path = std::path::PathBuf::from(&cohort_name.into_inner());
     let mut student_data: HashMap<String, (RowData, u64, u8)> = HashMap::new();
 
     for row in &state_table.rows {
@@ -93,8 +95,9 @@ pub async fn get_students_by_total_score(
     let final_response: Vec<StudentScoreResponse> = response
         .into_iter()
         .map(|(row, total_sum, exercise_total)| StudentScoreResponse {
-            name: row.name,
-            email: row.mail,
+            name: row.name.clone(),
+            email: row.mail.clone(),
+            github: get_github_username(&db_path, &row.name),
             total_score: total_sum,
             exercise_total_score: exercise_total,
         })

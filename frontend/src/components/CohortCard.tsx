@@ -1,14 +1,14 @@
 type CohortCardProps = {
   title: string;
   students: number;
-  startDate: string;
   onClick: () => void;
+  status: string;
 };
 
 const CohortCard = ({
   title,
   students,
-  startDate,
+  status,
   onClick,
 }: CohortCardProps) => {
   return (
@@ -20,7 +20,7 @@ const CohortCard = ({
         {/* Status badge + arrow icon */}
         <div className="flex items-center justify-between mb-3">
           <div className="text-xs font-medium text-orange-400 bg-orange-500/10 px-2 py-1 rounded-md font-inter">
-            Active
+           {status}
           </div>
           <div className="opacity-0 group-hover:opacity-100 transform translate-x-1 group-hover:translate-x-0 transition-all duration-300">
             <div className="w-6 h-6 rounded-lg bg-gradient-to-r from-orange-400 to-amber-400 flex items-center justify-center">
@@ -65,30 +65,10 @@ const CohortCard = ({
               </svg>
             </div>
             <span className="font-medium font-inter text-zinc-300">
-              {students} students
+              {students > 0 ? `${students} students` : 'No Data available'}
             </span>
           </div>
 
-          <div className="flex items-center">
-            <div className="w-5 h-5 rounded-md bg-amber-500/10 flex items-center justify-center mr-2">
-              <svg
-                className="w-3 h-3 text-amber-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
-            </div>
-            <span className="font-medium font-inter text-zinc-300">
-              Starts {startDate}
-            </span>
-          </div>
         </div>
       </div>
     </div>
