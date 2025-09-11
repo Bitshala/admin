@@ -30,7 +30,7 @@ export const CohortSelection = () => {
     },
     {
       title: 'MB',
-      students: NaN,
+      students: 20,
       status: 'Upcoming',
       dbPath: 'mb_cohort.db',
     },
