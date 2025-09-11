@@ -480,7 +480,11 @@ const TableView: React.FC = () => {
             {
           cohort_name == 'pb_cohort.db' ? (
               <><h1>Programming Bitcoin Study Cohort</h1><h2 className="font-light">8th Aug - 12th Sep</h2><h2 className="font-light">Github Classroom Master Repository</h2><h3>Cohort Participants</h3></>
-          ) : (
+          ) 
+          : cohort_name == 'mb_cohort.db' ? (
+              <><h1>Mastering Bitcoin</h1><h2 className="font-light">18th Sep - 16th Oct</h2><h2 className="font-light">Github Classroom Master Repository</h2><h3>Cohort Participants</h3></>
+          )
+          : (
                <><h1>Learning Bitcoin From Command Line</h1><h2 className="font-light">30th May - 27th july</h2><h2 className="font-light">Github Classroom Master Repository</h2><h3>Cohort Participants</h3></>
           )
         }
