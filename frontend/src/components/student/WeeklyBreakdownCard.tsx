@@ -21,6 +21,10 @@ const cohort_name = localStorage.getItem('selected_cohort_db_path') || 'lbtcl_co
 export const WeeklyBreakdownCard = ({ week, studentName }: WeeklyBreakdownCardProps) => {
   const navigate = useNavigate();
   
+  // Check cohort type to determine if bonus and exercise scores should be shown
+  const cohortType = localStorage.getItem('selected_cohort');
+  const showBonusAndExerciseScores = cohortType !== 'MB';
+  
   const handleRepoLink = async () => {
     const url = await fetchStudentRepoLink(week.week, studentName, cohort_name);
     if (url) {
@@ -118,7 +122,7 @@ export const WeeklyBreakdownCard = ({ week, studentName }: WeeklyBreakdownCardPr
       </div>
 
       {/* Score Breakdown */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className={`grid grid-cols-1 gap-8 ${showBonusAndExerciseScores ? 'lg:grid-cols-3' : 'lg:grid-cols-1'}`}>
         {/* GD Scores */}
         <div className="space-y-4">
           <h4 className="text-sm font-semibold text-orange-400 uppercase tracking-wider border-b border-orange-400 pb-1">GD Scores</h4>
@@ -151,62 +155,66 @@ export const WeeklyBreakdownCard = ({ week, studentName }: WeeklyBreakdownCardPr
         </div>
 
         {/* Bonus Scores */}
-        <div className="space-y-4">
-          <h4 className="text-sm font-semibold text-orange-400 uppercase tracking-wider border-b border-orange-400 pb-1">Bonus Scores</h4>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-orange-200">Attempt</span>
-              {renderScoreBar(week.bonusScore.attempt, 5)}
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-orange-200">Quality</span>
-              {renderScoreBar(week.bonusScore.good, 5)}
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-orange-200">Follow Up</span>
-              {renderScoreBar(week.bonusScore.followUp, 5)}
-            </div>
-            <div className="pt-2 border-t border-orange-400">
+        {showBonusAndExerciseScores && (
+          <div className="space-y-4">
+            <h4 className="text-sm font-semibold text-orange-400 uppercase tracking-wider border-b border-orange-400 pb-1">Bonus Scores</h4>
+            <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-sm font-semibold text-orange-300">Bonus Total</span>
-                <span className="text-lg font-bold text-orange-300">
-                  {computeBonusTotal(week.bonusScore)}
-                </span>
+                <span className="text-sm text-orange-200">Attempt</span>
+                {renderScoreBar(week.bonusScore.attempt, 5)}
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-orange-200">Quality</span>
+                {renderScoreBar(week.bonusScore.good, 5)}
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-orange-200">Follow Up</span>
+                {renderScoreBar(week.bonusScore.followUp, 5)}
+              </div>
+              <div className="pt-2 border-t border-orange-400">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-semibold text-orange-300">Bonus Total</span>
+                  <span className="text-lg font-bold text-orange-300">
+                    {computeBonusTotal(week.bonusScore)}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Exercise Scores */}
-        <div className="space-y-4">
-          <h4 className="text-sm font-semibold text-orange-400 uppercase tracking-wider border-b border-orange-400 pb-1">Exercise Scores</h4>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-orange-200">Submitted</span>
-              {renderBooleanScore(week.exerciseScore.Submitted, 10)}
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-orange-200">Tests Pass</span>
-              {renderBooleanScore(week.exerciseScore.privateTest, 50)}
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-orange-200">Good Structure</span>
-              {renderBooleanScore(week.exerciseScore.goodStructure, 20)}
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-orange-200">Good Documentation</span>
-              {renderBooleanScore(week.exerciseScore.goodDoc, 20)}
-            </div>
-            <div className="pt-2 border-t border-orange-400">
+        {showBonusAndExerciseScores && (
+          <div className="space-y-4">
+            <h4 className="text-sm font-semibold text-orange-400 uppercase tracking-wider border-b border-orange-400 pb-1">Exercise Scores</h4>
+            <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-sm font-semibold text-orange-300">Exercise Total</span>
-                <span className="text-lg font-bold text-orange-300">
-                  {computeExerciseTotal(week.exerciseScore)}
-                </span>
+                <span className="text-sm text-orange-200">Submitted</span>
+                {renderBooleanScore(week.exerciseScore.Submitted, 10)}
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-orange-200">Tests Pass</span>
+                {renderBooleanScore(week.exerciseScore.privateTest, 50)}
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-orange-200">Good Structure</span>
+                {renderBooleanScore(week.exerciseScore.goodStructure, 20)}
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-orange-200">Good Documentation</span>
+                {renderBooleanScore(week.exerciseScore.goodDoc, 20)}
+              </div>
+              <div className="pt-2 border-t border-orange-400">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-semibold text-orange-300">Exercise Total</span>
+                  <span className="text-lg font-bold text-orange-300">
+                    {computeExerciseTotal(week.exerciseScore)}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Action Buttons */}

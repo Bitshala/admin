@@ -50,15 +50,28 @@ export const TableHeader: React.FC<TableHeaderProps> = ({
     <>
       {/* Week Selection Buttons */}
       <div className="flex gap-4 mb-4 items-center">
-        {[0, 1, 2, 3, 4, 5, 6].map(i => (
-          <button
-            key={i}
-            onClick={() => onWeekChange(i)}
-            className="cursor-pointer bg-orange-400 hover:bg-orange-500 text-white font-light text-xl px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors duration-200"
-          >
-            Week {i}
-          </button>
-        ))}
+        {(() => {
+          const cohortName = localStorage.getItem('selected_cohort') || '';
+          let weekCount = 5; // default
+          
+          if (cohortName.includes('lbtcl') || cohortName.includes('BPD')) {
+            weekCount = 7;
+          } else if (cohortName.includes('Programming Bitcoin')) {
+            weekCount = 8;
+          } else if (cohortName.includes('mb_cohort')) {
+            weekCount = 4;
+          }
+          
+          return Array.from({ length: weekCount }, (_, i) => (
+            <button
+              key={i}
+              onClick={() => onWeekChange(i)}
+              className="cursor-pointer bg-orange-400 hover:bg-orange-500 text-white font-light text-xl px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors duration-200"
+            >
+              Week {i}
+            </button>
+          ));
+        })()}
         <button
           onClick={() => navigate('/result')}
           className="cursor-pointer bg-orange-400 hover:bg-orange-500 text-white font-light text-xl px-2 py-1 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 transition-colors duration-200"

@@ -46,6 +46,7 @@ enum WEEK {
     Three,
     Four,
     Five,
+    Six,
 }
 
 impl WEEK {
@@ -56,6 +57,7 @@ impl WEEK {
             3 => Some(WEEK::Three),
             4 => Some(WEEK::Four),
             5 => Some(WEEK::Five),
+            6 => Some(WEEK::Six),
             _ => None,
         }
     }
@@ -67,10 +69,14 @@ impl WEEK {
             WEEK::Three => 831655,
             WEEK::Four => 831656,
             WEEK::Five => 831658,
+            WEEK::Six => 856052,
         }
     }
 }
 
+/// The commented out code block defines an asynchronous function named `get_classroom_info` that is
+/// intended to retrieve information about a GitHub classroom. Here is a breakdown of what the function
+/// does:
 // pub async fn get_classroom_info(
 // ) -> Result<Vec<Value>, ClassroomError> {
 //     let token = env::var("GITHUB_TOKEN")?;

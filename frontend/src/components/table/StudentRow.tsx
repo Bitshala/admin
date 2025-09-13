@@ -34,6 +34,10 @@ export const StudentRow: React.FC<StudentRowProps> = ({
 }) => {
   const scoreOptions = [0, 1, 2, 3, 4, 5];
 
+  // Check cohort type to determine if bonus and exercise scores should be shown
+  const cohortType = localStorage.getItem('selected_cohort');
+  const showBonusAndExerciseScores = cohortType !== 'MB';
+
   const handleAttendanceChange = () => {
     const newData = allData.map(p => {
       if (p.id === person.id) {
@@ -209,7 +213,7 @@ export const StudentRow: React.FC<StudentRowProps> = ({
       ))}
 
       {/* Bonus Scores */}
-      {(['attempt', 'good', 'followUp'] as const).map(key => (
+      {showBonusAndExerciseScores && (['attempt', 'good', 'followUp'] as const).map(key => (
         <td
           key={key}
           className="px-3 py-4 whitespace-nowrap text-center text-sm"
@@ -230,7 +234,7 @@ export const StudentRow: React.FC<StudentRowProps> = ({
       ))}
 
       {/* Exercise Scores */}
-      {(['Submitted', 'privateTest', 'goodStructure', 'goodDoc'] as const).map(
+      {showBonusAndExerciseScores && (['Submitted', 'privateTest', 'goodStructure', 'goodDoc'] as const).map(
         key => (
           <td
             key={key}

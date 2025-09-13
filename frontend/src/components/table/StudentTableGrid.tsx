@@ -45,6 +45,10 @@ export const StudentTableGrid: React.FC<StudentTableGridProps> = ({
         : ' 🔽'
       : '';
 
+  // Check cohort type to determine if bonus and exercise scores should be shown
+  const cohortType = localStorage.getItem('selected_cohort');
+  const showBonusAndExerciseScores = cohortType !== 'MB';
+
   return (
     <div className="shadow-lg overflow-hidden bg-zinc-900">
       <div className="overflow-x-auto">
@@ -97,20 +101,24 @@ export const StudentTableGrid: React.FC<StudentTableGridProps> = ({
               >
                 GD SCORE
               </th>
-              <th
-                scope="col"
-                colSpan={3}
-                className="px-6 py-3 text-center text-xs font-semibold hover:bg-orange-50 uppercase tracking-wider bg-orange-200 text-zinc-700 border-b border-zinc-200"
-              >
-                BONUS SCORE
-              </th>
-              <th
-                scope="col"
-                colSpan={4}
-                className="px-6 py-3 text-center text-xs font-semibold hover:bg-orange-50 text-orange-700 uppercase tracking-wider bg-orange-200 text-zinc-700 border-b border-zinc-200"
-              >
-                EXERCISE SCORES
-              </th>
+              {showBonusAndExerciseScores && (
+                <th
+                  scope="col"
+                  colSpan={3}
+                  className="px-6 py-3 text-center text-xs font-semibold hover:bg-orange-50 uppercase tracking-wider bg-orange-200 text-zinc-700 border-b border-zinc-200"
+                >
+                  BONUS SCORE
+                </th>
+              )}
+              {showBonusAndExerciseScores && (
+                <th
+                  scope="col"
+                  colSpan={4}
+                  className="px-6 py-3 text-center text-xs font-semibold hover:bg-orange-50 text-orange-700 uppercase tracking-wider bg-orange-200 text-zinc-700 border-b border-zinc-200"
+                >
+                  EXERCISE SCORES
+                </th>
+              )}
               <th
                 scope="col"
                 rowSpan={2}
@@ -133,27 +141,41 @@ export const StudentTableGrid: React.FC<StudentTableGridProps> = ({
               <th className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-100 border-b border-zinc-200">
                 Engagement
               </th>
-              <th className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-100 border-b border-zinc-200">
-                Attempt
-              </th>
-              <th className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-100 border-b border-zinc-200">
-                Good
-              </th>
-              <th className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-100 border-b border-zinc-200">
-                Follow Up
-              </th>
-              <th className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-100 border-b border-zinc-200">
-                Submitted
-              </th>
-              <th className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-100 border-b border-zinc-200">
-                Github Test
-              </th>
-              <th className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-100 border-b border-zinc-200">
-                Good Structure
-              </th>
-              <th className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-100 border-b border-zinc-200">
-                Good doc
-              </th>
+              {showBonusAndExerciseScores && (
+                <th className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-100 border-b border-zinc-200">
+                  Attempt
+                </th>
+              )}
+              {showBonusAndExerciseScores && (
+                <th className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-100 border-b border-zinc-200">
+                  Good
+                </th>
+              )}
+              {showBonusAndExerciseScores && (
+                <th className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-100 border-b border-zinc-200">
+                  Follow Up
+                </th>
+              )}
+              {showBonusAndExerciseScores && (
+                <th className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-100 border-b border-zinc-200">
+                  Submitted
+                </th>
+              )}
+              {showBonusAndExerciseScores && (
+                <th className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-100 border-b border-zinc-200">
+                  Github Test
+                </th>
+              )}
+              {showBonusAndExerciseScores && (
+                <th className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-100 border-b border-zinc-200">
+                  Good Structure
+                </th>
+              )}
+              {showBonusAndExerciseScores && (
+                <th className="px-3 py-2 text-center text-xs font-medium text-zinc-600 uppercase tracking-wider bg-orange-100 border-b border-zinc-200">
+                  Good doc
+                </th>
+              )}
             </tr>
           </thead>
 
