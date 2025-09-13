@@ -299,16 +299,16 @@ export default function Instructions() {
             </div>
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <span className="font-medium">Week 6:</span>
-              <span className="text-sm">Chapters 8 and 9 – 
-                <a href="#" className="text-blue-600 hover:underline ml-1">P2SH</a> and{' '}
-                <a href="#" className="text-blue-600 hover:underline ml-1">Blocks</a>
+              <span className="text-sm">Chapters 10 and 11 – 
+                <a href="#" className="text-blue-600 hover:underline ml-1">Networking</a> and{' '}
+                <a href="#" className="text-blue-600 hover:underline ml-1">Simplified Payment Verification</a>
               </span>
             </div>
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <span className="font-medium">Week 7:</span>
-              <span className="text-sm">Chapters 10 and 11 – 
-                <a href="#" className="text-blue-600 hover:underline ml-1">Networking</a> and{' '}
-                <a href="#" className="text-blue-600 hover:underline ml-1">Simplified Payment Verification</a>
+              <span className="text-sm">Chapters 8 and 9 – 
+                <a href="#" className="text-blue-600 hover:underline ml-1">P2SH</a> and{' '}
+                <a href="#" className="text-blue-600 hover:underline ml-1">Blocks</a>
               </span>
             </div>
             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
@@ -445,6 +445,36 @@ export default function Instructions() {
               className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               📚 Week 1 Instructions
+            </a>
+            <a 
+              href="/instructions/2" 
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              📚 Week 2 Instructions
+            </a>
+            <a 
+              href="/instructions/3" 
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              📚 Week 3 Instructions
+            </a>
+            <a 
+              href="/instructions/4" 
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              📚 Week 4 Instructions
+            </a>
+            <a 
+              href="/instructions/5" 
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              📚 Week 5 Instructions
+            </a>
+            <a 
+              href="/instructions/6" 
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              📚 Week 6 Instructions
             </a>
           </div>
         </div>

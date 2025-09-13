@@ -40,6 +40,7 @@ use handlers::students::{
 use handlers::universal::switch_cohort_api;
 use utils::discord_participant_auth::discord_participant_oauth;
 use utils::discord_ta_auth::discord_ta_oauth;
+// use utils::classroom::get_classroom_info;
 
 #[actix_web::main]
 async fn main() -> Result<(), std::io::Error> {
@@ -56,6 +57,9 @@ async fn main() -> Result<(), std::io::Error> {
 
     // Start backup thread
     start_backup_thread();
+
+    // let result = get_classroom_info().await.unwrap();
+    // println!("{:#?}", result);
 
     // Initialize database state as empty - will be populated via switch_cohort_api
     let empty_table = crate::utils::types::Table { rows: Vec::new() };
