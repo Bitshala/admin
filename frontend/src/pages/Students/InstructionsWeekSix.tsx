@@ -40,7 +40,7 @@ export default function InstructionsWeekSix() {
       try {
         const parsed = JSON.parse(savedData);
         const isDataFresh = Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000;
-        
+
         if (isDataFresh && parsed.email && parsed.studentData) {
           setUserEmail(parsed.email);
           setUsername(parsed.username);
@@ -61,14 +61,14 @@ export default function InstructionsWeekSix() {
       if (response.ok) {
         const data = await response.json();
         setStudentData(data);
-        
+
         localStorage.setItem('week6_student_data', JSON.stringify({
           email,
           username,
           studentData: data,
           timestamp: Date.now()
         }));
-        
+
         console.log(data, "data res");
       } else {
         console.error('Failed to fetch student data');
@@ -83,28 +83,28 @@ export default function InstructionsWeekSix() {
   // Handle Discord callback and extract user info
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    
+
     if (params.get('auth') === 'discord') {
       const token = params.get('token');
       const role = params.get('role');
       const email = params.get('email');
       const name = params.get('username');
-      
+
       if (token && role === 'participant') {
         if (email) setUserEmail(email);
         if (name) setUsername(name);
-        
-        navigate('/instructions/6', { 
+
+        navigate('/instructions/6', {
           replace: true,
           state: { token, role, email, username: name }
         });
         return;
       }
     }
-    
+
     const email = location.state?.email || params.get('email');
     const name = location.state?.username || params.get('username');
-    
+
     if (email) {
       setUserEmail(email);
       if (studentData.length === 0) {
@@ -112,9 +112,9 @@ export default function InstructionsWeekSix() {
       }
     }
     if (name) setUsername(name);
-    
+
     if (params.has('email') || params.has('username') || params.has('token') || params.has('role')) {
-      navigate('/instructions/6', { 
+      navigate('/instructions/6', {
         replace: true,
         state: { email: email || userEmail, username: name || username }
       });
@@ -154,7 +154,7 @@ export default function InstructionsWeekSix() {
 
             {/* Navigation Back */}
             <div className="mb-6">
-              <button 
+              <button
                 onClick={() => navigate(-1)}
                 className="flex items-center space-x-2 bg-zinc-700 text-orange-300 hover:bg-zinc-600 border border-orange-300 hover:border-orange-400 p-2 transition-colors"
               >
@@ -168,7 +168,7 @@ export default function InstructionsWeekSix() {
               <h1 className="text-3xl font-bold text-orange-300 mb-4">
                 <span className="text-orange-400">[06]</span> Week 6 Instructions
               </h1>
-              
+
               {userEmail && (
                 <div className="bg-zinc-800 border border-orange-400 p-4 mb-4">
                   <div className="text-orange-300">
@@ -186,59 +186,55 @@ export default function InstructionsWeekSix() {
               </div>
             </div>
 
-            {/* Status Display */}
+            {/* Week 6 Group Assignment */}
             {week6Data && (
               <div className="mb-8 bg-zinc-800 border border-orange-400 overflow-hidden">
                 <div className="bg-zinc-700 px-4 py-3 border-b border-orange-400">
                   <h2 className="text-xl font-semibold text-orange-300">
-                    <span className="text-orange-400">[STATUS]</span> Your Week 6 Progress
+                    <span className="text-orange-400">[GROUP_ASSIGNMENT]</span> Your Week 6 Group
                   </h2>
                 </div>
                 <div className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="bg-zinc-700 border border-orange-400 p-4">
-                      <div className="text-orange-300 font-semibold mb-2">Attendance</div>
-                      <div className={`text-sm ${
-                        week6Data.attendance_status === 'present' ? 'text-green-400' : 'text-red-400'
-                      }`}>
-                        {week6Data.attendance_status === 'present' ? '✓ Present' : '✗ Absent'}
+                      <div className="text-orange-400 text-sm mb-2">GROUP_ID</div>
+                      <div className="text-xl text-orange-300 font-semibold">{week6Data.group_id}</div>
+                      <div className="mt-3">
+                        <a href="#" className="text-orange-200 hover:text-orange-300 underline text-sm">
+                          → Discord Channel
+                        </a>
                       </div>
                     </div>
                     <div className="bg-zinc-700 border border-orange-400 p-4">
-                      <div className="text-orange-300 font-semibold mb-2">Group Discussion</div>
-                      <div className="text-orange-200 text-sm">
-                        Score: {week6Data.group_discussion_score || 0}/100
-                      </div>
+                      <div className="text-orange-400 text-sm mb-2">TEACHING_ASSISTANT</div>
+                      <div className="text-xl text-orange-300 font-semibold">{week6Data.ta}</div>
                     </div>
-                    <div className="bg-zinc-700 border border-orange-400 p-4">
-                      <div className="text-orange-300 font-semibold mb-2">Exercise</div>
-                      <div className="text-orange-200 text-sm">
-                        Score: {week6Data.weekly_exercise_score || 0}/100
-                      </div>
+                  </div>
+                  <div className="mt-6 p-4 bg-zinc-700 border border-orange-400">
+                    <div className="text-orange-300">
+                      <span className="text-orange-400">REMINDER:</span> Join your assigned group discussion room on time and work with your TA during the session.
                     </div>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Learning Objectives */}
+            {/* Action Items */}
             <div className="mb-8 bg-zinc-800 border border-orange-400 overflow-hidden">
               <div className="bg-zinc-700 px-4 py-3 border-b border-orange-400">
                 <h2 className="text-xl font-semibold text-orange-300">
-                  <span className="text-orange-400">[OBJECTIVES]</span> This Week's Learning Goals
+                  <span className="text-orange-400">[ACTION_ITEMS]</span> Your Tasks
                 </h2>
               </div>
               <div className="p-6">
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {[
-                    'Understand Bitcoin network message structure and handshake process',
-                    'Analyze different network message payloads and their purposes',
-                    'Compare timestamp formats used in version messages vs block headers',
-                    'Identify major network messages and their relative sizes',
-                    'Define Simplified Payment Verification (SPV) and its applications',
-                    'Understand Merkle tree fundamentals and derivation process',
-                    'Analyze provability benefits and Bitcoin protocol integration',
-                    'Explain block data integration with Merkle trees'
+                    "Read Chapter 10 (Networking) and Chapter 11 (SPV) from the GitHub repository",
+                    "Review the assigned group, chapter(s), and question(s) provided below",
+                    "Join the assigned Group Discussion room on time",
+                    "Introduce yourself and answer the assigned questions during group discussion",
+                    "Return to the main hall to conclude with all participants",
+                    "Complete and submit the weekly exercise"
                   ].map((item, index) => (
                     <div key={index} className="flex items-start space-x-4">
                       <div className="text-orange-400 font-mono">
@@ -259,136 +255,69 @@ export default function InstructionsWeekSix() {
                 </h2>
               </div>
               <div className="p-6">
-                <div className="space-y-6">
-                  <div className="bg-zinc-700 border border-orange-400 p-4">
-                    <h3 className="text-orange-300 font-semibold mb-2">Chapter 10: Networking</h3>
-                    <div className="space-y-2 text-sm">
-                      <div>
-                        <span className="text-orange-400">📖 Read:</span>{' '}
-                        <a href="https://github.com/jimmysong/programmingbitcoin/blob/master/ch10.asciidoc" 
-                           className="text-blue-400 hover:text-blue-300 underline" 
-                           target="_blank" 
-                           rel="noopener noreferrer">
-                          Chapter 10 - Networking
-                        </a>
-                      </div>
-                      <div className="text-orange-200">
-                        Focus on: Network message structure, handshake process, payload formats, and timestamp analysis
-                      </div>
+                <div className="bg-zinc-700 border border-orange-400 p-4">
+                  <h3 className="text-orange-300 font-semibold mb-4">Week 6: Chapters 10 and 11 – Networking and SPV</h3>
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <a href="https://github.com/jimmysong/programmingbitcoin/blob/master/ch10.asciidoc"
+                         className="text-orange-200 hover:text-orange-300 underline">
+                        → Chapter 10: Networking
+                      </a>
                     </div>
-                  </div>
-
-                  <div className="bg-zinc-700 border border-orange-400 p-4">
-                    <h3 className="text-orange-300 font-semibold mb-2">Chapter 11: Simplified Payment Verification (SPV)</h3>
-                    <div className="space-y-2 text-sm">
-                      <div>
-                        <span className="text-orange-400">📖 Read:</span>{' '}
-                        <a href="https://github.com/jimmysong/programmingbitcoin/blob/master/ch11.asciidoc" 
-                           className="text-blue-400 hover:text-blue-300 underline" 
-                           target="_blank" 
-                           rel="noopener noreferrer">
-                          Chapter 11 - Simplified Payment Verification
-                        </a>
-                      </div>
-                      <div className="text-orange-200">
-                        Focus on: SPV definition and utility, Merkle trees, provability benefits, and block data integration
-                      </div>
+                    <div>
+                      <a href="https://github.com/jimmysong/programmingbitcoin/blob/master/ch11.asciidoc"
+                         className="text-orange-200 hover:text-orange-300 underline">
+                        → Chapter 11: Simplified Payment Verification
+                      </a>
+                    </div>
+                    <div>
+                      <a href="https://github.com/jimmysong/programmingbitcoin/tree/master/code-ch10"
+                         className="text-orange-200 hover:text-orange-300 underline">
+                        → Chapter 10 Code
+                      </a>
+                    </div>
+                    <div>
+                      <a href="https://github.com/jimmysong/programmingbitcoin/tree/master/code-ch11"
+                         className="text-orange-200 hover:text-orange-300 underline">
+                        → Chapter 11 Code
+                      </a>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Study Topics */}
+            {/* Questions */}
             <div className="mb-8 bg-zinc-800 border border-orange-400 overflow-hidden">
               <div className="bg-zinc-700 px-4 py-3 border-b border-orange-400">
                 <h2 className="text-xl font-semibold text-orange-300">
-                  <span className="text-orange-400">[TOPICS]</span> Key Study Areas
+                  <span className="text-orange-400">[QUESTIONS]</span> Discussion Topics
                 </h2>
               </div>
-              <div className="p-6">
-                <div className="space-y-6">
-                  <div className="bg-zinc-700 border border-orange-400 p-4">
-                    <h3 className="text-orange-300 font-semibold mb-3">1. Transaction Message Structure</h3>
-                    <div className="text-orange-200 text-sm space-y-2">
-                      <p>• Understand the structure of a tx message and its components</p>
-                      <p>• Analyze the significance of each field in transaction messages</p>
-                      <p>• Study how transactions are serialized for network transmission</p>
-                    </div>
-                  </div>
+              <div className="p-6 space-y-6">
+                <div className="bg-zinc-700 border border-orange-400 p-4">
+                  <h3 className="text-orange-300 font-semibold mb-3">
+                    <span className="text-orange-400">[ROUND_1]</span> Networking Questions
+                  </h3>
+                  <ul className="space-y-3 text-orange-200 text-sm">
+                    <li>• Describe the structure of a tx message. What do the fields imply?</li>
+                    <li>• Describe the process of network handshake. What information is propagated in the handshake message? Why is this information needed to establish a connection?</li>
+                    <li>• Every network message has a different payload structure. You can refer to this link for a comprehensive list. Explain the payload structure in the getheaders message.</li>
+                    <li>• Why is the parsed timestamp field from a version message 8 bytes (as opposed to 4 bytes in the block header)?</li>
+                    <li>• What are the major network messages a node communicates among them? What is the biggest and the smallest network message?</li>
+                  </ul>
+                </div>
 
-                  <div className="bg-zinc-700 border border-orange-400 p-4">
-                    <h3 className="text-orange-300 font-semibold mb-3">2. Network Handshake Process</h3>
-                    <div className="text-orange-200 text-sm space-y-2">
-                      <p>• Learn the network handshake procedure between Bitcoin nodes</p>
-                      <p>• Identify information propagated in handshake messages</p>
-                      <p>• Understand why this information is essential for establishing connections</p>
-                    </div>
-                  </div>
-
-                  <div className="bg-zinc-700 border border-orange-400 p-4">
-                    <h3 className="text-orange-300 font-semibold mb-3">3. Network Message Payloads</h3>
-                    <div className="text-orange-200 text-sm space-y-2">
-                      <p>• Analyze different payload structures (reference: <a href="https://classroom.github.com/a/UoMbTvKv" className="text-blue-400 hover:text-blue-300 underline" target="_blank" rel="noopener noreferrer">assignment repository</a>)</p>
-                      <p>• Specifically study the payload structure of getheaders messages</p>
-                      <p>• Compare various message types and their data formats</p>
-                    </div>
-                  </div>
-
-                  <div className="bg-zinc-700 border border-orange-400 p-4">
-                    <h3 className="text-orange-300 font-semibold mb-3">4. Timestamp Analysis</h3>
-                    <div className="text-orange-200 text-sm space-y-2">
-                      <p>• Compare timestamp formats used in different contexts</p>
-                      <p>• Understand why version messages use 8-byte timestamps</p>
-                      <p>• Analyze why block headers use 4-byte timestamps</p>
-                      <p>• Study the implications of these design choices</p>
-                    </div>
-                  </div>
-
-                  <div className="bg-zinc-700 border border-orange-400 p-4">
-                    <h3 className="text-orange-300 font-semibold mb-3">5. Network Communication</h3>
-                    <div className="text-orange-200 text-sm space-y-2">
-                      <p>• Identify major network messages exchanged between nodes</p>
-                      <p>• Determine the largest and smallest network messages</p>
-                      <p>• Understand the purpose and frequency of different message types</p>
-                    </div>
-                  </div>
-
-                  <div className="bg-zinc-700 border border-orange-400 p-4">
-                    <h3 className="text-orange-300 font-semibold mb-3">6. Simplified Payment Verification (SPV)</h3>
-                    <div className="text-orange-200 text-sm space-y-2">
-                      <p>• Define SPV and explain its utility in Bitcoin</p>
-                      <p>• Provide examples of real-world mobile applications using SPV</p>
-                      <p>• Understand the trade-offs between SPV and full node validation</p>
-                    </div>
-                  </div>
-
-                  <div className="bg-zinc-700 border border-orange-400 p-4">
-                    <h3 className="text-orange-300 font-semibold mb-3">7. Merkle Tree Fundamentals</h3>
-                    <div className="text-orange-200 text-sm space-y-2">
-                      <p>• Explain what a Merkle tree is and its properties</p>
-                      <p>• Describe the process of deriving a Merkle root from leaf nodes</p>
-                      <p>• Understand the mathematical foundation of Merkle trees</p>
-                    </div>
-                  </div>
-
-                  <div className="bg-zinc-700 border border-orange-400 p-4">
-                    <h3 className="text-orange-300 font-semibold mb-3">8. Merkle Tree Applications</h3>
-                    <div className="text-orange-200 text-sm space-y-2">
-                      <p>• Analyze the provability benefits of Merkle trees</p>
-                      <p>• Identify where Merkle trees are used in the Bitcoin protocol</p>
-                      <p>• Understand how Merkle proofs enable efficient verification</p>
-                    </div>
-                  </div>
-
-                  <div className="bg-zinc-700 border border-orange-400 p-4">
-                    <h3 className="text-orange-300 font-semibold mb-3">9. Block Data Integration</h3>
-                    <div className="text-orange-200 text-sm space-y-2">
-                      <p>• Explain how Merkle tree data is incorporated into blocks</p>
-                      <p>• Describe how nodes utilize this data for verification</p>
-                      <p>• Understand the relationship between block headers and Merkle roots</p>
-                    </div>
-                  </div>
+                <div className="bg-zinc-700 border border-orange-400 p-4">
+                  <h3 className="text-orange-300 font-semibold mb-3">
+                    <span className="text-orange-400">[ROUND_2]</span> SPV and Merkle Trees
+                  </h3>
+                  <ul className="space-y-3 text-orange-200 text-sm">
+                    <li>• What is an SPV? Why is it useful? Do you know any real-life mobile app that uses SPV inside?</li>
+                    <li>• What is a Merkle tree? Describe the process of finding the merkle root from a set of leaves.</li>
+                    <li>• What does the Merkle tree data structure achieve in terms of provability? What parts of the Bitcoin protocol is it used?</li>
+                    <li>• How is the Merkle tree data included in a block? What does a node use this data for?</li>
+                  </ul>
                 </div>
               </div>
             </div>
@@ -403,39 +332,22 @@ export default function InstructionsWeekSix() {
               <div className="p-6">
                 <div className="bg-zinc-700 border border-orange-400 p-4 mb-4">
                   <div className="text-orange-300 font-semibold mb-2">Assignment Repository</div>
-                  <div className="text-orange-200 text-sm">
-                    <span className="text-orange-400">🔗 GitHub Classroom:</span>{' '}
-                    <a href="https://classroom.github.com/a/UoMbTvKv" 
-                       className="text-blue-400 hover:text-blue-300 underline" 
-                       target="_blank" 
-                       rel="noopener noreferrer">
-                      Week 6 - Networking and SPV Assignment
-                    </a>
+                  <a href="https://classroom.github.com/a/UoMbTvKv"
+                     className="text-orange-200 hover:text-orange-300 underline">
+                    → https://classroom.github.com/a/UoMbTvKv
+                  </a>
+                </div>
+
+                <div className="bg-zinc-700 border border-orange-400 p-4 mb-4">
+                  <div className="text-orange-400 text-sm mb-3">SETUP_INSTRUCTIONS:</div>
+                  <div className="space-y-2 text-orange-200 text-sm">
+                    <div><span className="text-orange-400">[1]</span> Install Python 3.5+</div>
+                    <div><span className="text-orange-400">[2]</span> git clone https://github.com/jimmysong/programmingbitcoin</div>
+                    <div><span className="text-orange-400">[3]</span> pip install -r requirements.txt</div>
+                    <div><span className="text-orange-400">[4]</span> Run Jupyter Notebook</div>
                   </div>
                 </div>
-                
-                <div className="space-y-4">
-                  <div className="bg-zinc-700 border border-orange-400 p-4">
-                    <div className="text-orange-300 font-semibold mb-2">Assignment Focus</div>
-                    <div className="text-orange-200 text-sm space-y-1">
-                      <p>• Implement network message parsing and construction</p>
-                      <p>• Build SPV client functionality</p>
-                      <p>• Create Merkle tree verification algorithms</p>
-                      <p>• Analyze network message payloads and structures</p>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-zinc-700 border border-orange-400 p-4">
-                    <div className="text-orange-300 font-semibold mb-2">Submission Guidelines</div>
-                    <div className="text-orange-200 text-sm space-y-1">
-                      <p>• Complete all exercises in the GitHub repository</p>
-                      <p>• Ensure your code passes all provided tests</p>
-                      <p>• Submit by the cohort end date plus two weeks</p>
-                      <p>• Code will be reviewed and graded by TAs based on quality and correctness</p>
-                    </div>
-                  </div>
-                </div>
-                
+
                 <div className="bg-zinc-700 border border-orange-400 p-4">
                   <div className="text-orange-300">
                     <span className="text-orange-400">HELP:</span> For any questions about the exercise, ask in the <span className="font-semibold">#dev-help</span> Discord channel.
@@ -449,4 +361,4 @@ export default function InstructionsWeekSix() {
       </div>
     </div>
   );
- }
+}
