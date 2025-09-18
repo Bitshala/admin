@@ -25,6 +25,7 @@ import InstructionsWeekThree from './pages/Students/InstructionsWeekThree.tsx';
 import InstructionsWeekFour from './pages/Students/InstructionsWeekFour.tsx';
 import InstructionsWeekFive from './pages/Students/InstructionsWeekFive.tsx';
 import InstructionsWeekSix from './pages/Students/InstructionsWeekSix.tsx';
+import InstructionsWeekSeven from './pages/Students/InstructionsWeekSeven.tsx';
 
 const router = createBrowserRouter([
   {
@@ -48,6 +49,7 @@ const router = createBrowserRouter([
     element: <ProtectedRoute element={<ResultPage />} />,
   },
     {
+
     path: '/feedback',
     element: <ProtectedRoute element={<FeedbackTable />} />,
   },
@@ -78,6 +80,10 @@ const router = createBrowserRouter([
   {
     path: '/instructions/6',
     element: <InstructionsWeekSix />,
+  },
+  {
+    path: '/instructions/7',
+    element: <InstructionsWeekSeven />,
   },
   
   {
